@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import './App.css';
 import { db } from './firebase';
-import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
+import { auth, googleProvider } from './firebase';
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged 
+} from 'firebase/auth';
+
 
 // Icon Components
 const Home = ({ size = 24, color = "currentColor" }) => (
@@ -180,6 +189,21 @@ const PropertyIcon = ({ size = 80, color = "currentColor" }) => (
   </svg>
 );
 
+const LogOut = ({ size = 24, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+    <polyline points="16 17 21 12 16 7"/>
+    <line x1="21" y1="12" x2="9" y2="12"/>
+  </svg>
+);
+
+const Lock = ({ size = 24, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+  </svg>
+);
+
 // Sidebar Component
 const Sidebar = ({ activeTab, setActiveTab }) => {
   const navItems = [
@@ -252,12 +276,29 @@ const TopBar = ({ title }) => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Bell size={18} color="#888888" style={{ cursor: 'pointer' }} />
-        <div className="user-profile">
+       <Bell size={18} color="#888888" style={{ cursor: 'pointer' }} />
+        <div className="user-profile" style={{ position: 'relative' }}>
           <div className="user-avatar">
             <User size={16} color="#00ff88" />
           </div>
-          <span>Admin</span>
+          <span>{auth.currentUser?.email || 'Admin'}</span>
+          <button
+            onClick={() => signOut(auth)}
+            style={{
+              background: 'transparent',
+              border: '1px solid #1a1a1a',
+              borderRadius: '4px',
+              padding: '6px 12px',
+              marginLeft: '10px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+            title="Sign Out"
+          >
+            <LogOut size={14} color="#888888" />
+          </button>
         </div>
       </div>
     </div>
@@ -426,8 +467,12 @@ const ContactsPage = ({ contactType = 'buyer', editContactId = null }) => {
   const loadContacts = async () => {
     try {
       const querySnapshot = await getDocs(
-        query(collection(db, 'contacts'), orderBy('createdAt', 'desc'))
-      );
+  query(
+    collection(db, 'contacts'), 
+    where('userId', '==', auth.currentUser.uid),
+    orderBy('createdAt', 'desc')
+  )
+);
       
       const contactsData = [];
       querySnapshot.forEach((doc) => {
@@ -445,53 +490,55 @@ const ContactsPage = ({ contactType = 'buyer', editContactId = null }) => {
     }
   };
 
-  const handleSaveContact = async () => {
-    if (!formData.firstName || !formData.lastName || !formData.phone || !formData.email) {
-      alert('Please fill in all required fields');
-      return;
-    }
+const handleSaveContact = async () => {
+  if (!formData.firstName || !formData.lastName || !formData.phone || !formData.email) {
+    alert('Please fill in all required fields');
+    return;
+  }
 
-    setSaving(true);
-    
-    try {
-      if (editingId) {
-        // Update existing contact
-        await updateDoc(doc(db, 'contacts', editingId), {
-          ...formData,
-          contactType: selectedContactType,
-          updatedAt: new Date().toISOString()
-        });
-        alert('Contact updated successfully!');
-        setEditingId(null);
-      } else {
-        // Create new contact
-        await addDoc(collection(db, 'contacts'), {
-          ...formData,
-          contactType: selectedContactType,
-          createdAt: new Date().toISOString()
-        });
-        alert('Contact saved successfully!');
-      }
-      
-      // Reset form
-      setFormData({
-        firstName: '', 
-        lastName: '', 
-        phone: '', 
-        email: '', 
-        buyerType: '', 
-        activelyBuying: false 
+  setSaving(true);
+  
+  try {
+    if (editingId) {
+      // Update existing contact
+      await updateDoc(doc(db, 'contacts', editingId), {
+        ...formData,
+        contactType: selectedContactType,
+        userId: auth.currentUser.uid,
+        updatedAt: new Date().toISOString()
       });
-      
-      // Reload contacts
-      loadContacts();
-    } catch (error) {
-      console.error('Error saving contact:', error);
-      alert('Error saving contact. Check console.');
-    } finally {
-      setSaving(false);
+      alert('Contact updated successfully!');
+      setEditingId(null);
+    } else {
+      // Create new contact
+      await addDoc(collection(db, 'contacts'), {
+        ...formData,
+        contactType: selectedContactType,
+        userId: auth.currentUser.uid,
+        createdAt: new Date().toISOString()
+      });
+      alert('Contact saved successfully!');
     }
-  };
+    
+    // Reset form
+    setFormData({
+      firstName: '', 
+      lastName: '', 
+      phone: '', 
+      email: '', 
+      buyerType: '', 
+      activelyBuying: false 
+    });
+    
+    // Reload contacts
+    loadContacts();
+  } catch (error) {
+    console.error('Error saving contact:', error);
+    alert('Error saving contact. Check console.');
+  } finally {
+    setSaving(false);
+  }
+};
 
   const handleDeleteContact = async (contactId) => {
     if (!window.confirm('Are you sure you want to delete this contact?')) {
@@ -779,8 +826,12 @@ const BuyersListPage = () => {
     const loadBuyers = async () => {
       try {
         const querySnapshot = await getDocs(
-          query(collection(db, 'contacts'), orderBy('createdAt', 'desc'))
-        );
+  query(
+    collection(db, 'contacts'),
+    where('userId', '==', auth.currentUser.uid),
+    orderBy('createdAt', 'desc')
+  )
+);
         
         const buyersData = [];
         querySnapshot.forEach((doc) => {
@@ -948,7 +999,12 @@ const NewDealPage = () => {
   React.useEffect(() => {
     const loadContacts = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, 'contacts'));
+        const querySnapshot = await getDocs(
+  query(
+    collection(db, 'contacts'),
+    where('userId', '==', auth.currentUser.uid)
+  )
+);
         const contactsData = [];
         querySnapshot.forEach((doc) => {
           contactsData.push({
@@ -979,14 +1035,15 @@ const NewDealPage = () => {
       const seller = contacts.find(c => c.id === dealData.seller);
       
       await addDoc(collection(db, 'deals'), {
-        buyerId: dealData.buyer,
-        buyerName: `${buyer.firstName} ${buyer.lastName}`,
-        sellerId: dealData.seller,
-        sellerName: `${seller.firstName} ${seller.lastName}`,
-        propertyAddress: dealData.property,
-        status: 'new',
-        createdAt: new Date().toISOString()
-      });
+  buyerId: dealData.buyer,
+  buyerName: `${buyer.firstName} ${buyer.lastName}`,
+  sellerId: dealData.seller,
+  sellerName: `${seller.firstName} ${seller.lastName}`,
+  propertyAddress: dealData.property,
+  status: 'new',
+  userId: auth.currentUser.uid,
+  createdAt: new Date().toISOString()
+});
       
       alert('Deal created successfully!');
       
@@ -1458,6 +1515,483 @@ const NewDealPage = () => {
   );
 };
 
+// LOGIN PAGE
+const LoginPage = ({ onLoginSuccess }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignup, setIsSignup] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleEmailAuth = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      if (isSignup) {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+      onLoginSuccess();
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      await signInWithPopup(auth, googleProvider);
+      onLoginSuccess();
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      background: '#000000',
+      padding: '20px'
+    }}>
+      <div style={{
+        background: '#0a0a0a',
+        border: '2px solid #1a1a1a',
+        borderRadius: '8px',
+        padding: '40px',
+        maxWidth: '450px',
+        width: '100%'
+      }}>
+        <div style={{
+          textAlign: 'center',
+          marginBottom: '30px'
+        }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            background: '#00ff88',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '8px',
+            fontSize: '28px',
+            fontWeight: '700',
+            color: '#000000',
+            margin: '0 auto 20px'
+          }}>R</div>
+          <h1 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            color: '#ffffff',
+            marginBottom: '8px',
+            letterSpacing: '-0.5px'
+          }}>
+            {isSignup ? 'Create Account' : 'Welcome Back'}
+          </h1>
+          <p style={{
+            fontSize: '13px',
+            color: '#666666'
+          }}>
+            {isSignup ? 'Sign up to get started' : 'Sign in to your account'}
+          </p>
+        </div>
+
+        {error && (
+          <div style={{
+            background: '#ff333315',
+            border: '1px solid #ff3333',
+            padding: '12px',
+            borderRadius: '4px',
+            marginBottom: '20px',
+            fontSize: '12px',
+            color: '#ff3333'
+          }}>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleEmailAuth}>
+          <div className="form-field" style={{ marginBottom: '15px' }}>
+            <label>Email</label>
+            <input
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-field" style={{ marginBottom: '20px' }}>
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary"
+            style={{
+              width: '100%',
+              marginBottom: '15px'
+            }}
+          >
+            {loading ? 'Loading...' : isSignup ? 'Sign Up' : 'Sign In'}
+          </button>
+        </form>
+
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          margin: '20px 0',
+          color: '#666666',
+          fontSize: '12px'
+        }}>
+          <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }}></div>
+          <span>OR</span>
+          <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }}></div>
+        </div>
+
+        <button
+          onClick={handleGoogleAuth}
+          disabled={loading}
+          style={{
+            width: '100%',
+            background: '#ffffff',
+            color: '#000000',
+            border: 'none',
+            padding: '12px',
+            fontSize: '13px',
+            fontWeight: '600',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18">
+            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+            <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <div style={{
+          textAlign: 'center',
+          fontSize: '13px',
+          color: '#888888'
+        }}>
+          {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
+          <span
+            onClick={() => setIsSignup(!isSignup)}
+            style={{
+              color: '#00ff88',
+              cursor: 'pointer',
+              fontWeight: '600'
+            }}
+          >
+            {isSignup ? 'Sign In' : 'Sign Up'}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// COMPANY SETUP PAGE
+const CompanySetupPage = ({ user, onComplete }) => {
+  const [step, setStep] = useState('check'); // 'check', 'create', 'join'
+  const [companyName, setCompanyName] = useState('');
+  const [companyCode, setCompanyCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [userCompany, setUserCompany] = useState(null);
+
+  // Check if user already has a company
+  React.useEffect(() => {
+    const checkUserCompany = async () => {
+      try {
+        const userDoc = await getDocs(
+          query(collection(db, 'users'), where('userId', '==', user.uid))
+        );
+        
+        if (!userDoc.empty) {
+          const userData = userDoc.docs[0].data();
+          if (userData.companyId) {
+            setUserCompany(userData);
+            onComplete(userData.companyId);
+            return;
+          }
+        }
+        setStep('create');
+      } catch (error) {
+        console.error('Error checking user company:', error);
+        setStep('create');
+      }
+    };
+
+    checkUserCompany();
+  }, [user, onComplete]);
+
+  const handleCreateCompany = async (e) => {
+    e.preventDefault();
+    if (!companyName.trim()) {
+      setError('Please enter a company name');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      // Generate a simple 6-digit company code
+      const newCompanyCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      // Create company document
+      const companyRef = await addDoc(collection(db, 'companies'), {
+        name: companyName,
+        code: newCompanyCode,
+        userIds: [user.uid],
+        createdBy: user.uid,
+        createdAt: new Date().toISOString()
+      });
+
+      // Create/update user document
+      await addDoc(collection(db, 'users'), {
+        userId: user.uid,
+        email: user.email,
+        companyId: companyRef.id,
+        companyName: companyName,
+        role: 'admin',
+        joinedAt: new Date().toISOString()
+      });
+
+      alert(`Company created! Your company code is: ${newCompanyCode}\nShare this with your team members.`);
+      onComplete(companyRef.id);
+    } catch (error) {
+      console.error('Error creating company:', error);
+      setError('Error creating company. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleJoinCompany = async (e) => {
+    e.preventDefault();
+    if (!companyCode.trim()) {
+      setError('Please enter a company code');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      // Find company by code
+      const companyQuery = await getDocs(
+        query(collection(db, 'companies'), where('code', '==', companyCode.toUpperCase()))
+      );
+
+      if (companyQuery.empty) {
+        setError('Company code not found. Please check and try again.');
+        setLoading(false);
+        return;
+      }
+
+      const companyDoc = companyQuery.docs[0];
+      const companyData = companyDoc.data();
+
+      // Add user to company
+      await updateDoc(doc(db, 'companies', companyDoc.id), {
+        userIds: [...companyData.userIds, user.uid]
+      });
+
+      // Create user document
+      await addDoc(collection(db, 'users'), {
+        userId: user.uid,
+        email: user.email,
+        companyId: companyDoc.id,
+        companyName: companyData.name,
+        role: 'agent',
+        joinedAt: new Date().toISOString()
+      });
+
+      alert(`Successfully joined ${companyData.name}!`);
+      onComplete(companyDoc.id);
+    } catch (error) {
+      console.error('Error joining company:', error);
+      setError('Error joining company. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (step === 'check') {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: '#000000',
+        color: '#00ff88',
+        fontSize: '18px'
+      }}>
+        Loading...
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      background: '#000000',
+      padding: '20px'
+    }}>
+      <div style={{
+        background: '#0a0a0a',
+        border: '2px solid #1a1a1a',
+        borderRadius: '8px',
+        padding: '40px',
+        maxWidth: '500px',
+        width: '100%'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            background: '#00ff88',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '8px',
+            fontSize: '28px',
+            fontWeight: '700',
+            color: '#000000',
+            margin: '0 auto 20px'
+          }}>R</div>
+          <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', marginBottom: '8px' }}>
+            {step === 'create' ? 'Create Your Company' : 'Join a Company'}
+          </h1>
+          <p style={{ fontSize: '13px', color: '#666666' }}>
+            {step === 'create' ? 'Set up your company to start managing deals' : 'Enter your company code to join'}
+          </p>
+        </div>
+
+        {error && (
+          <div style={{
+            background: '#ff333315',
+            border: '1px solid #ff3333',
+            padding: '12px',
+            borderRadius: '4px',
+            marginBottom: '20px',
+            fontSize: '12px',
+            color: '#ff3333'
+          }}>
+            {error}
+          </div>
+        )}
+
+        {step === 'create' ? (
+          <form onSubmit={handleCreateCompany}>
+            <div className="form-field" style={{ marginBottom: '20px' }}>
+              <label>Company Name *</label>
+              <input
+                type="text"
+                placeholder="e.g., Smith Real Estate"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                required
+                autoFocus
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary"
+              style={{ width: '100%', marginBottom: '15px' }}
+            >
+              {loading ? 'Creating...' : 'Create Company'}
+            </button>
+
+            <div style={{ textAlign: 'center', fontSize: '13px', color: '#888888' }}>
+              Already have a company code?{' '}
+              <span
+                onClick={() => setStep('join')}
+                style={{ color: '#00ff88', cursor: 'pointer', fontWeight: '600' }}
+              >
+                Join Company
+              </span>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleJoinCompany}>
+            <div className="form-field" style={{ marginBottom: '20px' }}>
+              <label>Company Code *</label>
+              <input
+                type="text"
+                placeholder="e.g., ABC123"
+                value={companyCode}
+                onChange={(e) => setCompanyCode(e.target.value.toUpperCase())}
+                required
+                autoFocus
+                style={{ textTransform: 'uppercase' }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary"
+              style={{ width: '100%', marginBottom: '15px' }}
+            >
+              {loading ? 'Joining...' : 'Join Company'}
+            </button>
+
+            <div style={{ textAlign: 'center', fontSize: '13px', color: '#888888' }}>
+              Don't have a code?{' '}
+              <span
+                onClick={() => setStep('create')}
+                style={{ color: '#00ff88', cursor: 'pointer', fontWeight: '600' }}
+              >
+                Create Company
+              </span>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // DEALS PAGE with sub-nav
 const DealsPage = ({ subTab, setSubTab }) => {
   return (
@@ -1499,15 +2033,77 @@ const DealsPage = ({ subTab, setSubTab }) => {
 
 // Main App Component
 function App() {
-    const [activeTab, setActiveTab] = useState('home');
-    const [buyersSubTab, setBuyersSubTab] = useState('list');
-    const [dealsSubTab, setDealsSubTab] = useState('new');
-    const [contactType, setContactType] = useState('buyer');
+  const [activeTab, setActiveTab] = useState('home');
+  const [buyersSubTab, setBuyersSubTab] = useState('list');
+  const [dealsSubTab, setDealsSubTab] = useState('new');
+  const [contactType, setContactType] = useState('buyer');
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [companyId, setCompanyId] = useState(null);
+
+  // Check auth state
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      
+      if (currentUser) {
+        // Check if user has a company
+        try {
+          const userQuery = await getDocs(
+            query(collection(db, 'users'), where('userId', '==', currentUser.uid))
+          );
+          
+          if (!userQuery.empty) {
+            const userData = userQuery.docs[0].data();
+            setCompanyId(userData.companyId);
+          }
+        } catch (error) {
+          console.error('Error loading user data:', error);
+        }
+      }
+      
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleNavigateToContacts = (type) => {
     setContactType(type);
     setActiveTab('contacts');
   };
+
+  const handleCompanySetup = (newCompanyId) => {
+    setCompanyId(newCompanyId);
+  };
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        background: '#000000',
+        color: '#00ff88',
+        fontSize: '18px',
+        fontFamily: 'IBM Plex Mono, monospace'
+      }}>
+        Loading...
+      </div>
+    );
+  }
+
+  // Show login if not authenticated
+  if (!user) {
+    return <LoginPage onLoginSuccess={() => setUser(auth.currentUser)} />;
+  }
+
+  // Show company setup if no company
+  if (!companyId) {
+    return <CompanySetupPage user={user} onComplete={handleCompanySetup} />;
+  }
 
   return (
     <div className="App">
@@ -1515,9 +2111,9 @@ function App() {
       <div className="main-container">
         <TopBar title={activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} />
         {activeTab === 'home' && <HomePage onNavigateToContacts={handleNavigateToContacts} />}
-        {activeTab === 'contacts' && <ContactsPage contactType={contactType} />}
-        {activeTab === 'buyers' && <BuyersPage subTab={buyersSubTab} setSubTab={setBuyersSubTab} onNavigateToContacts={handleNavigateToContacts} />}
-        {activeTab === 'deals' && <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} />}
+        {activeTab === 'contacts' && <ContactsPage contactType={contactType} companyId={companyId} />}
+        {activeTab === 'buyers' && <BuyersPage subTab={buyersSubTab} setSubTab={setBuyersSubTab} onNavigateToContacts={handleNavigateToContacts} companyId={companyId} />}
+        {activeTab === 'deals' && <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} companyId={companyId} />}
         {!['home', 'contacts', 'buyers', 'deals'].includes(activeTab) && (
           <div className="placeholder">
             <div className="placeholder-icon">🚧</div>
