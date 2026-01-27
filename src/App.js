@@ -987,7 +987,6 @@ const NewDealPage = () => {
     property: ''
   });
   const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showBuyerModal, setShowBuyerModal] = useState(false);
   const [showSellerModal, setShowSellerModal] = useState(false);
@@ -1016,10 +1015,8 @@ const querySnapshot = isAdmin
           });
         });
         setContacts(contactsData);
-        setLoading(false);
       } catch (error) {
         console.error('Error loading contacts:', error);
-        setLoading(false);
       }
     };
     loadContacts();
