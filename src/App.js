@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import { db } from './firebase';
+import DealsDashboard from './components/DealsDashboard';
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { auth, googleProvider } from './firebase';
 import { 
@@ -2020,12 +2021,17 @@ const DealsPage = ({ subTab, setSubTab }) => {
       </div>
       <div className="subnav-content">
         {subTab === 'new' && <NewDealPage />}
-        {subTab !== 'new' && (
+        {subTab === 'dashboard' && <DealsDashboard />}
+        {subTab === 'active' && (
           <div className="placeholder">
-            <div className="placeholder-icon">
-              {subTab === 'dashboard' ? '📊' : subTab === 'active' ? '📋' : '✅'}
-            </div>
-            <div>{subTab.charAt(0).toUpperCase() + subTab.slice(1)} coming soon</div>
+            <div className="placeholder-icon">📋</div>
+            <div>Active Deals coming soon</div>
+          </div>
+        )}
+        {subTab === 'closed' && (
+          <div className="placeholder">
+            <div className="placeholder-icon">✅</div>
+            <div>Closed Deals coming soon</div>
           </div>
         )}
       </div>
