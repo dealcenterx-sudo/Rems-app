@@ -432,7 +432,7 @@ const ContactsPage = ({ contactType = 'buyer', editContactId = null }) => {
   });
   const [saving, setSaving] = useState(false);
   const [contacts, setContacts] = useState([]);
-  // Loading state removed from NewDealPage - contacts already has loading
+  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(editContactId);
 
   // Load contacts from Firebase
