@@ -2114,9 +2114,9 @@ function App() {
   }
 
   // Show company setup if no company
-  if (!companyId) {
-    return <CompanySetupPage user={user} onComplete={handleCompanySetup} />;
-  }
+  // if (!companyId) {
+  //   return <CompanySetupPage user={user} onComplete={handleCompanySetup} />;
+  // }
 
   return (
     <div className="App">
