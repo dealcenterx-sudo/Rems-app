@@ -466,13 +466,18 @@ const ContactsPage = ({ contactType = 'buyer', editContactId = null }) => {
 
   const loadContacts = async () => {
     try {
-      const querySnapshot = await getDocs(
-  query(
-    collection(db, 'contacts'), 
-    where('userId', '==', auth.currentUser.uid),
-    orderBy('createdAt', 'desc')
-  )
-);
+      // Admin sees all, regular users see only their data
+const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+
+const querySnapshot = isAdmin 
+  ? await getDocs(query(collection(db, 'contacts'), orderBy('createdAt', 'desc')))
+  : await getDocs(
+      query(
+        collection(db, 'contacts'), 
+        where('userId', '==', auth.currentUser.uid),
+        orderBy('createdAt', 'desc')
+      )
+    );
       
       const contactsData = [];
       querySnapshot.forEach((doc) => {
@@ -825,13 +830,17 @@ const BuyersListPage = () => {
   React.useEffect(() => {
     const loadBuyers = async () => {
       try {
-        const querySnapshot = await getDocs(
-  query(
-    collection(db, 'contacts'),
-    where('userId', '==', auth.currentUser.uid),
-    orderBy('createdAt', 'desc')
-  )
-);
+const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+
+const querySnapshot = isAdmin
+  ? await getDocs(query(collection(db, 'contacts'), orderBy('createdAt', 'desc')))
+  : await getDocs(
+      query(
+        collection(db, 'contacts'),
+        where('userId', '==', auth.currentUser.uid),
+        orderBy('createdAt', 'desc')
+      )
+    );
         
         const buyersData = [];
         querySnapshot.forEach((doc) => {
@@ -999,12 +1008,16 @@ const NewDealPage = () => {
   React.useEffect(() => {
     const loadContacts = async () => {
       try {
-        const querySnapshot = await getDocs(
-  query(
-    collection(db, 'contacts'),
-    where('userId', '==', auth.currentUser.uid)
-  )
-);
+const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+
+const querySnapshot = isAdmin
+  ? await getDocs(collection(db, 'contacts'))
+  : await getDocs(
+      query(
+        collection(db, 'contacts'),
+        where('userId', '==', auth.currentUser.uid)
+      )
+    );
         const contactsData = [];
         querySnapshot.forEach((doc) => {
           contactsData.push({
