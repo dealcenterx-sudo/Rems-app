@@ -197,12 +197,7 @@ const LogOut = ({ size = 24, color = "currentColor" }) => (
   </svg>
 );
 
-const Lock = ({ size = 24, color = "currentColor" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-  </svg>
-);
+// Unused Lock icon component removed
 
 // Sidebar Component
 const Sidebar = ({ activeTab, setActiveTab }) => {
@@ -437,7 +432,7 @@ const ContactsPage = ({ contactType = 'buyer', editContactId = null }) => {
   });
   const [saving, setSaving] = useState(false);
   const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Loading state removed from NewDealPage - contacts already has loading
   const [editingId, setEditingId] = useState(editContactId);
 
   // Load contacts from Firebase
@@ -817,12 +812,7 @@ const handleSaveContact = async () => {
 
 // BUYERS LIST PAGE
 const BuyersListPage = () => {
-  const [filters, setFilters] = useState({ 
-    activeStatus: 'all', 
-    state: '', 
-    zipcode: '', 
-    investorType: 'all' 
-  });
+  // Filters removed - not used in BuyersListPage
   const [buyers, setBuyers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -1735,13 +1725,15 @@ const LoginPage = ({ onLoginSuccess }) => {
   );
 };
 
-// COMPANY SETUP PAGE
+// COMPANY SETUP PAGE (CURRENTLY DISABLED)
+// eslint-disable-next-line no-unused-vars
 const CompanySetupPage = ({ user, onComplete }) => {
   const [step, setStep] = useState('check'); // 'check', 'create', 'join'
   const [companyName, setCompanyName] = useState('');
   const [companyCode, setCompanyCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [userCompany, setUserCompany] = useState(null);
 
   // Check if user already has a company
@@ -2086,6 +2078,7 @@ function App() {
     setActiveTab('contacts');
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleCompanySetup = (newCompanyId) => {
     setCompanyId(newCompanyId);
   };
