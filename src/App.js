@@ -4,6 +4,7 @@ import { db } from './firebase';
 import DealsDashboard from './components/DealsDashboard';
 import ActiveDealsPage from './components/ActiveDealsPage';
 import ClosedDealsPage from './components/ClosedDealsPage';
+import PropertiesPage from './components/PropertiesPage';
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { auth, googleProvider } from './firebase';
 import { 
@@ -2115,7 +2116,8 @@ function App() {
         {activeTab === 'contacts' && <ContactsPage contactType={contactType} companyId={companyId} />}
         {activeTab === 'buyers' && <BuyersPage subTab={buyersSubTab} setSubTab={setBuyersSubTab} onNavigateToContacts={handleNavigateToContacts} companyId={companyId} />}
         {activeTab === 'deals' && <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} companyId={companyId} />}
-        {!['home', 'contacts', 'buyers', 'deals'].includes(activeTab) && (
+        {activeTab === 'properties' && <PropertiesPage />}
+        {!['home', 'contacts', 'buyers', 'deals', 'properties'].includes(activeTab) && (
           <div className="placeholder">
             <div className="placeholder-icon">🚧</div>
             <div>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} page coming soon</div>
