@@ -6,6 +6,7 @@ import ActiveDealsPage from './components/ActiveDealsPage';
 import ClosedDealsPage from './components/ClosedDealsPage';
 import PropertiesPage from './components/PropertiesPage';
 import CRMDashboard from './components/CRMDashboard';
+import TasksPage from './components/TasksPage';
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { auth, googleProvider } from './firebase';
 import { 
@@ -162,6 +163,14 @@ const CheckSquare = ({ size = 24, color = "currentColor" }) => (
   </svg>
 );
 
+const ClipboardCheck = ({ size = 24, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+    <path d="m9 14 2 2 4-4"/>
+  </svg>
+);
+
 const FilePlus = ({ size = 24, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -213,6 +222,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { id: 'buyers', label: 'Buyers', icon: UserPlus },
     { id: 'deals', label: 'Deals', icon: FileText },
     { id: 'properties', label: 'Properties', icon: Building2 },
+    { id: 'tasks', label: 'Tasks', icon: ClipboardCheck },
     { id: 'websites', label: 'Websites', icon: Globe },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
@@ -2119,7 +2129,8 @@ function App() {
         {activeTab === 'deals' && <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} companyId={companyId} />}
         {activeTab === 'properties' && <PropertiesPage />}
         {activeTab === 'crm' && <CRMDashboard />}
-        {!['home', 'contacts', 'buyers', 'deals', 'properties', 'crm'].includes(activeTab) && (
+        {activeTab === 'tasks' && <TasksPage />}
+        {!['home', 'contacts', 'buyers', 'deals', 'properties', 'crm', 'tasks'].includes(activeTab) && (
           <div className="placeholder">
             <div className="placeholder-icon">🚧</div>
             <div>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} page coming soon</div>

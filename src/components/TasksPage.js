@@ -1,0 +1,791 @@
+import React, { useState, useEffect } from 'react';
+import { db, auth } from '../firebase';
+import { collection, addDoc, getDocs, query, where, orderBy, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+
+// Icons
+const PlusIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <line x1="12" y1="5" x2="12" y2="19"/>
+    <line x1="5" y1="12" x2="19" y2="12"/>
+  </svg>
+);
+
+const CheckIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+
+const XIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <line x1="18" y1="6" x2="6" y2="18"/>
+    <line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>
+);
+
+const ClockIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10"/>
+    <polyline points="12 6 12 12 16 14"/>
+  </svg>
+);
+
+const AlertIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+    <line x1="12" y1="9" x2="12" y2="13"/>
+    <line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>
+);
+
+const TASK_TYPES = [
+  { value: 'follow-up', label: 'Follow Up' },
+  { value: 'inspection', label: 'Inspection' },
+  { value: 'paperwork', label: 'Paperwork' },
+  { value: 'showing', label: 'Showing' },
+  { value: 'deadline', label: 'Deadline' },
+  { value: 'other', label: 'Other' }
+];
+
+const PRIORITIES = [
+  { value: 'high', label: 'High', color: '#ff3333' },
+  { value: 'medium', label: 'Medium', color: '#ffaa00' },
+  { value: 'low', label: 'Low', color: '#0088ff' }
+];
+
+const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    type: 'follow-up',
+    priority: 'medium',
+    dueDate: '',
+    dealId: '',
+    contactId: '',
+    propertyId: ''
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (task) {
+      setFormData({
+        title: task.title || '',
+        description: task.description || '',
+        type: task.type || 'follow-up',
+        priority: task.priority || 'medium',
+        dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
+        dealId: task.dealId || '',
+        contactId: task.contactId || '',
+        propertyId: task.propertyId || ''
+      });
+    }
+  }, [task]);
+
+  const handleSave = async () => {
+    if (!formData.title) {
+      alert('Please enter a task title');
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const taskData = {
+        title: formData.title,
+        description: formData.description,
+        type: formData.type,
+        priority: formData.priority,
+        status: task?.status || 'pending',
+        dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
+        dealId: formData.dealId || null,
+        contactId: formData.contactId || null,
+        propertyId: formData.propertyId || null,
+        userId: auth.currentUser.uid,
+        assignedTo: auth.currentUser.uid,
+        createdBy: task?.createdBy || auth.currentUser.uid,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (task) {
+        await updateDoc(doc(db, 'tasks', task.id), taskData);
+      } else {
+        taskData.createdAt = new Date().toISOString();
+        await addDoc(collection(db, 'tasks'), taskData);
+      }
+
+      onSave();
+      onClose();
+    } catch (error) {
+      console.error('Error saving task:', error);
+      alert('Failed to save task');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.9)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: '20px'
+    }}>
+      <div style={{
+        background: '#0a0a0a',
+        border: '2px solid #0088ff',
+        borderRadius: '8px',
+        padding: '30px',
+        maxWidth: '600px',
+        width: '100%',
+        maxHeight: '90vh',
+        overflowY: 'auto'
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '25px'
+        }}>
+          <h2 style={{ fontSize: '20px', color: '#0088ff', margin: 0, fontWeight: '700' }}>
+            {task ? 'Edit Task' : 'New Task'}
+          </h2>
+          <button onClick={onClose} style={{
+            background: 'transparent',
+            border: 'none',
+            color: '#888888',
+            cursor: 'pointer',
+            padding: '5px'
+          }}>
+            <XIcon size={24} />
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <div className="form-field">
+            <label>Task Title *</label>
+            <input
+              type="text"
+              placeholder="e.g., Follow up on offer"
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+            />
+          </div>
+
+          <div className="form-field">
+            <label>Description</label>
+            <textarea
+              placeholder="Add details about this task..."
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              rows={3}
+              style={{
+                width: '100%',
+                background: '#0f0f0f',
+                border: '1px solid #1a1a1a',
+                borderRadius: '4px',
+                padding: '12px',
+                color: '#e0e0e0',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                resize: 'vertical'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+            <div className="form-field">
+              <label>Type</label>
+              <select
+                value={formData.type}
+                onChange={(e) => setFormData({...formData, type: e.target.value})}
+              >
+                {TASK_TYPES.map(type => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-field">
+              <label>Priority</label>
+              <select
+                value={formData.priority}
+                onChange={(e) => setFormData({...formData, priority: e.target.value})}
+              >
+                {PRIORITIES.map(priority => (
+                  <option key={priority.value} value={priority.value}>{priority.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-field">
+            <label>Due Date</label>
+            <input
+              type="date"
+              value={formData.dueDate}
+              onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+            />
+          </div>
+
+          <div className="form-field">
+            <label>Link to Deal (optional)</label>
+            <select
+              value={formData.dealId}
+              onChange={(e) => setFormData({...formData, dealId: e.target.value})}
+            >
+              <option value="">None</option>
+              {deals.map(deal => (
+                <option key={deal.id} value={deal.id}>
+                  {deal.propertyAddress || 'Unknown'} - {deal.buyerName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-field">
+            <label>Link to Contact (optional)</label>
+            <select
+              value={formData.contactId}
+              onChange={(e) => setFormData({...formData, contactId: e.target.value})}
+            >
+              <option value="">None</option>
+              {contacts.map(contact => (
+                <option key={contact.id} value={contact.id}>
+                  {contact.firstName} {contact.lastName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-field">
+            <label>Link to Property (optional)</label>
+            <select
+              value={formData.propertyId}
+              onChange={(e) => setFormData({...formData, propertyId: e.target.value})}
+            >
+              <option value="">None</option>
+              {properties.map(property => (
+                <option key={property.id} value={property.id}>
+                  {property.address?.street || 'Unknown'}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div style={{
+          display: 'flex',
+          gap: '10px',
+          marginTop: '25px',
+          justifyContent: 'flex-end'
+        }}>
+          <button
+            onClick={onClose}
+            style={{
+              background: '#1a1a1a',
+              color: '#888888',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '600',
+              fontFamily: 'inherit'
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            style={{
+              background: '#0088ff',
+              color: '#ffffff',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '4px',
+              cursor: saving ? 'not-allowed' : 'pointer',
+              fontSize: '13px',
+              fontWeight: '700',
+              fontFamily: 'inherit',
+              textTransform: 'uppercase',
+              opacity: saving ? 0.6 : 1
+            }}
+          >
+            {saving ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TasksPage = () => {
+  const [tasks, setTasks] = useState([]);
+  const [deals, setDeals] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+
+      // Load tasks
+      const tasksQuery = isAdmin
+        ? query(collection(db, 'tasks'), orderBy('dueDate', 'asc'))
+        : query(
+            collection(db, 'tasks'),
+            where('userId', '==', auth.currentUser.uid),
+            orderBy('dueDate', 'asc')
+          );
+
+      const tasksSnapshot = await getDocs(tasksQuery);
+      const tasksData = [];
+      tasksSnapshot.forEach((doc) => {
+        tasksData.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Load deals for linking
+      const dealsQuery = isAdmin
+        ? query(collection(db, 'deals'))
+        : query(collection(db, 'deals'), where('userId', '==', auth.currentUser.uid));
+
+      const dealsSnapshot = await getDocs(dealsQuery);
+      const dealsData = [];
+      dealsSnapshot.forEach((doc) => {
+        dealsData.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Load contacts
+      const contactsQuery = isAdmin
+        ? query(collection(db, 'contacts'))
+        : query(collection(db, 'contacts'), where('userId', '==', auth.currentUser.uid));
+
+      const contactsSnapshot = await getDocs(contactsQuery);
+      const contactsData = [];
+      contactsSnapshot.forEach((doc) => {
+        contactsData.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Load properties
+      const propertiesQuery = isAdmin
+        ? query(collection(db, 'properties'))
+        : query(collection(db, 'properties'), where('userId', '==', auth.currentUser.uid));
+
+      const propertiesSnapshot = await getDocs(propertiesQuery);
+      const propertiesData = [];
+      propertiesSnapshot.forEach((doc) => {
+        propertiesData.push({ id: doc.id, ...doc.data() });
+      });
+
+      setTasks(tasksData);
+      setDeals(dealsData);
+      setContacts(contactsData);
+      setProperties(propertiesData);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      setLoading(false);
+    }
+  };
+
+  const handleToggleComplete = async (task) => {
+    try {
+      const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+      await updateDoc(doc(db, 'tasks', task.id), {
+        status: newStatus,
+        completedDate: newStatus === 'completed' ? new Date().toISOString() : null,
+        updatedAt: new Date().toISOString()
+      });
+      loadData();
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
+  };
+
+  const handleDelete = async (taskId) => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+
+    try {
+      await deleteDoc(doc(db, 'tasks', taskId));
+      loadData();
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      alert('Failed to delete task');
+    }
+  };
+
+  const isOverdue = (task) => {
+    if (!task.dueDate || task.status === 'completed') return false;
+    return new Date(task.dueDate) < new Date();
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No due date';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = date - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return `${Math.abs(diffDays)} days overdue`;
+    if (diffDays === 0) return 'Due today';
+    if (diffDays === 1) return 'Due tomorrow';
+    if (diffDays < 7) return `Due in ${diffDays} days`;
+    return date.toLocaleDateString();
+  };
+
+  const filteredTasks = tasks.filter(task => {
+    if (filterStatus === 'all') return true;
+    if (filterStatus === 'pending') return task.status !== 'completed';
+    if (filterStatus === 'completed') return task.status === 'completed';
+    if (filterStatus === 'overdue') return isOverdue(task);
+    return true;
+  });
+
+  const stats = {
+    total: tasks.length,
+    pending: tasks.filter(t => t.status !== 'completed').length,
+    completed: tasks.filter(t => t.status === 'completed').length,
+    overdue: tasks.filter(t => isOverdue(t)).length
+  };
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '60px',
+        color: '#666666'
+      }}>
+        Loading tasks...
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-content">
+      {/* Header */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '25px'
+      }}>
+        <div>
+          <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', margin: '0 0 5px 0' }}>
+            Tasks
+          </h2>
+          <p style={{ fontSize: '13px', color: '#666666', margin: 0 }}>
+            {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            setSelectedTask(null);
+            setShowModal(true);
+          }}
+          style={{
+            background: '#0088ff',
+            color: '#ffffff',
+            border: 'none',
+            padding: '12px 20px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: '700',
+            fontFamily: 'inherit',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            textTransform: 'uppercase'
+          }}
+        >
+          <PlusIcon size={16} />
+          New Task
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '15px',
+        marginBottom: '20px'
+      }}>
+        <div
+          onClick={() => setFilterStatus('all')}
+          style={{
+            background: filterStatus === 'all' ? '#0f0f0f' : '#0a0a0a',
+            border: filterStatus === 'all' ? '1px solid #0088ff' : '1px solid #1a1a1a',
+            borderRadius: '4px',
+            padding: '15px',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          <div style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff' }}>{stats.total}</div>
+          <div style={{ fontSize: '11px', color: '#666666' }}>Total Tasks</div>
+        </div>
+
+        <div
+          onClick={() => setFilterStatus('pending')}
+          style={{
+            background: filterStatus === 'pending' ? '#0f0f0f' : '#0a0a0a',
+            border: filterStatus === 'pending' ? '1px solid #0088ff' : '1px solid #1a1a1a',
+            borderRadius: '4px',
+            padding: '15px',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          <div style={{ fontSize: '24px', fontWeight: '700', color: '#0088ff' }}>{stats.pending}</div>
+          <div style={{ fontSize: '11px', color: '#666666' }}>Pending</div>
+        </div>
+
+        <div
+          onClick={() => setFilterStatus('overdue')}
+          style={{
+            background: filterStatus === 'overdue' ? '#0f0f0f' : '#0a0a0a',
+            border: filterStatus === 'overdue' ? '1px solid #ff3333' : '1px solid #1a1a1a',
+            borderRadius: '4px',
+            padding: '15px',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          <div style={{ fontSize: '24px', fontWeight: '700', color: '#ff3333' }}>{stats.overdue}</div>
+          <div style={{ fontSize: '11px', color: '#666666' }}>Overdue</div>
+        </div>
+
+        <div
+          onClick={() => setFilterStatus('completed')}
+          style={{
+            background: filterStatus === 'completed' ? '#0f0f0f' : '#0a0a0a',
+            border: filterStatus === 'completed' ? '1px solid #00ff88' : '1px solid #1a1a1a',
+            borderRadius: '4px',
+            padding: '15px',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          <div style={{ fontSize: '24px', fontWeight: '700', color: '#00ff88' }}>{stats.completed}</div>
+          <div style={{ fontSize: '11px', color: '#666666' }}>Completed</div>
+        </div>
+      </div>
+
+      {/* Tasks List */}
+      {filteredTasks.length === 0 ? (
+        <div style={{
+          background: '#0a0a0a',
+          border: '1px solid #1a1a1a',
+          borderRadius: '4px',
+          padding: '40px',
+          textAlign: 'center',
+          color: '#666666'
+        }}>
+          {tasks.length === 0 
+            ? 'No tasks yet. Create your first task!' 
+            : `No ${filterStatus} tasks.`}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {filteredTasks.map((task) => {
+            const priority = PRIORITIES.find(p => p.value === task.priority);
+            const overdue = isOverdue(task);
+            
+            return (
+              <div
+                key={task.id}
+                style={{
+                  background: '#0a0a0a',
+                  border: overdue ? '1px solid #ff3333' : '1px solid #1a1a1a',
+                  borderRadius: '4px',
+                  padding: '15px 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '15px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#0f0f0f';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#0a0a0a';
+                }}
+              >
+                {/* Checkbox */}
+                <button
+                  onClick={() => handleToggleComplete(task)}
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '4px',
+                    border: task.status === 'completed' ? 'none' : '2px solid #1a1a1a',
+                    background: task.status === 'completed' ? '#00ff88' : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    flexShrink: 0
+                  }}
+                >
+                  {task.status === 'completed' && <CheckIcon size={16} />}
+                </button>
+
+                {/* Task Details */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    marginBottom: '5px'
+                  }}>
+                    <h3 style={{
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      color: task.status === 'completed' ? '#666666' : '#ffffff',
+                      margin: 0,
+                      textDecoration: task.status === 'completed' ? 'line-through' : 'none'
+                    }}>
+                      {task.title}
+                    </h3>
+                    
+                    {/* Priority Badge */}
+                    <span style={{
+                      fontSize: '10px',
+                      color: priority?.color,
+                      background: `${priority?.color}15`,
+                      padding: '3px 8px',
+                      borderRadius: '3px',
+                      textTransform: 'uppercase',
+                      fontWeight: '700'
+                    }}>
+                      {priority?.label}
+                    </span>
+
+                    {/* Overdue Badge */}
+                    {overdue && (
+                      <span style={{
+                        fontSize: '10px',
+                        color: '#ff3333',
+                        background: '#ff333315',
+                        padding: '3px 8px',
+                        borderRadius: '3px',
+                        textTransform: 'uppercase',
+                        fontWeight: '700',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}>
+                        <AlertIcon size={12} />
+                        Overdue
+                      </span>
+                    )}
+                  </div>
+
+                  {task.description && (
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#888888',
+                      margin: '0 0 5px 0'
+                    }}>
+                      {task.description}
+                    </p>
+                  )}
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '15px',
+                    fontSize: '11px',
+                    color: '#666666'
+                  }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <ClockIcon size={14} />
+                      {formatDate(task.dueDate)}
+                    </span>
+                    {task.dealId && (
+                      <span>🏠 Linked to deal</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                  <button
+                    onClick={() => {
+                      setSelectedTask(task);
+                      setShowModal(true);
+                    }}
+                    style={{
+                      background: '#0088ff',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '3px',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(task.id)}
+                    style={{
+                      background: '#ff3333',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '3px',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Modal */}
+      {showModal && (
+        <TaskModal
+          task={selectedTask}
+          deals={deals}
+          contacts={contacts}
+          properties={properties}
+          onClose={() => {
+            setShowModal(false);
+            setSelectedTask(null);
+          }}
+          onSave={loadData}
+        />
+      )}
+    </div>
+  );
+};
+
+export default TasksPage;
