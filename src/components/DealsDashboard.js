@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import DealEditModal from './DealEditModal';
 
 // Simple icon components for dashboard
 const DollarIcon = ({ size = 24 }) => (
@@ -42,6 +43,7 @@ const DEAL_STATUSES = {
 const DealsDashboard = () => {
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDeal, setSelectedDeal] = useState(null);
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
@@ -347,6 +349,7 @@ const DealsDashboard = () => {
                     {statusDeals.map((deal) => (
                       <div
                         key={deal.id}
+                        onClick={() => setSelectedDeal(deal)}
                         style={{
                           background: '#0f0f0f',
                           border: '1px solid #1a1a1a',
@@ -441,6 +444,7 @@ const DealsDashboard = () => {
                 <div
                   key={deal.id}
                   className="table-row"
+                  onClick={() => setSelectedDeal(deal)}
                   style={{
                     gridTemplateColumns: '250px 150px 150px 120px 150px 120px'
                   }}
@@ -484,6 +488,15 @@ const DealsDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Edit Modal */}
+      {selectedDeal && (
+        <DealEditModal
+          deal={selectedDeal}
+          onClose={() => setSelectedDeal(null)}
+          onUpdate={loadDeals}
+        />
+      )}
     </div>
   );
 };
