@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import './App.css';
 import { db } from './firebase';
 import DealsDashboard from './components/DealsDashboard';
+import ActiveDealsPage from './components/ActiveDealsPage';
+import ClosedDealsPage from './components/ClosedDealsPage';
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { auth, googleProvider } from './firebase';
 import { 
@@ -2022,18 +2024,8 @@ const DealsPage = ({ subTab, setSubTab }) => {
       <div className="subnav-content">
         {subTab === 'new' && <NewDealPage />}
         {subTab === 'dashboard' && <DealsDashboard />}
-        {subTab === 'active' && (
-          <div className="placeholder">
-            <div className="placeholder-icon">📋</div>
-            <div>Active Deals coming soon</div>
-          </div>
-        )}
-        {subTab === 'closed' && (
-          <div className="placeholder">
-            <div className="placeholder-icon">✅</div>
-            <div>Closed Deals coming soon</div>
-          </div>
-        )}
+        {subTab === 'active' && <ActiveDealsPage />}
+        {subTab === 'closed' && <ClosedDealsPage />}
       </div>
     </div>
   );
