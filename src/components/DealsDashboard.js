@@ -51,6 +51,7 @@ const DealsDashboard = () => {
 
   useEffect(() => {
     loadDeals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadDeals = async () => {
