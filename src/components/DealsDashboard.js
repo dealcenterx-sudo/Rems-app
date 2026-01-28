@@ -99,7 +99,7 @@ const DealsDashboard = () => {
 
   // Group deals by status
   const dealsByStatus = deals.reduce((acc, deal) => {
-    const status = deal.status || 'lead';
+    const status = DEAL_STATUSES[deal.status] ? deal.status : 'lead';
     if (!acc[status]) acc[status] = [];
     acc[status].push(deal);
     return acc;
@@ -435,7 +435,7 @@ const DealsDashboard = () => {
             </div>
 
             {deals.slice(0, 10).map((deal) => {
-              const statusConfig = DEAL_STATUSES[deal.status || 'lead'];
+              const statusConfig = DEAL_STATUSES[deal.status] || DEAL_STATUSES['lead'];
               
               return (
                 <div
