@@ -9,6 +9,7 @@ import CRMDashboard from './components/CRMDashboard';
 import TasksPage from './components/TasksPage';
 import SettingsPage from './components/SettingsPage';
 import DocumentsPage from './components/DocumentsPage';
+import WebsitesPage from './components/WebsitesPage';
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { auth, googleProvider } from './firebase';
 import { 
@@ -2140,8 +2141,9 @@ function App() {
         {activeTab === 'crm' && <CRMDashboard />}
         {activeTab === 'tasks' && <TasksPage />}
         {activeTab === 'documents' && <DocumentsPage />}
+        {activeTab === 'websites' && <WebsitesPage />}
         {activeTab === 'settings' && <SettingsPage />}
-        {!['home', 'contacts', 'buyers', 'deals', 'properties', 'crm', 'tasks', 'documents', 'settings'].includes(activeTab) && (
+        {!['home', 'contacts', 'buyers', 'deals', 'properties', 'crm', 'tasks', 'documents', 'websites', 'settings'].includes(activeTab) && (
           <div className="placeholder">
             <div className="placeholder-icon">🚧</div>
             <div>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} page coming soon</div>
