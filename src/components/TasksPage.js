@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { collection, addDoc, getDocs, query, where, orderBy, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { useToast } from './Toast';
 
 // Icons
 const PlusIcon = ({ size = 20 }) => (
@@ -54,6 +55,7 @@ const PRIORITIES = [
 ];
 
 const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
+  const toast = useToast();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -83,7 +85,7 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
 
   const handleSave = async () => {
     if (!formData.title) {
-      alert('Please enter a task title');
+      toast.error('Please enter a task title');
       return;
     }
 
@@ -108,16 +110,18 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
 
       if (task) {
         await updateDoc(doc(db, 'tasks', task.id), taskData);
+        toast.success('Task updated successfully!');
       } else {
         taskData.createdAt = new Date().toISOString();
         await addDoc(collection(db, 'tasks'), taskData);
+        toast.success('Task created successfully!');
       }
 
       onSave();
       onClose();
     } catch (error) {
       console.error('Error saving task:', error);
-      alert('Failed to save task');
+      toast.error('Failed to save task. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -328,6 +332,7 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
 };
 
 const TasksPage = () => {
+  const toast = useToast();
   const [tasks, setTasks] = useState([]);
   const [deals, setDeals] = useState([]);
   const [contacts, setContacts] = useState([]);
@@ -345,7 +350,6 @@ const TasksPage = () => {
     try {
       const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
 
-      // Load tasks
       const tasksQuery = isAdmin
         ? query(collection(db, 'tasks'), orderBy('dueDate', 'asc'))
         : query(
@@ -360,7 +364,6 @@ const TasksPage = () => {
         tasksData.push({ id: doc.id, ...doc.data() });
       });
 
-      // Load deals for linking
       const dealsQuery = isAdmin
         ? query(collection(db, 'deals'))
         : query(collection(db, 'deals'), where('userId', '==', auth.currentUser.uid));
@@ -371,7 +374,6 @@ const TasksPage = () => {
         dealsData.push({ id: doc.id, ...doc.data() });
       });
 
-      // Load contacts
       const contactsQuery = isAdmin
         ? query(collection(db, 'contacts'))
         : query(collection(db, 'contacts'), where('userId', '==', auth.currentUser.uid));
@@ -382,7 +384,6 @@ const TasksPage = () => {
         contactsData.push({ id: doc.id, ...doc.data() });
       });
 
-      // Load properties
       const propertiesQuery = isAdmin
         ? query(collection(db, 'properties'))
         : query(collection(db, 'properties'), where('userId', '==', auth.currentUser.uid));
@@ -415,6 +416,7 @@ const TasksPage = () => {
       loadData();
     } catch (error) {
       console.error('Error updating task:', error);
+      toast.error('Failed to update task. Please try again.');
     }
   };
 
@@ -423,10 +425,11 @@ const TasksPage = () => {
 
     try {
       await deleteDoc(doc(db, 'tasks', taskId));
+      toast.success('Task deleted successfully!');
       loadData();
     } catch (error) {
       console.error('Error deleting task:', error);
-      alert('Failed to delete task');
+      toast.error('Failed to delete task. Please try again.');
     }
   };
 
@@ -480,7 +483,6 @@ const TasksPage = () => {
 
   return (
     <div className="page-content">
-      {/* Header */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -521,7 +523,6 @@ const TasksPage = () => {
         </button>
       </div>
 
-      {/* Stats */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
@@ -589,7 +590,6 @@ const TasksPage = () => {
         </div>
       </div>
 
-      {/* Tasks List */}
       {filteredTasks.length === 0 ? (
         <div style={{
           background: '#0a0a0a',
@@ -629,7 +629,6 @@ const TasksPage = () => {
                   e.currentTarget.style.background = '#0a0a0a';
                 }}
               >
-                {/* Checkbox */}
                 <button
                   onClick={() => handleToggleComplete(task)}
                   style={{
@@ -648,7 +647,6 @@ const TasksPage = () => {
                   {task.status === 'completed' && <CheckIcon size={16} />}
                 </button>
 
-                {/* Task Details */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
                     display: 'flex',
@@ -666,7 +664,6 @@ const TasksPage = () => {
                       {task.title}
                     </h3>
                     
-                    {/* Priority Badge */}
                     <span style={{
                       fontSize: '10px',
                       color: priority?.color,
@@ -679,7 +676,6 @@ const TasksPage = () => {
                       {priority?.label}
                     </span>
 
-                    {/* Overdue Badge */}
                     {overdue && (
                       <span style={{
                         fontSize: '10px',
@@ -726,7 +722,6 @@ const TasksPage = () => {
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                   <button
                     onClick={() => {
@@ -770,7 +765,6 @@ const TasksPage = () => {
         </div>
       )}
 
-      {/* Modal */}
       {showModal && (
         <TaskModal
           task={selectedTask}
