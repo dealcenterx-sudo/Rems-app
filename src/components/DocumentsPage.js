@@ -93,15 +93,22 @@ const UploadModal = ({ deals, properties, onClose, onUpload }) => {
     setError('');
 
     try {
+      // Determine resource type based on file extension
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      const isPDF = fileExtension === 'pdf';
+      const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension);
+      
+      let resourceType = 'raw'; // Default for documents
+      if (isImage) resourceType = 'image';
+      
       // Upload to Cloudinary
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
       formDataUpload.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
       formDataUpload.append('folder', 'documents');
-      formDataUpload.append('resource_type', 'auto'); // Important for PDFs
 
       const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
         {
           method: 'POST',
           body: formDataUpload
@@ -120,6 +127,8 @@ const UploadModal = ({ deals, properties, onClose, onUpload }) => {
         type: formData.type,
         url: data.secure_url,
         size: file.size,
+        fileType: fileExtension,
+        isPDF: isPDF,
         dealId: formData.dealId || null,
         propertyId: formData.propertyId || null,
         description: formData.description,
