@@ -8,6 +8,7 @@ import PropertiesPage from './components/PropertiesPage';
 import CRMDashboard from './components/CRMDashboard';
 import TasksPage from './components/TasksPage';
 import SettingsPage from './components/SettingsPage';
+import DocumentsPage from './components/DocumentsPage';
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { auth, googleProvider } from './firebase';
 import { 
@@ -181,6 +182,12 @@ const FilePlus = ({ size = 24, color = "currentColor" }) => (
   </svg>
 );
 
+const FolderIcon = ({ size = 24, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+  </svg>
+);
+
 const BuyerIcon = ({ size = 80, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
@@ -224,6 +231,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { id: 'deals', label: 'Deals', icon: FileText },
     { id: 'properties', label: 'Properties', icon: Building2 },
     { id: 'tasks', label: 'Tasks', icon: ClipboardCheck },
+    { id: 'documents', label: 'Documents', icon: FolderIcon },
     { id: 'websites', label: 'Websites', icon: Globe },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
@@ -2131,8 +2139,9 @@ function App() {
         {activeTab === 'properties' && <PropertiesPage />}
         {activeTab === 'crm' && <CRMDashboard />}
         {activeTab === 'tasks' && <TasksPage />}
+        {activeTab === 'documents' && <DocumentsPage />}
         {activeTab === 'settings' && <SettingsPage />}
-        {!['home', 'contacts', 'buyers', 'deals', 'properties', 'crm', 'tasks', 'settings'].includes(activeTab) && (
+        {!['home', 'contacts', 'buyers', 'deals', 'properties', 'crm', 'tasks', 'documents', 'settings'].includes(activeTab) && (
           <div className="placeholder">
             <div className="placeholder-icon">🚧</div>
             <div>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} page coming soon</div>
