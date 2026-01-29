@@ -10,6 +10,7 @@ import TasksPage from './components/TasksPage';
 import SettingsPage from './components/SettingsPage';
 import DocumentsPage from './components/DocumentsPage';
 import WebsitesPage from './components/WebsitesPage';
+import { ToastProvider } from './components/Toast';
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { auth, googleProvider } from './firebase';
 import { 
@@ -259,7 +260,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       >
         <Settings size={20} color={activeTab === 'settings' ? '#00ff88' : '#888888'} />
       </div>
-    </div>
+    </ToastProvider>
   );
 };
 
@@ -2129,7 +2130,8 @@ function App() {
   // }
 
   return (
-    <div className="App">
+    <ToastProvider>
+      <div className="App">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="main-container">
         <TopBar title={activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} />
