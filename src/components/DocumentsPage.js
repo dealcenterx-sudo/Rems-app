@@ -668,29 +668,61 @@ const DocumentsPage = () => {
 
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                  <a
-                    href={document.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      background: '#0088ff',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '8px 12px',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      fontSize: '11px',
-                      fontWeight: '600',
-                      fontFamily: 'inherit',
-                      textDecoration: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px'
-                    }}
-                  >
-                    <DownloadIcon size={14} />
-                    View
-                  </a>
+                  {document.isPDF ? (
+                    <a
+                      href={document.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        // For PDFs, open Cloudinary's PDF viewer
+                        const pdfUrl = document.url.replace('/raw/', '/image/');
+                        window.open(pdfUrl, '_blank');
+                      }}
+                      style={{
+                        background: '#0088ff',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '8px 12px',
+                        borderRadius: '3px',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        fontFamily: 'inherit',
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}
+                    >
+                      <DownloadIcon size={14} />
+                      View PDF
+                    </a>
+                  ) : (
+                    <a
+                      href={document.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        background: '#0088ff',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '8px 12px',
+                        borderRadius: '3px',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        fontFamily: 'inherit',
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}
+                    >
+                      <DownloadIcon size={14} />
+                      View
+                    </a>
+                  )}
                   <button
                     onClick={() => handleDelete(document.id)}
                     style={{
