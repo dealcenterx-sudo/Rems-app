@@ -260,7 +260,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       >
         <Settings size={20} color={activeTab === 'settings' ? '#00ff88' : '#888888'} />
       </div>
-    </ToastProvider>
+    </div>
   );
 };
 
@@ -2151,8 +2151,9 @@ function App() {
             <div>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} page coming soon</div>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 }
 
