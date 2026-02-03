@@ -19,8 +19,8 @@ const DocumentsPage = () => {
     linkedType: 'none'
   });
 
-  const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned'; // You'll need to set this up
-  const CLOUDINARY_CLOUD_NAME = 'dcirl3j3v'; // You'll need to set this up
+  const CLOUDINARY_UPLOAD_PRESET = 'your_upload_preset';
+  const CLOUDINARY_CLOUD_NAME = 'your_cloud_name';
 
   useEffect(() => {
     loadDocuments();
@@ -101,10 +101,8 @@ const DocumentsPage = () => {
     setUploading(true);
 
     try {
-      // Upload to Cloudinary
       const cloudinaryData = await uploadToCloudinary(uploadData.file);
 
-      // Save document metadata to Firebase
       await addDoc(collection(db, 'documents'), {
         fileName: uploadData.fileName,
         category: uploadData.category,
@@ -130,14 +128,12 @@ const DocumentsPage = () => {
     }
   };
 
-  const deleteDocument = async (documentId, publicId) => {
+  const deleteDocument = async (documentId) => {
     if (!window.confirm('Are you sure you want to delete this document?')) {
       return;
     }
 
     try {
-      // Note: To actually delete from Cloudinary, you'd need a backend API
-      // For now, we'll just delete from Firebase
       await deleteDoc(doc(db, 'documents', documentId));
       loadDocuments();
       alert('Document deleted successfully');
@@ -161,14 +157,6 @@ const DocumentsPage = () => {
 
   const closeUploadModal = () => {
     setShowUploadModal(false);
-    setUploadData({
-      file: null,
-      fileName: '',
-      category: 'contract',
-      description: '',
-      linkedTo: '',
-      linkedType: 'none'
-    });
   };
 
   const getCategoryColor = (category) => {
@@ -237,54 +225,23 @@ const DocumentsPage = () => {
 
   return (
     <div className="page-content">
-      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '700', margin: 0 }}>
-          Documents ({filteredDocuments.length})
-        </h2>
-        <button onClick={openUploadModal} style={{ padding: '12px 24px', background: '#00ff88', color: '#000000', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
-          + Upload Document
-        </button>
+        <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '700', margin: 0 }}>Documents ({filteredDocuments.length})</h2>
+        <button onClick={openUploadModal} style={{ padding: '12px 24px', background: '#00ff88', color: '#000000', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>+ Upload Document</button>
       </div>
 
-      {/* Search & Filters */}
       <div style={{ marginBottom: '30px' }}>
-        <input
-          type="text"
-          placeholder="Search documents by name, description, or category..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ width: '100%', padding: '12px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '15px' }}
-        />
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', overflowX: 'auto' }}>
+        <input type="text" placeholder="Search documents..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '15px' }} />
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           {categoryOptions.map((option) => (
-            <div
-              key={option.value}
-              onClick={() => setFilterCategory(option.value)}
-              style={{
-                padding: '10px 20px',
-                background: filterCategory === option.value ? '#00ff88' : '#0a0a0a',
-                border: `1px solid ${filterCategory === option.value ? '#00ff88' : '#1a1a1a'}`,
-                borderRadius: '6px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              <span style={{ fontSize: '13px', fontWeight: '600', color: filterCategory === option.value ? '#000000' : '#ffffff' }}>
-                {option.label}
-              </span>
-              <span style={{ fontSize: '11px', fontWeight: '700', color: filterCategory === option.value ? '#000000' : '#888888', background: filterCategory === option.value ? '#ffffff' : '#1a1a1a', padding: '2px 8px', borderRadius: '10px' }}>
-                {option.count}
-              </span>
+            <div key={option.value} onClick={() => setFilterCategory(option.value)} style={{ padding: '10px 20px', background: filterCategory === option.value ? '#00ff88' : '#0a0a0a', border: `1px solid ${filterCategory === option.value ? '#00ff88' : '#1a1a1a'}`, borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '13px', fontWeight: '600', color: filterCategory === option.value ? '#000000' : '#ffffff' }}>{option.label}</span>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: filterCategory === option.value ? '#000000' : '#888888', background: filterCategory === option.value ? '#ffffff' : '#1a1a1a', padding: '2px 8px', borderRadius: '10px' }}>{option.count}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Documents Grid */}
       {filteredDocuments.length === 0 ? (
         <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '60px', textAlign: 'center', color: '#666666' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📁</div>
@@ -294,119 +251,29 @@ const DocumentsPage = () => {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
           {filteredDocuments.map((document) => (
-            <div
-              key={document.id}
-              style={{
-                background: '#0a0a0a',
-                border: '1px solid #1a1a1a',
-                borderRadius: '8px',
-                padding: '20px',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = getCategoryColor(document.category);
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#1a1a1a';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
-              {/* Category Badge */}
+            <div key={document.id} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                <span style={{
-                  fontSize: '24px'
-                }}>
-                  {getCategoryIcon(document.category)}
-                </span>
-                <span style={{
-                  fontSize: '10px',
-                  fontWeight: '700',
-                  color: getCategoryColor(document.category),
-                  background: `${getCategoryColor(document.category)}15`,
-                  padding: '4px 10px',
-                  borderRadius: '10px',
-                  textTransform: 'uppercase'
-                }}>
-                  {document.category}
-                </span>
+                <span style={{ fontSize: '24px' }}>{getCategoryIcon(document.category)}</span>
+                <span style={{ fontSize: '10px', fontWeight: '700', color: getCategoryColor(document.category), background: `${getCategoryColor(document.category)}15`, padding: '4px 10px', borderRadius: '10px', textTransform: 'uppercase' }}>{document.category}</span>
               </div>
-
-              {/* File Name */}
               <div style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff', marginBottom: '4px', wordBreak: 'break-word' }}>
-                  {document.fileName}
-                </div>
-                {document.description && (
-                  <div style={{ fontSize: '12px', color: '#888888', lineHeight: '1.4' }}>
-                    {document.description}
-                  </div>
-                )}
+                <div style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff', marginBottom: '4px', wordBreak: 'break-word' }}>{document.fileName}</div>
+                {document.description && <div style={{ fontSize: '12px', color: '#888888', lineHeight: '1.4' }}>{document.description}</div>}
               </div>
-
-              {/* File Info */}
-              <div style={{ fontSize: '11px', color: '#666666', marginBottom: '16px' }}>
-                {formatFileSize(document.fileSize || 0)} • {document.fileFormat?.toUpperCase() || 'N/A'}
-              </div>
-
-              {/* Linked Info */}
+              <div style={{ fontSize: '11px', color: '#666666', marginBottom: '16px' }}>{formatFileSize(document.fileSize || 0)} • {document.fileFormat?.toUpperCase() || 'N/A'}</div>
               {document.linkedTo && document.linkedType !== 'none' && (
-                <div style={{ fontSize: '11px', color: '#0088ff', marginBottom: '16px', padding: '8px', background: '#0088ff15', borderRadius: '4px' }}>
-                  Linked to: {document.linkedType} - {document.linkedTo}
-                </div>
+                <div style={{ fontSize: '11px', color: '#0088ff', marginBottom: '16px', padding: '8px', background: '#0088ff15', borderRadius: '4px' }}>Linked to: {document.linkedType} - {document.linkedTo}</div>
               )}
-
-              {/* Date */}
-              <div style={{ fontSize: '11px', color: '#666666', marginBottom: '16px', borderTop: '1px solid #1a1a1a', paddingTop: '12px' }}>
-                Uploaded: {document.createdAt ? new Date(document.createdAt).toLocaleDateString() : 'N/A'}
-              </div>
-
-              {/* Actions */}
+              <div style={{ fontSize: '11px', color: '#666666', marginBottom: '16px', borderTop: '1px solid #1a1a1a', paddingTop: '12px' }}>Uploaded: {document.createdAt ? new Date(document.createdAt).toLocaleDateString() : 'N/A'}</div>
               <div style={{ display: 'flex', gap: '8px' }}>
-                
-                  href={document.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    flex: 1,
-                    padding: '8px',
-                    background: '#1a1a1a',
-                    color: '#00ff88',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    textDecoration: 'none',
-                    display: 'block'
-                  }}
-                >
-                  View
-                </a>
-                <button
-                  onClick={() => deleteDocument(document.id, document.publicId)}
-                  style={{
-                    flex: 1,
-                    padding: '8px',
-                    background: '#1a1a1a',
-                    color: '#ff3333',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    fontWeight: '600',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Delete
-                </button>
+                <a href={document.fileUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', background: '#1a1a1a', color: '#00ff88', border: 'none', borderRadius: '4px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', textAlign: 'center', textDecoration: 'none', display: 'block' }}>View</a>
+                <button onClick={() => deleteDocument(document.id)} style={{ flex: 1, padding: '8px', background: '#1a1a1a', color: '#ff3333', border: 'none', borderRadius: '4px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Delete</button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Upload Modal */}
       {showUploadModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }} onClick={closeUploadModal}>
           <div style={{ background: '#0a0a0a', border: '2px solid #1a1a1a', borderRadius: '12px', padding: '30px', maxWidth: '500px', width: '100%', maxHeight: '90vh', overflow: 'auto' }} onClick={(e) => e.stopPropagation()}>
@@ -414,64 +281,19 @@ const DocumentsPage = () => {
               <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '600', margin: 0 }}>Upload Document</h2>
               <button onClick={closeUploadModal} style={{ background: 'transparent', border: 'none', color: '#888888', fontSize: '24px', cursor: 'pointer', padding: 0 }}>×</button>
             </div>
-
             <form onSubmit={handleUpload}>
               <div style={{ display: 'grid', gap: '16px' }}>
-                {/* File Input */}
                 <div>
                   <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Select File</label>
-                  <input
-                    type="file"
-                    onChange={handleFileSelect}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      background: '#0f0f0f',
-                      border: '1px solid #1a1a1a',
-                      borderRadius: '6px',
-                      color: '#ffffff',
-                      fontSize: '14px'
-                    }}
-                  />
+                  <input type="file" onChange={handleFileSelect} required style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }} />
                 </div>
-
-                {/* File Name */}
                 <div>
                   <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>File Name</label>
-                  <input
-                    type="text"
-                    value={uploadData.fileName}
-                    onChange={(e) => setUploadData({...uploadData, fileName: e.target.value})}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      background: '#0f0f0f',
-                      border: '1px solid #1a1a1a',
-                      borderRadius: '6px',
-                      color: '#ffffff',
-                      fontSize: '14px'
-                    }}
-                  />
+                  <input type="text" value={uploadData.fileName} onChange={(e) => setUploadData({...uploadData, fileName: e.target.value})} required style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }} />
                 </div>
-
-                {/* Category */}
                 <div>
                   <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Category</label>
-                  <select
-                    value={uploadData.category}
-                    onChange={(e) => setUploadData({...uploadData, category: e.target.value})}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      background: '#0f0f0f',
-                      border: '1px solid #1a1a1a',
-                      borderRadius: '6px',
-                      color: '#ffffff',
-                      fontSize: '14px'
-                    }}
-                  >
+                  <select value={uploadData.category} onChange={(e) => setUploadData({...uploadData, category: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}>
                     <option value="contract">Contract</option>
                     <option value="inspection">Inspection</option>
                     <option value="photo">Photo</option>
@@ -480,88 +302,31 @@ const DocumentsPage = () => {
                     <option value="other">Other</option>
                   </select>
                 </div>
-
-                {/* Description */}
                 <div>
-                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Description (Optional)</label>
-                  <textarea
-                    value={uploadData.description}
-                    onChange={(e) => setUploadData({...uploadData, description: e.target.value})}
-                    rows={3}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      background: '#0f0f0f',
-                      border: '1px solid #1a1a1a',
-                      borderRadius: '6px',
-                      color: '#ffffff',
-                      fontSize: '14px',
-                      resize: 'vertical'
-                    }}
-                  />
+                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Description</label>
+                  <textarea value={uploadData.description} onChange={(e) => setUploadData({...uploadData, description: e.target.value})} rows={3} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', resize: 'vertical' }} />
                 </div>
-
-                {/* Linked To */}
                 <div>
-                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Link to (Optional)</label>
-                  <select
-                    value={uploadData.linkedType}
-                    onChange={(e) => setUploadData({...uploadData, linkedType: e.target.value})}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      background: '#0f0f0f',
-                      border: '1px solid #1a1a1a',
-                      borderRadius: '6px',
-                      color: '#ffffff',
-                      fontSize: '14px',
-                      marginBottom: '8px'
-                    }}
-                  >
+                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Link to</label>
+                  <select value={uploadData.linkedType} onChange={(e) => setUploadData({...uploadData, linkedType: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '8px' }}>
                     <option value="none">None</option>
                     <option value="deal">Deal</option>
                     <option value="property">Property</option>
                     <option value="contact">Contact</option>
                   </select>
                   {uploadData.linkedType !== 'none' && (
-                    <input
-                      type="text"
-                      placeholder={`Enter ${uploadData.linkedType} ID or name`}
-                      value={uploadData.linkedTo}
-                      onChange={(e) => setUploadData({...uploadData, linkedTo: e.target.value})}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        background: '#0f0f0f',
-                        border: '1px solid #1a1a1a',
-                        borderRadius: '6px',
-                        color: '#ffffff',
-                        fontSize: '14px'
-                      }}
-                    />
+                    <input type="text" placeholder={`Enter ${uploadData.linkedType} ID`} value={uploadData.linkedTo} onChange={(e) => setUploadData({...uploadData, linkedTo: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }} />
                   )}
                 </div>
               </div>
-
-             </div>
-
-              {/* Action Buttons */}
               <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
-                <button type="submit" disabled={uploading} style={{ flex: 1, padding: '12px', background: uploading ? '#333333' : '#00ff88', color: uploading ? '#666666' : '#000000', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: uploading ? 'not-allowed' : 'pointer' }}>
-                  {uploading ? 'Uploading...' : 'Upload Document'}
-                </button>
-                <button type="button" onClick={closeUploadModal} disabled={uploading} style={{ flex: 1, padding: '12px', background: '#1a1a1a', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: uploading ? 'not-allowed' : 'pointer' }}>
-                  Cancel
-                </button>
+                <button type="submit" disabled={uploading} style={{ flex: 1, padding: '12px', background: uploading ? '#333333' : '#00ff88', color: uploading ? '#666666' : '#000000', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: uploading ? 'not-allowed' : 'pointer' }}>{uploading ? 'Uploading...' : 'Upload'}</button>
+                <button type="button" onClick={closeUploadModal} disabled={uploading} style={{ flex: 1, padding: '12px', background: '#1a1a1a', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: uploading ? 'not-allowed' : 'pointer' }}>Cancel</button>
               </div>
             </form>
-
-            {/* Cloudinary Setup Warning */}
             <div style={{ marginTop: '20px', padding: '12px', background: '#ffaa0015', border: '1px solid #ffaa0033', borderRadius: '6px' }}>
               <div style={{ fontSize: '12px', color: '#ffaa00', fontWeight: '600', marginBottom: '4px' }}>⚠️ Cloudinary Setup Required</div>
-              <div style={{ fontSize: '11px', color: '#888888' }}>
-                Update CLOUDINARY_UPLOAD_PRESET and CLOUDINARY_CLOUD_NAME in the code with your Cloudinary credentials.
-              </div>
+              <div style={{ fontSize: '11px', color: '#888888' }}>Update CLOUDINARY_UPLOAD_PRESET and CLOUDINARY_CLOUD_NAME with your credentials.</div>
             </div>
           </div>
         </div>
