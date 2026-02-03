@@ -1,74 +1,33 @@
 import React, { useState, useEffect } from 'react';
+import { collection, getDocs, query, where, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
-import DealEditModal from './DealEditModal';
-
-// Filter icon
-const FilterIcon = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-  </svg>
-);
-
-// Deal status configuration
-const DEAL_STATUSES = {
-  'lead': { label: 'Lead', color: '#666666' },
-  'qualified': { label: 'Qualified', color: '#888888' },
-  'active-search': { label: 'Active Search', color: '#0088ff' },
-  'offer-submitted': { label: 'Offer Submitted', color: '#ffaa00' },
-  'under-contract': { label: 'Under Contract', color: '#ff6600' },
-  'pending-inspection': { label: 'Pending Inspection', color: '#aa00ff' },
-  'pending-financing': { label: 'Pending Financing', color: '#ff00aa' },
-  'pending-title': { label: 'Pending Title', color: '#00aaff' },
-  'clear-to-close': { label: 'Clear to Close', color: '#00ff88' }
-};
 
 const ActiveDealsPage = () => {
   const [deals, setDeals] = useState([]);
-  const [filteredDeals, setFilteredDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDeal, setSelectedDeal] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('all');
 
   useEffect(() => {
     loadDeals();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    filterDeals();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deals, searchQuery, statusFilter]);
 
   const loadDeals = async () => {
     try {
       const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
-
+      
       const dealsQuery = isAdmin
         ? query(collection(db, 'deals'), orderBy('createdAt', 'desc'))
-        : query(
-            collection(db, 'deals'),
-            where('userId', '==', auth.currentUser.uid),
-            orderBy('createdAt', 'desc')
-          );
-
-      const querySnapshot = await getDocs(dealsQuery);
-      const dealsData = [];
+        : query(collection(db, 'deals'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
       
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        // Only include active deals (not closed or dead)
-        if (data.status !== 'closed' && data.status !== 'dead') {
-          dealsData.push({
-            id: doc.id,
-            ...data
-          });
-        }
+      const dealsSnapshot = await getDocs(dealsQuery);
+      const dealsData = [];
+      dealsSnapshot.forEach((doc) => {
+        dealsData.push({ id: doc.id, ...doc.data() });
       });
-
+      
       setDeals(dealsData);
-      setFilteredDeals(dealsData);
       setLoading(false);
     } catch (error) {
       console.error('Error loading deals:', error);
@@ -76,239 +35,174 @@ const ActiveDealsPage = () => {
     }
   };
 
-  const filterDeals = () => {
-    let filtered = [...deals];
+  const updateDealStatus = async (dealId, newStatus) => {
+    try {
+      await updateDoc(doc(db, 'deals', dealId), {
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      });
+      loadDeals();
+      if (selectedDeal && selectedDeal.id === dealId) {
+        setSelectedDeal({ ...selectedDeal, status: newStatus });
+      }
+    } catch (error) {
+      console.error('Error updating deal:', error);
+      alert('Error updating deal status');
+    }
+  };
 
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(deal => 
-        deal.propertyAddress?.toLowerCase().includes(query) ||
-        deal.buyerName?.toLowerCase().includes(query) ||
-        deal.sellerName?.toLowerCase().includes(query)
-      );
+  const deleteDeal = async (dealId) => {
+    if (!window.confirm('Are you sure you want to delete this deal?')) {
+      return;
     }
 
-    // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(deal => deal.status === statusFilter);
+    try {
+      await deleteDoc(doc(db, 'deals', dealId));
+      loadDeals();
+      setShowDetailModal(false);
+    } catch (error) {
+      console.error('Error deleting deal:', error);
+      alert('Error deleting deal');
     }
-
-    setFilteredDeals(filtered);
   };
 
-  const formatCurrency = (amount) => {
-    if (!amount) return 'N/A';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
+  const getStatusColor = (status) => {
+    const colors = {
+      new: '#ffaa00',
+      active: '#00ff88',
+      pending: '#0088ff',
+      closed: '#aa00ff'
+    };
+    return colors[status] || '#888888';
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+  const getStatusLabel = (status) => {
+    const labels = {
+      new: 'New',
+      active: 'Active',
+      pending: 'Pending',
+      closed: 'Closed'
+    };
+    return labels[status] || status;
   };
 
-  const getDaysInStatus = (deal) => {
-    if (!deal.updatedAt && !deal.createdAt) return 0;
-    const date = new Date(deal.updatedAt || deal.createdAt);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
+  const filteredDeals = filterStatus === 'all' 
+    ? deals 
+    : deals.filter(d => d.status === filterStatus);
+
+  const statusOptions = [
+    { value: 'all', label: 'All Deals', count: deals.length },
+    { value: 'new', label: 'New', count: deals.filter(d => d.status === 'new').length },
+    { value: 'active', label: 'Active', count: deals.filter(d => d.status === 'active').length },
+    { value: 'pending', label: 'Pending', count: deals.filter(d => d.status === 'pending').length },
+    { value: 'closed', label: 'Closed', count: deals.filter(d => d.status === 'closed').length }
+  ];
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '60px',
-        color: '#666666'
-      }}>
-        Loading active deals...
+      <div className="page-content">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px', color: '#666666', fontSize: '14px' }}>
+          Loading deals...
+        </div>
       </div>
     );
   }
 
   return (
     <div className="page-content">
-      {/* Header with Stats */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '25px'
-      }}>
-        <div>
-          <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', margin: '0 0 5px 0' }}>
-            Active Deals
-          </h2>
-          <p style={{ fontSize: '13px', color: '#666666', margin: 0 }}>
-            {filteredDeals.length} deal{filteredDeals.length !== 1 ? 's' : ''} in progress
-          </p>
-        </div>
-        <div style={{
-          background: '#0a0a0a',
-          border: '1px solid #1a1a1a',
-          borderRadius: '4px',
-          padding: '15px 20px'
-        }}>
-          <div style={{ fontSize: '11px', color: '#666666', marginBottom: '5px' }}>
-            Total Pipeline Value
+      {/* Status Filter Tabs */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '30px', overflowX: 'auto', paddingBottom: '10px' }}>
+        {statusOptions.map((option) => (
+          <div key={option.value} onClick={() => setFilterStatus(option.value)} style={{ padding: '12px 24px', background: filterStatus === option.value ? '#00ff88' : '#0a0a0a', border: `1px solid ${filterStatus === option.value ? '#00ff88' : '#1a1a1a'}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', transition: 'all 0.2s' }} onMouseEnter={(e) => { if (filterStatus !== option.value) { e.currentTarget.style.background = '#0f0f0f'; } }} onMouseLeave={(e) => { if (filterStatus !== option.value) { e.currentTarget.style.background = '#0a0a0a'; } }}>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: filterStatus === option.value ? '#000000' : '#ffffff' }}>{option.label}</span>
+            <span style={{ fontSize: '12px', fontWeight: '700', color: filterStatus === option.value ? '#000000' : '#888888', background: filterStatus === option.value ? '#ffffff' : '#1a1a1a', padding: '2px 8px', borderRadius: '12px' }}>{option.count}</span>
           </div>
-          <div style={{ fontSize: '20px', fontWeight: '700', color: '#00ff88' }}>
-            {formatCurrency(filteredDeals.reduce((sum, d) => sum + (d.purchasePrice || 0), 0))}
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Filters */}
-      <div style={{
-        background: '#0a0a0a',
-        border: '1px solid #1a1a1a',
-        borderRadius: '4px',
-        padding: '20px',
-        marginBottom: '20px'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          marginBottom: '15px'
-        }}>
-          <FilterIcon size={18} />
-          <span style={{ fontSize: '13px', fontWeight: '600', color: '#ffffff' }}>Filters</span>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '15px' }}>
-          {/* Search */}
-          <div className="form-field" style={{ margin: 0 }}>
-            <label style={{ marginBottom: '8px' }}>Search</label>
-            <input
-              type="text"
-              placeholder="Search by property, buyer, or seller..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          {/* Status Filter */}
-          <div className="form-field" style={{ margin: 0 }}>
-            <label style={{ marginBottom: '8px' }}>Status</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Statuses</option>
-              {Object.entries(DEAL_STATUSES).map(([value, config]) => (
-                <option key={value} value={value}>{config.label}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Deals Table */}
+      {/* Deals Grid */}
       {filteredDeals.length === 0 ? (
-        <div style={{
-          background: '#0a0a0a',
-          border: '1px solid #1a1a1a',
-          borderRadius: '4px',
-          padding: '40px',
-          textAlign: 'center',
-          color: '#666666'
-        }}>
-          {deals.length === 0 
-            ? 'No active deals yet. Create your first deal!' 
-            : 'No deals match your filters.'}
+        <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '60px', textAlign: 'center', color: '#666666' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>💼</div>
+          <div style={{ fontSize: '16px', marginBottom: '8px' }}>No {filterStatus === 'all' ? '' : getStatusLabel(filterStatus)} deals found</div>
+          <div style={{ fontSize: '13px' }}>Create a new deal from the Deals → New Deal page</div>
         </div>
       ) : (
-        <div className="tasks-table">
-          <div className="table-header" style={{
-            gridTemplateColumns: '250px 150px 150px 120px 120px 100px 120px'
-          }}>
-            <div>Property</div>
-            <div>Buyer</div>
-            <div>Seller</div>
-            <div>Status</div>
-            <div>Value</div>
-            <div>Days Active</div>
-            <div>Close Date</div>
-          </div>
-
-          {filteredDeals.map((deal) => {
-            const statusConfig = DEAL_STATUSES[deal.status] || DEAL_STATUSES['lead'];
-            const daysActive = getDaysInStatus(deal);
-            
-            return (
-              <div
-                key={deal.id}
-                className="table-row"
-                onClick={() => setSelectedDeal(deal)}
-                style={{
-                  gridTemplateColumns: '250px 150px 150px 120px 120px 100px 120px',
-                  cursor: 'pointer'
-                }}
-              >
-                <div style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
-                  {deal.propertyAddress || 'No address'}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
+          {filteredDeals.map((deal) => (
+            <div key={deal.id} onClick={() => { setSelectedDeal(deal); setShowDetailModal(true); }} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = getStatusColor(deal.status); e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1a1a1a'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: getStatusColor(deal.status), background: `${getStatusColor(deal.status)}15`, padding: '4px 12px', borderRadius: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{getStatusLabel(deal.status)}</span>
+                <span style={{ fontSize: '11px', color: '#666666' }}>{deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : 'N/A'}</span>
+              </div>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: '#ffffff', marginBottom: '4px' }}>{deal.propertyAddress || 'No address'}</div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '12px', color: '#888888', minWidth: '50px' }}>Buyer:</span>
+                  <span style={{ fontSize: '13px', color: '#0088ff', fontWeight: '600' }}>{deal.buyerName || 'Not set'}</span>
                 </div>
-
-                <div style={{ fontSize: '12px', color: '#0088ff' }}>
-                  {deal.buyerName || 'N/A'}
-                </div>
-
-                <div style={{ fontSize: '12px', color: '#00ff88' }}>
-                  {deal.sellerName || 'N/A'}
-                </div>
-
-                <div>
-                  <span style={{
-                    fontSize: '10px',
-                    color: statusConfig.color,
-                    background: `${statusConfig.color}15`,
-                    padding: '4px 8px',
-                    borderRadius: '3px',
-                    textTransform: 'uppercase',
-                    fontWeight: '700'
-                  }}>
-                    {statusConfig.label}
-                  </span>
-                </div>
-
-                <div style={{ fontSize: '13px', color: '#ffaa00', fontWeight: '600' }}>
-                  {formatCurrency(deal.purchasePrice)}
-                </div>
-
-                <div style={{
-                  fontSize: '12px',
-                  color: daysActive > 30 ? '#ff6600' : '#888888',
-                  fontWeight: daysActive > 30 ? '600' : '400'
-                }}>
-                  {daysActive} days
-                </div>
-
-                <div style={{ fontSize: '12px', color: '#888888' }}>
-                  {formatDate(deal.expectedCloseDate)}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '12px', color: '#888888', minWidth: '50px' }}>Seller:</span>
+                  <span style={{ fontSize: '13px', color: '#00ff88', fontWeight: '600' }}>{deal.sellerName || 'Not set'}</span>
                 </div>
               </div>
-            );
-          })}
+              <div style={{ fontSize: '12px', color: '#00ff88', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>View Details →</div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Edit Modal */}
-      {selectedDeal && (
-        <DealEditModal
-          deal={selectedDeal}
-          onClose={() => setSelectedDeal(null)}
-          onUpdate={loadDeals}
-        />
+      {/* Deal Detail Modal */}
+      {showDetailModal && selectedDeal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div style={{ background: '#0a0a0a', border: '2px solid #1a1a1a', borderRadius: '12px', padding: '30px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflow: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+              <div>
+                <h2 style={{ fontSize: '20px', color: '#ffffff', marginBottom: '8px', fontWeight: '600' }}>Deal Details</h2>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: getStatusColor(selectedDeal.status), background: `${getStatusColor(selectedDeal.status)}15`, padding: '4px 12px', borderRadius: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{getStatusLabel(selectedDeal.status)}</span>
+              </div>
+              <button onClick={() => setShowDetailModal(false)} style={{ background: 'transparent', border: 'none', color: '#888888', fontSize: '24px', cursor: 'pointer', padding: '0', width: '30px', height: '30px' }}>×</button>
+            </div>
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Property Address</div>
+              <div style={{ fontSize: '18px', color: '#ffffff', fontWeight: '600' }}>{selectedDeal.propertyAddress || 'Not set'}</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+              <div>
+                <div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Buyer</div>
+                <div style={{ fontSize: '15px', color: '#0088ff', fontWeight: '600' }}>{selectedDeal.buyerName || 'Not set'}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Seller</div>
+                <div style={{ fontSize: '15px', color: '#00ff88', fontWeight: '600' }}>{selectedDeal.sellerName || 'Not set'}</div>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+              <div>
+                <div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Created</div>
+                <div style={{ fontSize: '14px', color: '#ffffff' }}>{selectedDeal.createdAt ? new Date(selectedDeal.createdAt).toLocaleDateString() : 'N/A'}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Last Updated</div>
+                <div style={{ fontSize: '14px', color: '#ffffff' }}>{selectedDeal.updatedAt ? new Date(selectedDeal.updatedAt).toLocaleDateString() : 'N/A'}</div>
+              </div>
+            </div>
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ fontSize: '12px', color: '#888888', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Update Status</div>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                {['new', 'active', 'pending', 'closed'].map((status) => (
+                  <button key={status} onClick={() => updateDealStatus(selectedDeal.id, status)} disabled={selectedDeal.status === status} style={{ padding: '10px 20px', background: selectedDeal.status === status ? getStatusColor(status) : '#1a1a1a', color: selectedDeal.status === status ? '#000000' : '#ffffff', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: selectedDeal.status === status ? 'not-allowed' : 'pointer', opacity: selectedDeal.status === status ? 0.5 : 1, transition: 'all 0.2s' }} onMouseEnter={(e) => { if (selectedDeal.status !== status) { e.currentTarget.style.background = getStatusColor(status); e.currentTarget.style.color = '#000000'; } }} onMouseLeave={(e) => { if (selectedDeal.status !== status) { e.currentTarget.style.background = '#1a1a1a'; e.currentTarget.style.color = '#ffffff'; } }}>{getStatusLabel(status)}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '10px', paddingTop: '20px', borderTop: '1px solid #1a1a1a' }}>
+              <button onClick={() => deleteDeal(selectedDeal.id)} style={{ flex: 1, padding: '12px', background: '#ff3333', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.background = '#ff5555'; }} onMouseLeave={(e) => { e.currentTarget.style.background = '#ff3333'; }}>Delete Deal</button>
+              <button onClick={() => setShowDetailModal(false)} style={{ flex: 1, padding: '12px', background: '#1a1a1a', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.background = '#2a2a2a'; }} onMouseLeave={(e) => { e.currentTarget.style.background = '#1a1a1a'; }}>Close</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
