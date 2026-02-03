@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
+import { useToast } from './Toast';
 
-// Icons
+// Icons (keeping all existing icons...)
 const FileIcon = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
@@ -51,6 +52,7 @@ const DOCUMENT_TYPES = [
 ];
 
 const UploadModal = ({ deals, properties, onClose, onUpload }) => {
+  const toast = useToast();
   const [formData, setFormData] = useState({
     name: '',
     type: 'contract',
@@ -65,7 +67,6 @@ const UploadModal = ({ deals, properties, onClose, onUpload }) => {
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
-      // Check file size (max 10MB)
       if (selectedFile.size > 10 * 1024 * 1024) {
         setError('File size must be less than 10MB');
         return;
@@ -93,15 +94,13 @@ const UploadModal = ({ deals, properties, onClose, onUpload }) => {
     setError('');
 
     try {
-      // Determine resource type based on file extension
       const fileExtension = file.name.split('.').pop().toLowerCase();
       const isPDF = fileExtension === 'pdf';
       const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension);
       
-      let resourceType = 'raw'; // Default for documents
+      let resourceType = 'raw';
       if (isImage) resourceType = 'image';
       
-      // Upload to Cloudinary
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
       formDataUpload.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
@@ -121,7 +120,6 @@ const UploadModal = ({ deals, properties, onClose, onUpload }) => {
 
       const data = await response.json();
 
-      // Save to Firebase
       const docData = {
         name: formData.name,
         type: formData.type,
@@ -138,11 +136,12 @@ const UploadModal = ({ deals, properties, onClose, onUpload }) => {
 
       await addDoc(collection(db, 'documents'), docData);
 
+      toast.success('Document uploaded successfully!');
       onUpload();
       onClose();
     } catch (err) {
       console.error('Upload error:', err);
-      setError('Failed to upload document. Please try again.');
+      toast.error('Failed to upload document. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -207,7 +206,6 @@ const UploadModal = ({ deals, properties, onClose, onUpload }) => {
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          {/* File Upload */}
           <div>
             <label style={{
               display: 'flex',
@@ -365,6 +363,7 @@ const UploadModal = ({ deals, properties, onClose, onUpload }) => {
 };
 
 const DocumentsPage = () => {
+  const toast = useToast();
   const [documents, setDocuments] = useState([]);
   const [deals, setDeals] = useState([]);
   const [properties, setProperties] = useState([]);
@@ -380,7 +379,6 @@ const DocumentsPage = () => {
     try {
       const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
 
-      // Load documents
       const docsQuery = isAdmin
         ? query(collection(db, 'documents'), orderBy('createdAt', 'desc'))
         : query(
@@ -395,7 +393,6 @@ const DocumentsPage = () => {
         docsData.push({ id: doc.id, ...doc.data() });
       });
 
-      // Load deals for linking
       const dealsQuery = isAdmin
         ? query(collection(db, 'deals'))
         : query(collection(db, 'deals'), where('userId', '==', auth.currentUser.uid));
@@ -406,7 +403,6 @@ const DocumentsPage = () => {
         dealsData.push({ id: doc.id, ...doc.data() });
       });
 
-      // Load properties
       const propertiesQuery = isAdmin
         ? query(collection(db, 'properties'))
         : query(collection(db, 'properties'), where('userId', '==', auth.currentUser.uid));
@@ -432,10 +428,11 @@ const DocumentsPage = () => {
 
     try {
       await deleteDoc(doc(db, 'documents', docId));
+      toast.success('Document deleted successfully!');
       loadData();
     } catch (error) {
       console.error('Error deleting document:', error);
-      alert('Failed to delete document');
+      toast.error('Failed to delete document. Please try again.');
     }
   };
 
@@ -484,7 +481,6 @@ const DocumentsPage = () => {
 
   return (
     <div className="page-content">
-      {/* Header */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -522,7 +518,6 @@ const DocumentsPage = () => {
         </button>
       </div>
 
-      {/* Filter */}
       <div style={{
         background: '#0a0a0a',
         border: '1px solid #1a1a1a',
@@ -572,7 +567,6 @@ const DocumentsPage = () => {
         ))}
       </div>
 
-      {/* Documents List */}
       {filteredDocuments.length === 0 ? (
         <div style={{
           background: '#0a0a0a',
@@ -607,7 +601,6 @@ const DocumentsPage = () => {
                 onMouseEnter={(e) => e.currentTarget.style.background = '#0f0f0f'}
                 onMouseLeave={(e) => e.currentTarget.style.background = '#0a0a0a'}
               >
-                {/* Icon */}
                 <div style={{
                   width: '40px',
                   height: '40px',
@@ -621,7 +614,6 @@ const DocumentsPage = () => {
                   <FileIcon size={20} color="#0088ff" />
                 </div>
 
-                {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
                     display: 'flex',
@@ -666,7 +658,6 @@ const DocumentsPage = () => {
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                   <a
                     href={document.url}
@@ -718,7 +709,6 @@ const DocumentsPage = () => {
         </div>
       )}
 
-      {/* Upload Modal */}
       {showUploadModal && (
         <UploadModal
           deals={deals}

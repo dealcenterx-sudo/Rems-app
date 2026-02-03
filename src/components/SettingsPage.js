@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { updateProfile, updateEmail, updatePassword } from 'firebase/auth';
+import { useToast } from './Toast';
 
 // Icons
 const UserIcon = ({ size = 24 }) => (
@@ -41,6 +42,7 @@ const BellIcon = ({ size = 24 }) => (
 );
 
 const SettingsPage = () => {
+  const toast = useToast();
   const [activeSection, setActiveSection] = useState('profile');
   const [profileData, setProfileData] = useState({
     displayName: '',
@@ -52,7 +54,6 @@ const SettingsPage = () => {
     confirmPassword: ''
   });
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     if (auth.currentUser) {
@@ -65,22 +66,21 @@ const SettingsPage = () => {
 
   const handleUpdateProfile = async () => {
     if (!profileData.displayName) {
-      setMessage({ type: 'error', text: 'Display name is required' });
+      toast.error('Display name is required');
       return;
     }
 
     setSaving(true);
-    setMessage({ type: '', text: '' });
 
     try {
       await updateProfile(auth.currentUser, {
         displayName: profileData.displayName
       });
 
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      toast.success('Profile updated successfully!');
     } catch (error) {
       console.error('Error updating profile:', error);
-      setMessage({ type: 'error', text: error.message });
+      toast.error(error.message);
     } finally {
       setSaving(false);
     }
@@ -88,22 +88,21 @@ const SettingsPage = () => {
 
   const handleUpdateEmail = async () => {
     if (!profileData.email) {
-      setMessage({ type: 'error', text: 'Email is required' });
+      toast.error('Email is required');
       return;
     }
 
     setSaving(true);
-    setMessage({ type: '', text: '' });
 
     try {
       await updateEmail(auth.currentUser, profileData.email);
-      setMessage({ type: 'success', text: 'Email updated successfully! Please verify your new email.' });
+      toast.success('Email updated successfully! Please verify your new email.');
     } catch (error) {
       console.error('Error updating email:', error);
       if (error.code === 'auth/requires-recent-login') {
-        setMessage({ type: 'error', text: 'Please sign out and sign in again before changing your email.' });
+        toast.error('Please sign out and sign in again before changing your email.');
       } else {
-        setMessage({ type: 'error', text: error.message });
+        toast.error(error.message);
       }
     } finally {
       setSaving(false);
@@ -112,33 +111,32 @@ const SettingsPage = () => {
 
   const handleUpdatePassword = async () => {
     if (!passwordData.newPassword || !passwordData.confirmPassword) {
-      setMessage({ type: 'error', text: 'Please fill in all password fields' });
+      toast.error('Please fill in all password fields');
       return;
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setMessage({ type: 'error', text: 'New passwords do not match' });
+      toast.error('New passwords do not match');
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'Password must be at least 6 characters' });
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
     setSaving(true);
-    setMessage({ type: '', text: '' });
 
     try {
       await updatePassword(auth.currentUser, passwordData.newPassword);
-      setMessage({ type: 'success', text: 'Password updated successfully!' });
+      toast.success('Password updated successfully!');
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
       console.error('Error updating password:', error);
       if (error.code === 'auth/requires-recent-login') {
-        setMessage({ type: 'error', text: 'Please sign out and sign in again before changing your password.' });
+        toast.error('Please sign out and sign in again before changing your password.');
       } else {
-        setMessage({ type: 'error', text: error.message });
+        toast.error(error.message);
       }
     } finally {
       setSaving(false);
@@ -177,10 +175,7 @@ const SettingsPage = () => {
           {sections.map(section => (
             <div
               key={section.id}
-              onClick={() => {
-                setActiveSection(section.id);
-                setMessage({ type: '', text: '' });
-              }}
+              onClick={() => setActiveSection(section.id)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -223,21 +218,6 @@ const SettingsPage = () => {
           borderRadius: '4px',
           padding: '30px'
         }}>
-          {/* Message */}
-          {message.text && (
-            <div style={{
-              background: message.type === 'success' ? '#00ff8815' : '#ff333315',
-              border: `1px solid ${message.type === 'success' ? '#00ff88' : '#ff3333'}`,
-              padding: '12px 15px',
-              borderRadius: '4px',
-              marginBottom: '25px',
-              fontSize: '13px',
-              color: message.type === 'success' ? '#00ff88' : '#ff3333'
-            }}>
-              {message.text}
-            </div>
-          )}
-
           {/* Profile Section */}
           {activeSection === 'profile' && (
             <div>
