@@ -460,7 +460,7 @@ const ContactsPage = ({ contactType = 'buyer', editContactId = null }) => {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(editContactId);
-
+  const toast = useToast();
   // Load contacts from Firebase
   React.useEffect(() => {
     loadContacts();
@@ -518,7 +518,7 @@ const querySnapshot = isAdmin
 
 const handleSaveContact = async () => {
   if (!formData.firstName || !formData.lastName || !formData.phone || !formData.email) {
-    alert('Please fill in all required fields');
+    toast.error('Please fill in all required fields');
     return;
   }
 
@@ -533,7 +533,7 @@ const handleSaveContact = async () => {
         userId: auth.currentUser.uid,
         updatedAt: new Date().toISOString()
       });
-      alert('Contact updated successfully!');
+      toast.success('Contact updated successfully!');
       setEditingId(null);
     } else {
       // Create new contact
@@ -543,7 +543,7 @@ const handleSaveContact = async () => {
         userId: auth.currentUser.uid,
         createdAt: new Date().toISOString()
       });
-      alert('Contact saved successfully!');
+      toast.success('Contact saved successfully!');
     }
     
     // Reset form
@@ -560,7 +560,7 @@ const handleSaveContact = async () => {
     loadContacts();
   } catch (error) {
     console.error('Error saving contact:', error);
-    alert('Error saving contact. Check console.');
+    toast.error('Error saving contact. Check console.');
   } finally {
     setSaving(false);
   }
@@ -573,11 +573,11 @@ const handleSaveContact = async () => {
 
     try {
       await deleteDoc(doc(db, 'contacts', contactId));
-      alert('Contact deleted successfully!');
+      toast.success('Contact deleted successfully!');
       loadContacts();
     } catch (error) {
       console.error('Error deleting contact:', error);
-      alert('Error deleting contact. Check console.');
+      toast.error('Error deleting contact. Check console.');
     }
   };
 
@@ -1018,7 +1018,7 @@ const NewDealPage = () => {
   const [showSellerModal, setShowSellerModal] = useState(false);
   const [showPropertyModal, setShowPropertyModal] = useState(false);
   const [propertyInput, setPropertyInput] = useState('');
-
+  const toast = useToast();
   // Load contacts from Firebase
   React.useEffect(() => {
     const loadContacts = async () => {
@@ -1050,7 +1050,7 @@ const querySnapshot = isAdmin
 
   const handleSaveDeal = async () => {
     if (!dealData.buyer || !dealData.seller || !dealData.property) {
-      alert('Please select a buyer, seller, and property');
+      toast.error('Please select a buyer, seller, and property');
       return;
     }
 
@@ -1071,7 +1071,7 @@ const querySnapshot = isAdmin
   createdAt: new Date().toISOString()
 });
       
-      alert('Deal created successfully!');
+      toast.success('Deal created successfully!');
       
       // Reset form
       setDealData({
@@ -1082,7 +1082,7 @@ const querySnapshot = isAdmin
       setPropertyInput('');
     } catch (error) {
       console.error('Error saving deal:', error);
-      alert('Error saving deal. Check console.');
+      toast.error('Error saving deal. Check console.');
     } finally {
       setSaving(false);
     }
@@ -1515,7 +1515,7 @@ const querySnapshot = isAdmin
                   setDealData({...dealData, property: propertyInput.trim()});
                   setShowPropertyModal(false);
                 } else {
-                  alert('Please enter a property address');
+                  toast.error('Please enter a property address');
                 }
               }}
               style={{
