@@ -1,116 +1,75 @@
 import React, { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } from 'firebase/firestore';
-import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
-import { useToast } from './Toast';
 
-// Icons (keeping all existing icons...)
-const FileIcon = ({ size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
-    <polyline points="13 2 13 9 20 9"/>
-  </svg>
-);
-
-const UploadIcon = ({ size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-    <polyline points="17 8 12 3 7 8"/>
-    <line x1="12" y1="3" x2="12" y2="15"/>
-  </svg>
-);
-
-const DownloadIcon = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-    <polyline points="7 10 12 15 17 10"/>
-    <line x1="12" y1="15" x2="12" y2="3"/>
-  </svg>
-);
-
-const TrashIcon = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <polyline points="3 6 5 6 21 6"/>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-  </svg>
-);
-
-const XIcon = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <line x1="18" y1="6" x2="6" y2="18"/>
-    <line x1="6" y1="6" x2="18" y2="18"/>
-  </svg>
-);
-
-const DOCUMENT_TYPES = [
-  { value: 'contract', label: 'Contract' },
-  { value: 'inspection', label: 'Inspection Report' },
-  { value: 'disclosure', label: 'Disclosure' },
-  { value: 'title', label: 'Title Document' },
-  { value: 'financial', label: 'Financial Document' },
-  { value: 'other', label: 'Other' }
-];
-
-const UploadModal = ({ deals, properties, onClose, onUpload }) => {
-  const toast = useToast();
-  const [formData, setFormData] = useState({
-    name: '',
-    type: 'contract',
-    dealId: '',
-    propertyId: '',
-    description: ''
-  });
-  const [file, setFile] = useState(null);
+const DocumentsPage = () => {
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState('');
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const [uploadData, setUploadData] = useState({
+    file: null,
+    fileName: '',
+    category: 'contract',
+    description: '',
+    linkedTo: '',
+    linkedType: 'none'
+  });
 
-  const handleFileSelect = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      if (selectedFile.size > 10 * 1024 * 1024) {
-        setError('File size must be less than 10MB');
-        return;
-      }
-      setFile(selectedFile);
-      if (!formData.name) {
-        setFormData({...formData, name: selectedFile.name});
-      }
-      setError('');
+  const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned'; // You'll need to set this up
+  const CLOUDINARY_CLOUD_NAME = 'dcirl3j3v'; // You'll need to set this up
+
+  useEffect(() => {
+    loadDocuments();
+  }, []);
+
+  const loadDocuments = async () => {
+    try {
+      const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+      
+      const docsQuery = isAdmin
+        ? query(collection(db, 'documents'), orderBy('createdAt', 'desc'))
+        : query(collection(db, 'documents'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
+      
+      const docsSnapshot = await getDocs(docsQuery);
+      const docsData = [];
+      docsSnapshot.forEach((doc) => {
+        docsData.push({ id: doc.id, ...doc.data() });
+      });
+      
+      setDocuments(docsData);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading documents:', error);
+      setLoading(false);
     }
   };
 
-  const handleUpload = async () => {
-    if (!file) {
-      setError('Please select a file');
-      return;
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploadData({
+        ...uploadData,
+        file: file,
+        fileName: file.name
+      });
     }
+  };
 
-    if (!formData.name) {
-      setError('Please enter a document name');
-      return;
-    }
-
-    setUploading(true);
-    setError('');
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
     try {
-      const fileExtension = file.name.split('.').pop().toLowerCase();
-      const isPDF = fileExtension === 'pdf';
-      const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension);
-      
-      let resourceType = 'raw';
-      if (isImage) resourceType = 'image';
-      
-      const formDataUpload = new FormData();
-      formDataUpload.append('file', file);
-      formDataUpload.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-      formDataUpload.append('folder', 'documents');
-
       const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
         {
           method: 'POST',
-          body: formDataUpload
+          body: formData
         }
       );
 
@@ -119,603 +78,520 @@ const UploadModal = ({ deals, properties, onClose, onUpload }) => {
       }
 
       const data = await response.json();
-
-      const docData = {
-        name: formData.name,
-        type: formData.type,
+      return {
         url: data.secure_url,
-        size: file.size,
-        fileType: fileExtension,
-        isPDF: isPDF,
-        dealId: formData.dealId || null,
-        propertyId: formData.propertyId || null,
-        description: formData.description,
+        publicId: data.public_id,
+        format: data.format,
+        size: data.bytes
+      };
+    } catch (error) {
+      console.error('Cloudinary upload error:', error);
+      throw error;
+    }
+  };
+
+  const handleUpload = async (e) => {
+    e.preventDefault();
+    
+    if (!uploadData.file) {
+      alert('Please select a file');
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      // Upload to Cloudinary
+      const cloudinaryData = await uploadToCloudinary(uploadData.file);
+
+      // Save document metadata to Firebase
+      await addDoc(collection(db, 'documents'), {
+        fileName: uploadData.fileName,
+        category: uploadData.category,
+        description: uploadData.description,
+        linkedTo: uploadData.linkedTo,
+        linkedType: uploadData.linkedType,
+        fileUrl: cloudinaryData.url,
+        publicId: cloudinaryData.publicId,
+        fileFormat: cloudinaryData.format,
+        fileSize: cloudinaryData.size,
         userId: auth.currentUser.uid,
         createdAt: new Date().toISOString()
-      };
+      });
 
-      await addDoc(collection(db, 'documents'), docData);
-
-      toast.success('Document uploaded successfully!');
-      onUpload();
-      onClose();
-    } catch (err) {
-      console.error('Upload error:', err);
-      toast.error('Failed to upload document. Please try again.');
+      loadDocuments();
+      closeUploadModal();
+      alert('Document uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      alert('Error uploading document. Please try again.');
     } finally {
       setUploading(false);
     }
   };
 
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'rgba(0, 0, 0, 0.9)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '20px'
-    }}>
-      <div style={{
-        background: '#0a0a0a',
-        border: '2px solid #0088ff',
-        borderRadius: '8px',
-        padding: '30px',
-        maxWidth: '600px',
-        width: '100%',
-        maxHeight: '90vh',
-        overflowY: 'auto'
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '25px'
-        }}>
-          <h2 style={{ fontSize: '20px', color: '#0088ff', margin: 0, fontWeight: '700' }}>
-            Upload Document
-          </h2>
-          <button onClick={onClose} style={{
-            background: 'transparent',
-            border: 'none',
-            color: '#888888',
-            cursor: 'pointer',
-            padding: '5px'
-          }}>
-            <XIcon size={24} />
-          </button>
-        </div>
-
-        {error && (
-          <div style={{
-            background: '#ff333315',
-            border: '1px solid #ff3333',
-            padding: '12px',
-            borderRadius: '4px',
-            marginBottom: '20px',
-            fontSize: '12px',
-            color: '#ff3333'
-          }}>
-            {error}
-          </div>
-        )}
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <div>
-            <label style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              padding: '20px',
-              background: '#0f0f0f',
-              border: '2px dashed #0088ff',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              color: '#0088ff',
-              fontSize: '13px',
-              fontWeight: '600'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#151515'}
-            onMouseLeave={(e) => e.currentTarget.style.background = '#0f0f0f'}
-            >
-              <UploadIcon size={20} />
-              {file ? file.name : 'Click to select file'}
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                onChange={handleFileSelect}
-                style={{ display: 'none' }}
-              />
-            </label>
-            {file && (
-              <div style={{ fontSize: '11px', color: '#666666', marginTop: '5px' }}>
-                Size: {(file.size / 1024).toFixed(2)} KB
-              </div>
-            )}
-          </div>
-
-          <div className="form-field">
-            <label>Document Name *</label>
-            <input
-              type="text"
-              placeholder="e.g., Purchase Agreement"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-            />
-          </div>
-
-          <div className="form-field">
-            <label>Document Type</label>
-            <select
-              value={formData.type}
-              onChange={(e) => setFormData({...formData, type: e.target.value})}
-            >
-              {DOCUMENT_TYPES.map(type => (
-                <option key={type.value} value={type.value}>{type.label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-field">
-            <label>Link to Deal (optional)</label>
-            <select
-              value={formData.dealId}
-              onChange={(e) => setFormData({...formData, dealId: e.target.value})}
-            >
-              <option value="">None</option>
-              {deals.map(deal => (
-                <option key={deal.id} value={deal.id}>
-                  {deal.propertyAddress || 'Unknown'} - {deal.buyerName}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-field">
-            <label>Link to Property (optional)</label>
-            <select
-              value={formData.propertyId}
-              onChange={(e) => setFormData({...formData, propertyId: e.target.value})}
-            >
-              <option value="">None</option>
-              {properties.map(property => (
-                <option key={property.id} value={property.id}>
-                  {property.address?.street || 'Unknown'}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-field">
-            <label>Description</label>
-            <textarea
-              placeholder="Add notes about this document..."
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              rows={3}
-              style={{
-                width: '100%',
-                background: '#0f0f0f',
-                border: '1px solid #1a1a1a',
-                borderRadius: '4px',
-                padding: '12px',
-                color: '#e0e0e0',
-                fontSize: '14px',
-                fontFamily: 'inherit',
-                resize: 'vertical'
-              }}
-            />
-          </div>
-        </div>
-
-        <div style={{
-          display: 'flex',
-          gap: '10px',
-          marginTop: '25px',
-          justifyContent: 'flex-end'
-        }}>
-          <button
-            onClick={onClose}
-            style={{
-              background: '#1a1a1a',
-              color: '#888888',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '600',
-              fontFamily: 'inherit'
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleUpload}
-            disabled={uploading}
-            style={{
-              background: '#0088ff',
-              color: '#ffffff',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '4px',
-              cursor: uploading ? 'not-allowed' : 'pointer',
-              fontSize: '13px',
-              fontWeight: '700',
-              fontFamily: 'inherit',
-              textTransform: 'uppercase',
-              opacity: uploading ? 0.6 : 1
-            }}
-          >
-            {uploading ? 'Uploading...' : 'Upload'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const DocumentsPage = () => {
-  const toast = useToast();
-  const [documents, setDocuments] = useState([]);
-  const [deals, setDeals] = useState([]);
-  const [properties, setProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [filterType, setFilterType] = useState('all');
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
-
-      const docsQuery = isAdmin
-        ? query(collection(db, 'documents'), orderBy('createdAt', 'desc'))
-        : query(
-            collection(db, 'documents'),
-            where('userId', '==', auth.currentUser.uid),
-            orderBy('createdAt', 'desc')
-          );
-
-      const docsSnapshot = await getDocs(docsQuery);
-      const docsData = [];
-      docsSnapshot.forEach((doc) => {
-        docsData.push({ id: doc.id, ...doc.data() });
-      });
-
-      const dealsQuery = isAdmin
-        ? query(collection(db, 'deals'))
-        : query(collection(db, 'deals'), where('userId', '==', auth.currentUser.uid));
-
-      const dealsSnapshot = await getDocs(dealsQuery);
-      const dealsData = [];
-      dealsSnapshot.forEach((doc) => {
-        dealsData.push({ id: doc.id, ...doc.data() });
-      });
-
-      const propertiesQuery = isAdmin
-        ? query(collection(db, 'properties'))
-        : query(collection(db, 'properties'), where('userId', '==', auth.currentUser.uid));
-
-      const propertiesSnapshot = await getDocs(propertiesQuery);
-      const propertiesData = [];
-      propertiesSnapshot.forEach((doc) => {
-        propertiesData.push({ id: doc.id, ...doc.data() });
-      });
-
-      setDocuments(docsData);
-      setDeals(dealsData);
-      setProperties(propertiesData);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      setLoading(false);
+  const deleteDocument = async (documentId, publicId) => {
+    if (!window.confirm('Are you sure you want to delete this document?')) {
+      return;
     }
-  };
-
-  const handleDelete = async (docId) => {
-    if (!window.confirm('Are you sure you want to delete this document?')) return;
 
     try {
-      await deleteDoc(doc(db, 'documents', docId));
-      toast.success('Document deleted successfully!');
-      loadData();
+      // Note: To actually delete from Cloudinary, you'd need a backend API
+      // For now, we'll just delete from Firebase
+      await deleteDoc(doc(db, 'documents', documentId));
+      loadDocuments();
+      alert('Document deleted successfully');
     } catch (error) {
       console.error('Error deleting document:', error);
-      toast.error('Failed to delete document. Please try again.');
+      alert('Error deleting document');
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+  const openUploadModal = () => {
+    setUploadData({
+      file: null,
+      fileName: '',
+      category: 'contract',
+      description: '',
+      linkedTo: '',
+      linkedType: 'none'
+    });
+    setShowUploadModal(true);
+  };
+
+  const closeUploadModal = () => {
+    setShowUploadModal(false);
+    setUploadData({
+      file: null,
+      fileName: '',
+      category: 'contract',
+      description: '',
+      linkedTo: '',
+      linkedType: 'none'
+    });
+  };
+
+  const getCategoryColor = (category) => {
+    const colors = {
+      contract: '#00ff88',
+      inspection: '#ffaa00',
+      photo: '#0088ff',
+      legal: '#aa00ff',
+      financial: '#ff6600',
+      other: '#888888'
+    };
+    return colors[category] || '#888888';
+  };
+
+  const getCategoryIcon = (category) => {
+    const icons = {
+      contract: '📄',
+      inspection: '🔍',
+      photo: '📷',
+      legal: '⚖️',
+      financial: '💰',
+      other: '📎'
+    };
+    return icons[category] || '📎';
   };
 
   const formatFileSize = (bytes) => {
-    if (!bytes) return 'N/A';
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
-  const getLinkedEntity = (document) => {
-    if (document.dealId) {
-      const deal = deals.find(d => d.id === document.dealId);
-      return deal ? `Deal: ${deal.propertyAddress}` : 'Deal (deleted)';
-    }
-    if (document.propertyId) {
-      const property = properties.find(p => p.id === document.propertyId);
-      return property ? `Property: ${property.address?.street}` : 'Property (deleted)';
-    }
-    return 'Not linked';
-  };
+  const filteredDocuments = documents
+    .filter(d => filterCategory === 'all' || d.category === filterCategory)
+    .filter(d => {
+      if (!searchTerm) return true;
+      const search = searchTerm.toLowerCase();
+      return (
+        d.fileName?.toLowerCase().includes(search) ||
+        d.description?.toLowerCase().includes(search) ||
+        d.category?.toLowerCase().includes(search)
+      );
+    });
 
-  const filteredDocuments = documents.filter(doc => {
-    if (filterType === 'all') return true;
-    return doc.type === filterType;
-  });
+  const categoryOptions = [
+    { value: 'all', label: 'All Documents', count: documents.length },
+    { value: 'contract', label: 'Contracts', count: documents.filter(d => d.category === 'contract').length },
+    { value: 'inspection', label: 'Inspections', count: documents.filter(d => d.category === 'inspection').length },
+    { value: 'photo', label: 'Photos', count: documents.filter(d => d.category === 'photo').length },
+    { value: 'legal', label: 'Legal', count: documents.filter(d => d.category === 'legal').length },
+    { value: 'financial', label: 'Financial', count: documents.filter(d => d.category === 'financial').length },
+    { value: 'other', label: 'Other', count: documents.filter(d => d.category === 'other').length }
+  ];
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '60px',
-        color: '#666666'
-      }}>
-        Loading documents...
+      <div className="page-content">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px', color: '#666666', fontSize: '14px' }}>
+          Loading documents...
+        </div>
       </div>
     );
   }
 
   return (
     <div className="page-content">
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '25px'
-      }}>
-        <div>
-          <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', margin: '0 0 5px 0' }}>
-            Documents
-          </h2>
-          <p style={{ fontSize: '13px', color: '#666666', margin: 0 }}>
-            {filteredDocuments.length} document{filteredDocuments.length !== 1 ? 's' : ''}
-          </p>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '700', margin: 0 }}>
+          Documents ({filteredDocuments.length})
+        </h2>
+        <button onClick={openUploadModal} style={{ padding: '12px 24px', background: '#00ff88', color: '#000000', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
+          + Upload Document
+        </button>
+      </div>
+
+      {/* Search & Filters */}
+      <div style={{ marginBottom: '30px' }}>
+        <input
+          type="text"
+          placeholder="Search documents by name, description, or category..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ width: '100%', padding: '12px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '15px' }}
+        />
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', overflowX: 'auto' }}>
+          {categoryOptions.map((option) => (
+            <div
+              key={option.value}
+              onClick={() => setFilterCategory(option.value)}
+              style={{
+                padding: '10px 20px',
+                background: filterCategory === option.value ? '#00ff88' : '#0a0a0a',
+                border: `1px solid ${filterCategory === option.value ? '#00ff88' : '#1a1a1a'}`,
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <span style={{ fontSize: '13px', fontWeight: '600', color: filterCategory === option.value ? '#000000' : '#ffffff' }}>
+                {option.label}
+              </span>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: filterCategory === option.value ? '#000000' : '#888888', background: filterCategory === option.value ? '#ffffff' : '#1a1a1a', padding: '2px 8px', borderRadius: '10px' }}>
+                {option.count}
+              </span>
+            </div>
+          ))}
         </div>
-        <button
-          onClick={() => setShowUploadModal(true)}
-          style={{
-            background: '#0088ff',
-            color: '#ffffff',
-            border: 'none',
-            padding: '12px 20px',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: '700',
-            fontFamily: 'inherit',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            textTransform: 'uppercase'
-          }}
-        >
-          <UploadIcon size={16} />
-          Upload Document
-        </button>
       </div>
 
-      <div style={{
-        background: '#0a0a0a',
-        border: '1px solid #1a1a1a',
-        borderRadius: '4px',
-        padding: '15px 20px',
-        marginBottom: '20px',
-        display: 'flex',
-        gap: '10px',
-        alignItems: 'center',
-        flexWrap: 'wrap'
-      }}>
-        <span style={{ fontSize: '12px', color: '#888888', fontWeight: '600' }}>Filter:</span>
-        <button
-          onClick={() => setFilterType('all')}
-          style={{
-            background: filterType === 'all' ? '#0088ff' : 'transparent',
-            color: filterType === 'all' ? '#ffffff' : '#888888',
-            border: '1px solid ' + (filterType === 'all' ? '#0088ff' : '#1a1a1a'),
-            padding: '6px 12px',
-            borderRadius: '3px',
-            cursor: 'pointer',
-            fontSize: '11px',
-            fontWeight: '600',
-            fontFamily: 'inherit'
-          }}
-        >
-          All ({documents.length})
-        </button>
-        {DOCUMENT_TYPES.map(type => (
-          <button
-            key={type.value}
-            onClick={() => setFilterType(type.value)}
-            style={{
-              background: filterType === type.value ? '#0088ff' : 'transparent',
-              color: filterType === type.value ? '#ffffff' : '#888888',
-              border: '1px solid ' + (filterType === type.value ? '#0088ff' : '#1a1a1a'),
-              padding: '6px 12px',
-              borderRadius: '3px',
-              cursor: 'pointer',
-              fontSize: '11px',
-              fontWeight: '600',
-              fontFamily: 'inherit'
-            }}
-          >
-            {type.label} ({documents.filter(d => d.type === type.value).length})
-          </button>
-        ))}
-      </div>
-
+      {/* Documents Grid */}
       {filteredDocuments.length === 0 ? (
-        <div style={{
-          background: '#0a0a0a',
-          border: '1px solid #1a1a1a',
-          borderRadius: '4px',
-          padding: '40px',
-          textAlign: 'center',
-          color: '#666666'
-        }}>
-          {documents.length === 0 
-            ? 'No documents yet. Upload your first document!' 
-            : `No ${filterType} documents.`}
+        <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '60px', textAlign: 'center', color: '#666666' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📁</div>
+          <div style={{ fontSize: '16px', marginBottom: '8px' }}>No documents found</div>
+          <div style={{ fontSize: '13px' }}>Upload your first document to get started</div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {filteredDocuments.map((document) => {
-            const typeConfig = DOCUMENT_TYPES.find(t => t.value === document.type);
-            
-            return (
-              <div
-                key={document.id}
-                style={{
-                  background: '#0a0a0a',
-                  border: '1px solid #1a1a1a',
-                  borderRadius: '4px',
-                  padding: '15px 20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '15px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#0f0f0f'}
-                onMouseLeave={(e) => e.currentTarget.style.background = '#0a0a0a'}
-              >
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  background: '#0088ff15',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+          {filteredDocuments.map((document) => (
+            <div
+              key={document.id}
+              style={{
+                background: '#0a0a0a',
+                border: '1px solid #1a1a1a',
+                borderRadius: '8px',
+                padding: '20px',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = getCategoryColor(document.category);
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#1a1a1a';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              {/* Category Badge */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <span style={{
+                  fontSize: '24px'
                 }}>
-                  <FileIcon size={20} color="#0088ff" />
-                </div>
-
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    marginBottom: '5px'
-                  }}>
-                    <h3 style={{
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: '#ffffff',
-                      margin: 0,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {document.name}
-                    </h3>
-                    <span style={{
-                      fontSize: '10px',
-                      color: '#0088ff',
-                      background: '#0088ff15',
-                      padding: '3px 8px',
-                      borderRadius: '3px',
-                      textTransform: 'uppercase',
-                      fontWeight: '700',
-                      flexShrink: 0
-                    }}>
-                      {typeConfig?.label}
-                    </span>
-                  </div>
-
-                  <div style={{
-                    display: 'flex',
-                    gap: '15px',
-                    fontSize: '11px',
-                    color: '#666666'
-                  }}>
-                    <span>{formatFileSize(document.size)}</span>
-                    <span>{formatDate(document.createdAt)}</span>
-                    <span>{getLinkedEntity(document)}</span>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                  <a
-                    href={document.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      background: '#0088ff',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '8px 12px',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      fontSize: '11px',
-                      fontWeight: '600',
-                      fontFamily: 'inherit',
-                      textDecoration: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px'
-                    }}
-                  >
-                    <DownloadIcon size={14} />
-                    {document.isPDF ? 'Download PDF' : 'View'}
-                  </a>
-                  <button
-                    onClick={() => handleDelete(document.id)}
-                    style={{
-                      background: '#ff3333',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '8px 12px',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      fontSize: '11px',
-                      fontWeight: '600',
-                      fontFamily: 'inherit',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px'
-                    }}
-                  >
-                    <TrashIcon size={14} />
-                    Delete
-                  </button>
-                </div>
+                  {getCategoryIcon(document.category)}
+                </span>
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: '700',
+                  color: getCategoryColor(document.category),
+                  background: `${getCategoryColor(document.category)}15`,
+                  padding: '4px 10px',
+                  borderRadius: '10px',
+                  textTransform: 'uppercase'
+                }}>
+                  {document.category}
+                </span>
               </div>
-            );
-          })}
+
+              {/* File Name */}
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff', marginBottom: '4px', wordBreak: 'break-word' }}>
+                  {document.fileName}
+                </div>
+                {document.description && (
+                  <div style={{ fontSize: '12px', color: '#888888', lineHeight: '1.4' }}>
+                    {document.description}
+                  </div>
+                )}
+              </div>
+
+              {/* File Info */}
+              <div style={{ fontSize: '11px', color: '#666666', marginBottom: '16px' }}>
+                {formatFileSize(document.fileSize || 0)} • {document.fileFormat?.toUpperCase() || 'N/A'}
+              </div>
+
+              {/* Linked Info */}
+              {document.linkedTo && document.linkedType !== 'none' && (
+                <div style={{ fontSize: '11px', color: '#0088ff', marginBottom: '16px', padding: '8px', background: '#0088ff15', borderRadius: '4px' }}>
+                  Linked to: {document.linkedType} - {document.linkedTo}
+                </div>
+              )}
+
+              {/* Date */}
+              <div style={{ fontSize: '11px', color: '#666666', marginBottom: '16px', borderTop: '1px solid #1a1a1a', paddingTop: '12px' }}>
+                Uploaded: {document.createdAt ? new Date(document.createdAt).toLocaleDateString() : 'N/A'}
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                
+                  href={document.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    background: '#1a1a1a',
+                    color: '#00ff88',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    textDecoration: 'none',
+                    display: 'block'
+                  }}
+                >
+                  View
+                </a>
+                <button
+                  onClick={() => deleteDocument(document.id, document.publicId)}
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    background: '#1a1a1a',
+                    color: '#ff3333',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
+      {/* Upload Modal */}
       {showUploadModal && (
-        <UploadModal
-          deals={deals}
-          properties={properties}
-          onClose={() => setShowUploadModal(false)}
-          onUpload={loadData}
-        />
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }} onClick={closeUploadModal}>
+          <div style={{ background: '#0a0a0a', border: '2px solid #1a1a1a', borderRadius: '12px', padding: '30px', maxWidth: '500px', width: '100%', maxHeight: '90vh', overflow: 'auto' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '600', margin: 0 }}>Upload Document</h2>
+              <button onClick={closeUploadModal} style={{ background: 'transparent', border: 'none', color: '#888888', fontSize: '24px', cursor: 'pointer', padding: 0 }}>×</button>
+            </div>
+
+            <form onSubmit={handleUpload}>
+              <div style={{ display: 'grid', gap: '16px' }}>
+                {/* File Input */}
+                <div>
+                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Select File</label>
+                  <input
+                    type="file"
+                    onChange={handleFileSelect}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      background: '#0f0f0f',
+                      border: '1px solid #1a1a1a',
+                      borderRadius: '6px',
+                      color: '#ffffff',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
+
+                {/* File Name */}
+                <div>
+                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>File Name</label>
+                  <input
+                    type="text"
+                    value={uploadData.fileName}
+                    onChange={(e) => setUploadData({...uploadData, fileName: e.target.value})}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      background: '#0f0f0f',
+                      border: '1px solid #1a1a1a',
+                      borderRadius: '6px',
+                      color: '#ffffff',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Category</label>
+                  <select
+                    value={uploadData.category}
+                    onChange={(e) => setUploadData({...uploadData, category: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      background: '#0f0f0f',
+                      border: '1px solid #1a1a1a',
+                      borderRadius: '6px',
+                      color: '#ffffff',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="contract">Contract</option>
+                    <option value="inspection">Inspection</option>
+                    <option value="photo">Photo</option>
+                    <option value="legal">Legal</option>
+                    <option value="financial">Financial</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Description (Optional)</label>
+                  <textarea
+                    value={uploadData.description}
+                    onChange={(e) => setUploadData({...uploadData, description: e.target.value})}
+                    rows={3}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      background: '#0f0f0f',
+                      border: '1px solid #1a1a1a',
+                      borderRadius: '6px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      resize: 'vertical'
+                    }}
+                  />
+                </div>
+
+                {/* Linked To */}
+                <div>
+                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Link to (Optional)</label>
+                  <select
+                    value={uploadData.linkedType}
+                    onChange={(e) => setUploadData({...uploadData, linkedType: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      background: '#0f0f0f',
+                      border: '1px solid #1a1a1a',
+                      borderRadius: '6px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      marginBottom: '8px'
+                    }}
+                  >
+                    <option value="none">None</option>
+                    <option value="deal">Deal</option>
+                    <option value="property">Property</option>
+                    <option value="contact">Contact</option>
+                  </select>
+                  {uploadData.linkedType !== 'none' && (
+                    <input
+                      type="text"
+                      placeholder={`Enter ${uploadData.linkedType} ID or name`}
+                      value={uploadData.linkedTo}
+                      onChange={(e) => setUploadData({...uploadData, linkedTo: e.target.value})}
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        background: '#0f0f0f',
+                        border: '1px solid #1a1a1a',
+                        borderRadius: '6px',
+                        color: '#ffffff',
+                        fontSize: '14px'
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
+                <button
+                  type="submit"
+                  disabled={uploading}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    background: uploading ? '#333333' : '#00ff88',
+                    color: uploading ? '#666666' : '#000000',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: uploading ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {uploading ? 'Uploading...' : 'Upload Document'}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeUploadModal}
+                  disabled={uploading}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    background: '#1a1a1a',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: uploading ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+
+            {/* Cloudinary Setup Warning */}
+            <div style={{ marginTop: '20px', padding: '12px', background: '#ffaa0015', border: '1px solid #ffaa0033', borderRadius: '6px' }}>
+              <div style={{ fontSize: '12px', color: '#ffaa00', fontWeight: '600', marginBottom: '4px' }}>⚠️ Cloudinary Setup Required</div>
+              <div style={{ fontSize: '11px', color: '#888888' }}>
+                Update CLOUDINARY_UPLOAD_PRESET and CLOUDINARY_CLOUD_NAME in the code with your Cloudinary credentials.
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
