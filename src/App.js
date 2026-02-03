@@ -10,7 +10,7 @@ import TasksPage from './components/TasksPage';
 import SettingsPage from './components/SettingsPage';
 import DocumentsPage from './components/DocumentsPage';
 import WebsitesPage from './components/WebsitesPage';
-import { ToastProvider } from './components/Toast';
+import { ToastProvider, useToast } from './components/Toast';
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { auth, googleProvider } from './firebase';
 import { 
