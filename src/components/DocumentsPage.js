@@ -543,41 +543,14 @@ const DocumentsPage = () => {
                 </div>
               </div>
 
+             </div>
+
               {/* Action Buttons */}
               <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
-                <button
-                  type="submit"
-                  disabled={uploading}
-                  style={{
-                    flex: 1,
-                    padding: '12px',
-                    background: uploading ? '#333333' : '#00ff88',
-                    color: uploading ? '#666666' : '#000000',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: uploading ? 'not-allowed' : 'pointer'
-                  }}
-                >
+                <button type="submit" disabled={uploading} style={{ flex: 1, padding: '12px', background: uploading ? '#333333' : '#00ff88', color: uploading ? '#666666' : '#000000', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: uploading ? 'not-allowed' : 'pointer' }}>
                   {uploading ? 'Uploading...' : 'Upload Document'}
                 </button>
-                <button
-                  type="button"
-                  onClick={closeUploadModal}
-                  disabled={uploading}
-                  style={{
-                    flex: 1,
-                    padding: '12px',
-                    background: '#1a1a1a',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: uploading ? 'not-allowed' : 'pointer'
-                  }}
-                >
+                <button type="button" onClick={closeUploadModal} disabled={uploading} style={{ flex: 1, padding: '12px', background: '#1a1a1a', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: uploading ? 'not-allowed' : 'pointer' }}>
                   Cancel
                 </button>
               </div>
