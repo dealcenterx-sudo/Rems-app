@@ -326,8 +326,95 @@ const TopBar = ({ title }) => {
   );
 };
 
-// HOME PAGE
+// HOME PAGE - WITH LIVE FIREBASE DATA
 const HomePage = ({ onNavigateToContacts }) => {
+  const [stats, setStats] = useState({
+    totalContacts: 0,
+    totalSellers: 0,
+    totalBuyers: 0,
+    activeBuyers: 0,
+    totalDeals: 0,
+    activeDeals: 0,
+    flippers: 0,
+    builders: 0,
+    holders: 0,
+    totalTasks: 0
+  });
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load all data from Firebase
+  React.useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+        
+        // Load contacts
+        const contactsQuery = isAdmin
+          ? query(collection(db, 'contacts'))
+          : query(collection(db, 'contacts'), where('userId', '==', auth.currentUser.uid));
+        
+        const contactsSnapshot = await getDocs(contactsQuery);
+        const contactsData = [];
+        contactsSnapshot.forEach((doc) => {
+          contactsData.push({ id: doc.id, ...doc.data() });
+        });
+
+        // Load deals
+        const dealsQuery = isAdmin
+          ? query(collection(db, 'deals'))
+          : query(collection(db, 'deals'), where('userId', '==', auth.currentUser.uid));
+        
+        const dealsSnapshot = await getDocs(dealsQuery);
+        const dealsData = [];
+        dealsSnapshot.forEach((doc) => {
+          dealsData.push({ id: doc.id, ...doc.data() });
+        });
+
+        // Load tasks
+        const tasksQuery = isAdmin
+          ? query(collection(db, 'tasks'), orderBy('dueDate', 'asc'))
+          : query(collection(db, 'tasks'), where('userId', '==', auth.currentUser.uid), orderBy('dueDate', 'asc'));
+        
+        const tasksSnapshot = await getDocs(tasksQuery);
+        const tasksData = [];
+        tasksSnapshot.forEach((doc) => {
+          tasksData.push({ id: doc.id, ...doc.data() });
+        });
+
+        // Calculate stats
+        const sellers = contactsData.filter(c => c.contactType === 'seller');
+        const buyers = contactsData.filter(c => c.contactType === 'buyer');
+        const activeBuyers = buyers.filter(b => b.activelyBuying);
+        const flippers = buyers.filter(b => b.buyerType === 'flipper');
+        const builders = buyers.filter(b => b.buyerType === 'builder');
+        const holders = buyers.filter(b => b.buyerType === 'holder');
+        const activeDeals = dealsData.filter(d => d.status !== 'closed');
+
+        setStats({
+          totalContacts: contactsData.length,
+          totalSellers: sellers.length,
+          totalBuyers: buyers.length,
+          activeBuyers: activeBuyers.length,
+          totalDeals: dealsData.length,
+          activeDeals: activeDeals.length,
+          flippers: flippers.length,
+          builders: builders.length,
+          holders: holders.length,
+          totalTasks: tasksData.length
+        });
+
+        setTasks(tasksData.slice(0, 4));
+        setLoading(false);
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
+
   const quickLinks = [
     { label: 'New Seller', icon: UserPlus, color: '#00ff88', action: () => onNavigateToContacts('seller') },
     { label: 'New Buyer', icon: UserPlus, color: '#0088ff', action: () => onNavigateToContacts('buyer') },
@@ -336,50 +423,25 @@ const HomePage = ({ onNavigateToContacts }) => {
     { label: 'Properties Owned', icon: Key, color: '#aa00ff' }
   ];
 
-  const sellerLeadsKPIs = [
-    { label: 'Total Number of Sellers', value: 127 },
-    { label: 'Sellers Contacted', value: 89 },
-    { label: 'Offers Submitted', value: 34 },
-    { label: 'Offers Accepted', value: 18 },
-    { label: 'Pending Deals', value: 12 },
-    { label: 'Seller Leads Closed', value: 23 }
-  ];
-
-  const activeDealsKPIs = [
-    { label: 'Total Number of Active Deals', value: 45 },
-    { label: 'New Deal', value: 8 },
-    { label: 'Pending Buyers', value: 12 },
-    { label: 'Pending Lending', value: 15 },
-    { label: 'Pending Title', value: 7 },
-    { label: 'Pending Closing', value: 9 },
-    { label: 'Closed', value: 6 }
-  ];
-
-  const inventoryRetailKPIs = [
-    { label: 'Total Number of Homes Retailing', value: 78 },
-    { label: 'Active Deals Retailing on Market', value: 32 },
-    { label: 'Active Deals Retailing off Market', value: 18 },
-    { label: 'Active Deals Wholesaling on Market', value: 15 },
-    { label: 'Active Deals Wholesaling off Market', value: 13 }
-  ];
-
-  const buyersKPIs = [
-    { label: 'Total Number of Buyers', value: 156 },
-    { label: 'Buyers that are Flippers', value: 67 },
-    { label: 'Buyers that are Builder', value: 45 },
-    { label: 'Buyers that are Holders', value: 44 }
-  ];
-
-  const tasks = [
-    { id: 1, createdDate: '2026-01-08', dueDate: '2026-01-12', task: 'Follow up on offer for 1847 Oak Street', user: 'Sarah Chen', account: 'Johnson Property Group' },
-    { id: 2, createdDate: '2026-01-09', dueDate: '2026-01-13', task: 'Schedule property inspection', user: 'Marcus Rodriguez', account: 'Thompson Sellers' },
-    { id: 3, createdDate: '2026-01-07', dueDate: '2026-01-11', task: 'Submit financing documents to lender', user: 'Jessica Park', account: 'Martinez Buyers' },
-    { id: 4, createdDate: '2026-01-10', dueDate: '2026-01-15', task: 'Review purchase agreement amendments', user: 'David Kim', account: 'Anderson Estate' }
-  ];
+  if (loading) {
+    return (
+      <div className="page-content">
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          height: '400px',
+          color: '#666666',
+          fontSize: '14px'
+        }}>
+          Loading dashboard...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-content">
-      {/* Quick Links */}
       <div className="section">
         <div className="section-title">Quick Links</div>
         <div className="quick-links-grid">
@@ -394,52 +456,116 @@ const HomePage = ({ onNavigateToContacts }) => {
         </div>
       </div>
 
-      {/* KPIs */}
       <div className="section">
         <div className="section-title">Key Performance Indicators</div>
         <div className="kpi-grid">
-          {[
-            { title: 'Seller Leads', color: '#00ff88', data: sellerLeadsKPIs },
-            { title: 'Active Deals', color: '#0088ff', data: activeDealsKPIs },
-            { title: 'Inventory Retail', color: '#ffaa00', data: inventoryRetailKPIs },
-            { title: 'Buyers', color: '#ff6600', data: buyersKPIs }
-          ].map((section, sIdx) => (
-            <div key={sIdx} className="kpi-container">
-              <div className="kpi-title" style={{ color: section.color }}>{section.title}</div>
-              <div className="kpi-items">
-                {section.data.map((kpi, idx) => (
-                  <div key={idx} className="kpi-item">
-                    <span className="kpi-label">{kpi.label}</span>
-                    <span className="kpi-value">{kpi.value}</span>
-                  </div>
-                ))}
+          <div className="kpi-container">
+            <div className="kpi-title" style={{ color: '#00ff88' }}>Seller Leads</div>
+            <div className="kpi-items">
+              <div className="kpi-item">
+                <span className="kpi-label">Total Number of Sellers</span>
+                <span className="kpi-value">{stats.totalSellers}</span>
+              </div>
+              <div className="kpi-item">
+                <span className="kpi-label">Total Contacts</span>
+                <span className="kpi-value">{stats.totalContacts}</span>
               </div>
             </div>
-          ))}
+          </div>
+
+          <div className="kpi-container">
+            <div className="kpi-title" style={{ color: '#0088ff' }}>Active Deals</div>
+            <div className="kpi-items">
+              <div className="kpi-item">
+                <span className="kpi-label">Total Deals</span>
+                <span className="kpi-value">{stats.totalDeals}</span>
+              </div>
+              <div className="kpi-item">
+                <span className="kpi-label">Active Deals</span>
+                <span className="kpi-value">{stats.activeDeals}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="kpi-container">
+            <div className="kpi-title" style={{ color: '#ffaa00' }}>Tasks</div>
+            <div className="kpi-items">
+              <div className="kpi-item">
+                <span className="kpi-label">Total Tasks</span>
+                <span className="kpi-value">{stats.totalTasks}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="kpi-container">
+            <div className="kpi-title" style={{ color: '#ff6600' }}>Buyers</div>
+            <div className="kpi-items">
+              <div className="kpi-item">
+                <span className="kpi-label">Total Number of Buyers</span>
+                <span className="kpi-value">{stats.totalBuyers}</span>
+              </div>
+              <div className="kpi-item">
+                <span className="kpi-label">Active Buyers</span>
+                <span className="kpi-value">{stats.activeBuyers}</span>
+              </div>
+              <div className="kpi-item">
+                <span className="kpi-label">Buyers that are Flippers</span>
+                <span className="kpi-value">{stats.flippers}</span>
+              </div>
+              <div className="kpi-item">
+                <span className="kpi-label">Buyers that are Builders</span>
+                <span className="kpi-value">{stats.builders}</span>
+              </div>
+              <div className="kpi-item">
+                <span className="kpi-label">Buyers that are Holders</span>
+                <span className="kpi-value">{stats.holders}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Tasks */}
       <div className="section">
-        <div className="section-title">Tasks</div>
-        <div className="tasks-table">
-          <div className="table-header">
-            <div>Created Date</div>
-            <div>Due Date</div>
-            <div>Task</div>
-            <div>User Assigned</div>
-            <div>Account</div>
+        <div className="section-title">Recent Tasks</div>
+        {tasks.length === 0 ? (
+          <div style={{ 
+            background: '#0a0a0a', 
+            border: '1px solid #1a1a1a', 
+            borderRadius: '4px',
+            padding: '40px',
+            textAlign: 'center',
+            color: '#666666'
+          }}>
+            No tasks yet. Add one from the Tasks page!
           </div>
-          {tasks.map((task) => (
-            <div key={task.id} className="table-row">
-              <div>{task.createdDate}</div>
-              <div>{task.dueDate}</div>
-              <div>{task.task}</div>
-              <div className="task-user">{task.user}</div>
-              <div className="task-account">{task.account}</div>
+        ) : (
+          <div className="tasks-table">
+            <div className="table-header">
+              <div>Task</div>
+              <div>Due Date</div>
+              <div>Status</div>
             </div>
-          ))}
-        </div>
+            {tasks.map((task) => (
+              <div key={task.id} className="table-row">
+                <div>{task.title || task.description}</div>
+                <div>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}</div>
+                <div>
+                  <span style={{
+                    fontSize: '10px',
+                    color: task.completed ? '#00ff88' : '#ffaa00',
+                    background: task.completed ? '#00ff8815' : '#ffaa0015',
+                    padding: '4px 8px',
+                    borderRadius: '3px',
+                    textTransform: 'uppercase',
+                    fontWeight: '700'
+                  }}>
+                    {task.completed ? 'Completed' : 'Pending'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
