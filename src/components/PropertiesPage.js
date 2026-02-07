@@ -242,41 +242,6 @@ const PropertiesPage = () => {
     }
   };
 
-  const setFeaturedImage = async (property, imageUrl) => {
-    try {
-      await updateDoc(doc(db, 'properties', property.id), {
-        featuredImage: imageUrl,
-        updatedAt: new Date().toISOString()
-      });
-      loadProperties();
-      alert('Featured image updated!');
-    } catch (error) {
-      console.error('Error updating featured image:', error);
-      alert('Error updating featured image');
-    }
-  };
-
-  const deleteImage = async (property, imageIndex) => {
-    if (!window.confirm('Delete this image?')) return;
-
-    try {
-      const updatedImages = [...property.images];
-      updatedImages.splice(imageIndex, 1);
-
-      await updateDoc(doc(db, 'properties', property.id), {
-        images: updatedImages,
-        featuredImage: updatedImages[0]?.url || '',
-        updatedAt: new Date().toISOString()
-      });
-
-      loadProperties();
-      alert('Image deleted successfully');
-    } catch (error) {
-      console.error('Error deleting image:', error);
-      alert('Error deleting image');
-    }
-  };
-
   const getStatusColor = (status) => {
     const colors = {
       available: '#00ff88',
