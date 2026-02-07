@@ -577,28 +577,48 @@ const PropertiesPage = () => {
                       type="number"
                       value={formData.price}
                       onChange={(e) => setFormData({...formData, price: e.target.value})}
+                      placeholder="475000"
                       required
                       style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
                     />
                   </div>
                   <div>
                     <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Beds</label>
-                    <input
-                      type="number"
+                    <select
                       value={formData.beds}
                       onChange={(e) => setFormData({...formData, beds: e.target.value})}
                       style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
-                    />
+                    >
+                      <option value="">Select</option>
+                      <option value="0">Studio</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6">6</option>
+                      <option value="7">7</option>
+                      <option value="8">8+</option>
+                    </select>
                   </div>
                   <div>
                     <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Baths</label>
-                    <input
-                      type="number"
-                      step="0.5"
+                    <select
                       value={formData.baths}
                       onChange={(e) => setFormData({...formData, baths: e.target.value})}
                       style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
-                    />
+                    >
+                      <option value="">Select</option>
+                      <option value="1">1</option>
+                      <option value="1.5">1.5</option>
+                      <option value="2">2</option>
+                      <option value="2.5">2.5</option>
+                      <option value="3">3</option>
+                      <option value="3.5">3.5</option>
+                      <option value="4">4</option>
+                      <option value="4.5">4.5</option>
+                      <option value="5">5+</option>
+                    </select>
                   </div>
                   <div>
                     <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Sqft</label>
@@ -606,6 +626,7 @@ const PropertiesPage = () => {
                       type="number"
                       value={formData.sqft}
                       onChange={(e) => setFormData({...formData, sqft: e.target.value})}
+                      placeholder="2400"
                       style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
                     />
                   </div>
