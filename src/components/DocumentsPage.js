@@ -19,8 +19,8 @@ const DocumentsPage = () => {
     linkedType: 'none'
   });
 
-  const CLOUDINARY_UPLOAD_PRESET = 'your_upload_preset';
-  const CLOUDINARY_CLOUD_NAME = 'your_cloud_name';
+  const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned';
+  const CLOUDINARY_CLOUD_NAME = 'dcirl3j3v';
 
   useEffect(() => {
     loadDocuments();
