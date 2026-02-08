@@ -127,10 +127,10 @@ const ActiveDealsPage = () => {
 
       {/* Deals Grid */}
       {filteredDeals.length === 0 ? (
-        <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '60px', textAlign: 'center', color: '#666666' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>💼</div>
-          <div style={{ fontSize: '16px', marginBottom: '8px' }}>No {filterStatus === 'all' ? '' : getStatusLabel(filterStatus)} deals found</div>
-          <div style={{ fontSize: '13px' }}>Create a new deal from the Deals → New Deal page</div>
+        <div className="empty-state-card">
+          <div className="empty-state-icon">💼</div>
+          <div className="empty-state-title">No {filterStatus === 'all' ? '' : getStatusLabel(filterStatus)} deals found</div>
+          <div className="empty-state-subtitle">Create a new deal from the Deals → New Deal page</div>
         </div>
       ) : (
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>

@@ -6,7 +6,7 @@ const BarChart = ({ data, title }) => {
   const maxValue = Math.max(...data.map(d => d.value), 1);
   
   return (
-    <div className="card-surface">
+    <div className="card-surface hover-lift">
       <h3 style={{ fontSize: '16px', color: '#ffffff', marginBottom: '20px', fontWeight: '600' }}>{title}</h3>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '15px', height: '200px' }}>
         {data.map((item, idx) => (
@@ -25,7 +25,7 @@ const PieChart = ({ data, title }) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
   
   return (
-    <div className="card-surface">
+    <div className="card-surface hover-lift">
       <h3 style={{ fontSize: '16px', color: '#ffffff', marginBottom: '20px', fontWeight: '600' }}>{title}</h3>
       <div style={{ display: 'flex', gap: '30px', alignItems: 'center' }}>
         <div style={{ width: '150px', height: '150px', borderRadius: '50%', background: `conic-gradient(${data.map((item, idx) => { const prevTotal = data.slice(0, idx).reduce((sum, d) => sum + d.value, 0); const percentage = (item.value / total) * 100; const prevPercentage = (prevTotal / total) * 100; return `${item.color} ${prevPercentage}% ${prevPercentage + percentage}%`; }).join(', ')})`, position: 'relative' }}>
@@ -51,7 +51,7 @@ const PieChart = ({ data, title }) => {
 };
 
 const MetricCard = ({ label, value, icon, color }) => (
-  <div className="card-surface" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+  <div className="card-surface hover-lift" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
       <div style={{ fontSize: '12px', color: '#888888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
       <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>{icon}</div>

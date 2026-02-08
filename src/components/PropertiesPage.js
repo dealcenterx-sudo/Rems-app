@@ -559,24 +559,14 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
       {/* Properties Grid */}
       {filteredAndSortedProperties.length === 0 ? (
-        <div style={{ background: '#0a0a0a', border: '1px dashed #1a1a1a', borderRadius: '12px', padding: '60px', textAlign: 'center', color: '#666666' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>🏠</div>
-          <div style={{ fontSize: '16px', marginBottom: '8px', color: '#ffffff' }}>No properties match your filters</div>
-          <div style={{ fontSize: '13px', marginBottom: '20px' }}>Try adjusting your search criteria</div>
+        <div className="empty-state-card">
+          <div className="empty-state-icon">🏠</div>
+          <div className="empty-state-title">No properties match your filters</div>
+          <div className="empty-state-subtitle">Try adjusting your search criteria</div>
           {getActiveFiltersCount() > 0 && (
             <button
               onClick={clearAllFilters}
-              style={{
-                padding: '10px 20px',
-                background: '#00ff88',
-                color: '#000000',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '13px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                textTransform: 'uppercase'
-              }}
+              className="btn-primary"
             >
               Clear Filters
             </button>
@@ -587,14 +577,8 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
           {filteredAndSortedProperties.map((property) => (
             <div
               key={property.id}
-              style={{
-                background: '#0a0a0a',
-                border: '1px solid #1a1a1a',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                cursor: 'pointer'
-              }}
+              className="card-surface hover-lift"
+              style={{ borderRadius: '12px', overflow: 'hidden', cursor: 'pointer' }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = getStatusColor(property.status);
                 e.currentTarget.style.transform = 'translateY(-6px)';

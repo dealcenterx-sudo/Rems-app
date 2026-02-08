@@ -915,15 +915,10 @@ const handleSaveContact = async () => {
             <div className="loading-spinner" />
           </div>
         ) : contacts.length === 0 ? (
-          <div style={{ 
-            background: '#0a0a0a', 
-            border: '1px solid #1a1a1a', 
-            borderRadius: '4px',
-            padding: '40px',
-            textAlign: 'center',
-            color: '#666666'
-          }}>
-            No contacts yet. Add one above!
+          <div className="empty-state-card">
+            <div className="empty-state-icon">👥</div>
+            <div className="empty-state-title">No contacts yet</div>
+            <div className="empty-state-subtitle">Add one above to get started.</div>
           </div>
         ) : (
           (() => {
@@ -939,15 +934,10 @@ const handleSaveContact = async () => {
 
             if (filteredContacts.length === 0) {
               return (
-                <div style={{ 
-                  background: '#0a0a0a', 
-                  border: '1px solid #1a1a1a', 
-                  borderRadius: '4px',
-                  padding: '40px',
-                  textAlign: 'center',
-                  color: '#666666'
-                }}>
-                  No contacts match your search.
+                <div className="empty-state-card">
+                  <div className="empty-state-icon">🔍</div>
+                  <div className="empty-state-title">No contacts match your search</div>
+                  <div className="empty-state-subtitle">Try a different name, email, or phone.</div>
                 </div>
               );
             }
@@ -1103,15 +1093,10 @@ const querySnapshot = isAdmin
             <div className="loading-spinner" />
           </div>
         ) : buyers.length === 0 ? (
-          <div style={{ 
-            background: '#0a0a0a', 
-            border: '1px solid #1a1a1a', 
-            borderRadius: '4px',
-            padding: '40px',
-            textAlign: 'center',
-            color: '#666666'
-          }}>
-            No buyers yet. Add one from the Contacts page!
+          <div className="empty-state-card">
+            <div className="empty-state-icon">🏠</div>
+            <div className="empty-state-title">No buyers yet</div>
+            <div className="empty-state-subtitle">Add one from the Contacts page.</div>
           </div>
         ) : (
           (() => {
@@ -1127,15 +1112,10 @@ const querySnapshot = isAdmin
 
             if (filteredBuyers.length === 0) {
               return (
-                <div style={{ 
-                  background: '#0a0a0a', 
-                  border: '1px solid #1a1a1a', 
-                  borderRadius: '4px',
-                  padding: '40px',
-                  textAlign: 'center',
-                  color: '#666666'
-                }}>
-                  No buyers match your search.
+                <div className="empty-state-card">
+                  <div className="empty-state-icon">🔍</div>
+                  <div className="empty-state-title">No buyers match your search</div>
+                  <div className="empty-state-subtitle">Try a different name, email, or phone.</div>
                 </div>
               );
             }

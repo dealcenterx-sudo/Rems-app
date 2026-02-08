@@ -818,7 +818,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
               {selectedDate ? `Tasks for ${selectedDate.toLocaleDateString()}` : 'Select a day to view tasks'}
             </div>
             {selectedDate && tasksForSelectedDate.length === 0 && (
-              <div style={{ fontSize: '12px', color: '#666666' }}>No tasks due this day.</div>
+              <div className="empty-state-subtitle">No tasks due this day.</div>
             )}
             {selectedDate && tasksForSelectedDate.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -838,14 +838,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
           </div>
         </div>
       ) : filteredTasks.length === 0 ? (
-        <div style={{
-          background: '#0a0a0a',
-          border: '1px solid #1a1a1a',
-          borderRadius: '4px',
-          padding: '40px',
-          textAlign: 'center',
-          color: '#666666'
-        }}>
+        <div className="empty-state-card">
           {tasks.length === 0 
             ? 'No tasks yet. Create your first task!' 
             : `No ${filterStatus} tasks.`}

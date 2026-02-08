@@ -133,7 +133,7 @@ const DealsDashboard = () => {
     <div className="page-content">
       {/* Stats Cards */}
       <div className="grid-four" style={{ gap: '20px', marginBottom: '30px' }}>
-        <div className="card-surface">
+        <div className="card-surface hover-lift">
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -162,7 +162,7 @@ const DealsDashboard = () => {
           </div>
         </div>
 
-        <div className="card-surface">
+        <div className="card-surface hover-lift">
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -191,7 +191,7 @@ const DealsDashboard = () => {
           </div>
         </div>
 
-        <div className="card-surface">
+        <div className="card-surface hover-lift">
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -220,7 +220,7 @@ const DealsDashboard = () => {
           </div>
         </div>
 
-        <div className="card-surface">
+        <div className="card-surface hover-lift">
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -296,13 +296,8 @@ const DealsDashboard = () => {
 
                 {/* Deal Cards */}
                 {statusDeals.length === 0 ? (
-                  <div style={{
-                    padding: '20px',
-                    textAlign: 'center',
-                    color: '#666666',
-                    fontSize: '11px'
-                  }}>
-                    No deals
+                  <div className="empty-state-card" style={{ padding: '20px' }}>
+                    <div className="empty-state-subtitle">No deals</div>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -368,15 +363,10 @@ const DealsDashboard = () => {
         <div className="section-title">Recent Deals</div>
         
         {deals.length === 0 ? (
-          <div style={{
-            background: '#0a0a0a',
-            border: '1px solid #1a1a1a',
-            borderRadius: '4px',
-            padding: '40px',
-            textAlign: 'center',
-            color: '#666666'
-          }}>
-            No deals yet. Create your first deal!
+          <div className="empty-state-card">
+            <div className="empty-state-icon">🧾</div>
+            <div className="empty-state-title">No deals yet</div>
+            <div className="empty-state-subtitle">Create your first deal to see it here.</div>
           </div>
         ) : (
           <div className="tasks-table">

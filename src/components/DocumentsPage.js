@@ -251,15 +251,15 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
       </div>
 
       {filteredDocuments.length === 0 ? (
-        <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '60px', textAlign: 'center', color: '#666666' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📁</div>
-          <div style={{ fontSize: '16px', marginBottom: '8px' }}>No documents found</div>
-          <div style={{ fontSize: '13px' }}>Upload your first document to get started</div>
+        <div className="empty-state-card">
+          <div className="empty-state-icon">📁</div>
+          <div className="empty-state-title">No documents found</div>
+          <div className="empty-state-subtitle">Upload your first document to get started</div>
         </div>
       ) : (
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
           {filteredDocuments.map((document) => (
-            <div key={document.id} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px' }}>
+            <div key={document.id} className="card-surface hover-lift">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                 <span style={{ fontSize: '24px' }}>{getCategoryIcon(document.category)}</span>
                 <span style={{ fontSize: '10px', fontWeight: '700', color: getCategoryColor(document.category), background: `${getCategoryColor(document.category)}15`, padding: '4px 10px', borderRadius: '10px', textTransform: 'uppercase' }}>{document.category}</span>

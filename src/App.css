@@ -639,6 +639,50 @@ body {
   transform: none;
 }
 
+.card-surface {
+  background: #0a0a0a;
+  border: 1px solid #1a1a1a;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.hover-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+  border-color: #2a2a2a;
+}
+
+.empty-state-card {
+  background: #0a0a0a;
+  border: 1px dashed #1a1a1a;
+  border-radius: 10px;
+  padding: 50px 30px;
+  text-align: center;
+  color: #666666;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.empty-state-title {
+  font-size: 16px;
+  color: #ffffff;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.empty-state-subtitle {
+  font-size: 13px;
+  color: #888888;
+}
+
 .btn-secondary {
   background: #1a1a1a;
   color: #ffffff;
@@ -731,13 +775,6 @@ body {
 .btn-block {
   width: 100%;
   justify-content: center;
-}
-
-.card-surface {
-  background: #0a0a0a;
-  border: 1px solid #1a1a1a;
-  border-radius: 10px;
-  padding: 20px;
 }
 
 .badge {
@@ -851,6 +888,29 @@ body {
 
 .btn-warning:hover {
   background: #ffc233;
+}
+
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-danger:focus-visible,
+.btn-warning:focus-visible,
+.btn-ghost:focus-visible,
+.btn-icon:focus-visible,
+.icon-button:focus-visible,
+.filter-chip:focus-visible,
+.bottom-nav-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.25);
+  border-color: #00ff88;
+}
+
+.form-field input:focus-visible,
+.form-field select:focus-visible,
+.form-field textarea:focus-visible,
+.search-box input:focus-visible {
+  outline: none;
+  border-color: #00ff88;
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.12);
 }
 
 .notification-wrapper {
