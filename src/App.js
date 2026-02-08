@@ -331,7 +331,7 @@ const TopBar = ({ title, searchQuery, onSearchChange, showSearch }) => {
       <div className="top-bar-right">
         {showSearch && (
           <div className="search-box">
-            <Search size={16} color="#666666" />
+            <Search size={18} color="#666666" />
             <input
               type="text"
               placeholder="Search current page..."
@@ -359,7 +359,7 @@ const TopBar = ({ title, searchQuery, onSearchChange, showSearch }) => {
         </div>
         <div className="user-profile" style={{ position: 'relative' }}>
           <div className="user-avatar">
-            <User size={16} color="#00ff88" />
+            <User size={18} color="#00ff88" />
           </div>
           <span>{auth.currentUser?.email || 'Admin'}</span>
           <button
@@ -367,7 +367,7 @@ const TopBar = ({ title, searchQuery, onSearchChange, showSearch }) => {
             className="btn-ghost"
             title="Sign Out"
           >
-            <LogOut size={14} color="#888888" />
+            <LogOut size={16} color="#888888" />
           </button>
         </div>
       </div>
@@ -490,7 +490,7 @@ const HomePage = ({ onNavigateToContacts }) => {
           {quickLinks.map((link, idx) => (
             <div key={idx} className="quick-link-card" onClick={link.action}>
               <div className="quick-link-icon" style={{ background: `${link.color}15` }}>
-                <link.icon size={18} color={link.color} />
+                <link.icon size={20} color={link.color} />
               </div>
               <span>{link.label}</span>
             </div>
@@ -1194,14 +1194,14 @@ const BuyersPage = ({ subTab, setSubTab, onNavigateToContacts, globalSearch, onS
             onClick={() => onNavigateToContacts('buyer')}
             className="subnav-item"
           >
-            <UserPlus size={16} color="#888888" />
+            <UserPlus size={18} color="#888888" />
             <span>Add New Buyer</span>
           </div>
           <div
             onClick={() => setSubTab('list')}
             className={`subnav-item ${subTab === 'list' ? 'active' : ''}`}
           >
-            <List size={16} color={subTab === 'list' ? '#00ff88' : '#888888'} />
+            <List size={18} color={subTab === 'list' ? '#00ff88' : '#888888'} />
             <span>Buyers List</span>
           </div>
         </div>
@@ -2149,7 +2149,7 @@ const DealsPage = ({ subTab, setSubTab }) => {
               onClick={() => setSubTab(item.id)}
               className={`subnav-item ${subTab === item.id ? 'active' : ''}`}
             >
-              <item.icon size={16} color={subTab === item.id ? '#00ff88' : '#888888'} />
+              <item.icon size={18} color={subTab === item.id ? '#00ff88' : '#888888'} />
               <span>{item.label}</span>
             </div>
           ))}
