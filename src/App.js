@@ -2274,7 +2274,7 @@ function App() {
         {activeTab === 'documents' && <DocumentsPage />}
         {activeTab === 'websites' && <WebsitesPage />}
         {activeTab === 'settings' && <SettingsPage />}
-        {!['home', 'contacts', 'buyers', 'deals', 'properties', 'crm', 'tasks', 'documents', 'websites', 'settings'].includes(activeTab) && (
+        {!['home', 'contacts', 'buyers', 'deals', 'properties', 'crm', 'analytics', 'tasks', 'documents', 'websites', 'settings'].includes(activeTab) && (
           <div className="placeholder">
             <div className="placeholder-icon">🚧</div>
             <div>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} page coming soon</div>
