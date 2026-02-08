@@ -13,6 +13,7 @@ import WebsitesPage from './components/WebsitesPage';
 import { ToastProvider, useToast } from './components/Toast';
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { auth, googleProvider } from './firebase';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
@@ -228,6 +229,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   const navItems = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'crm', label: 'CRM', icon: TrendingUp },
+    { id: 'analytics', label: 'Analytics', icon: BarChart },
     { id: 'contacts', label: 'Contacts', icon: Users },
     { id: 'buyers', label: 'Buyers', icon: UserPlus },
     { id: 'deals', label: 'Deals', icon: FileText },
@@ -2267,6 +2269,7 @@ function App() {
         {activeTab === 'deals' && <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} companyId={companyId} />}
         {activeTab === 'properties' && <PropertiesPage />}
         {activeTab === 'crm' && <CRMDashboard />}
+        {activeTab === 'analytics' && <AnalyticsDashboard />}
         {activeTab === 'tasks' && <TasksPage />}
         {activeTab === 'documents' && <DocumentsPage />}
         {activeTab === 'websites' && <WebsitesPage />}
