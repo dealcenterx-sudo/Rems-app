@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 
-const DocumentsPage = () => {
+const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(globalSearch);
   
   const [uploadData, setUploadData] = useState({
     file: null,
@@ -25,6 +25,10 @@ const DocumentsPage = () => {
   useEffect(() => {
     loadDocuments();
   }, []);
+
+  useEffect(() => {
+    setSearchTerm(globalSearch || '');
+  }, [globalSearch]);
 
   const loadDocuments = async () => {
     try {
@@ -227,11 +231,11 @@ const DocumentsPage = () => {
     <div className="page-content">
       <div className="responsive-header" style={{ marginBottom: '30px' }}>
         <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '700', margin: 0 }}>Documents ({filteredDocuments.length})</h2>
-        <button onClick={openUploadModal} style={{ padding: '12px 24px', background: '#00ff88', color: '#000000', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>+ Upload Document</button>
+        <button onClick={openUploadModal} className="btn-primary">+ Upload Document</button>
       </div>
 
       <div style={{ marginBottom: '30px' }}>
-        <input type="text" placeholder="Search documents..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '15px' }} />
+        <input type="text" placeholder="Search documents..." value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); if (onSearchChange) onSearchChange(e.target.value); }} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '15px' }} />
         <div className="filters-row">
           {categoryOptions.map((option) => (
             <div key={option.value} onClick={() => setFilterCategory(option.value)} style={{ padding: '10px 20px', background: filterCategory === option.value ? '#00ff88' : '#0a0a0a', border: `1px solid ${filterCategory === option.value ? '#00ff88' : '#1a1a1a'}`, borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -266,8 +270,8 @@ const DocumentsPage = () => {
               )}
               <div style={{ fontSize: '11px', color: '#666666', marginBottom: '16px', borderTop: '1px solid #1a1a1a', paddingTop: '12px' }}>Uploaded: {document.createdAt ? new Date(document.createdAt).toLocaleDateString() : 'N/A'}</div>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <a href={document.fileUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '8px', background: '#1a1a1a', color: '#00ff88', border: 'none', borderRadius: '4px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', textAlign: 'center', textDecoration: 'none', display: 'block' }}>View</a>
-                <button onClick={() => deleteDocument(document.id)} style={{ flex: 1, padding: '8px', background: '#1a1a1a', color: '#ff3333', border: 'none', borderRadius: '4px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Delete</button>
+                <a href={document.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm btn-block">View</a>
+                <button onClick={() => deleteDocument(document.id)} className="btn-danger btn-sm btn-block">Delete</button>
               </div>
             </div>
           ))}
@@ -320,8 +324,12 @@ const DocumentsPage = () => {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
-                <button type="submit" disabled={uploading} style={{ flex: 1, padding: '12px', background: uploading ? '#333333' : '#00ff88', color: uploading ? '#666666' : '#000000', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: uploading ? 'not-allowed' : 'pointer' }}>{uploading ? 'Uploading...' : 'Upload'}</button>
-                <button type="button" onClick={closeUploadModal} disabled={uploading} style={{ flex: 1, padding: '12px', background: '#1a1a1a', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: uploading ? 'not-allowed' : 'pointer' }}>Cancel</button>
+                <button type="submit" disabled={uploading} className="btn-primary btn-block">
+                  {uploading ? 'Uploading...' : 'Upload'}
+                </button>
+                <button type="button" onClick={closeUploadModal} disabled={uploading} className="btn-secondary btn-block">
+                  Cancel
+                </button>
               </div>
             </form>
             <div style={{ marginTop: '20px', padding: '12px', background: '#ffaa0015', border: '1px solid #ffaa0033', borderRadius: '6px' }}>

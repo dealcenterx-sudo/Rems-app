@@ -308,36 +308,14 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
         }}>
           <button
             onClick={onClose}
-            style={{
-              background: '#1a1a1a',
-              color: '#888888',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '600',
-              fontFamily: 'inherit'
-            }}
+            className="btn-secondary"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            style={{
-              background: '#0088ff',
-              color: '#ffffff',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '4px',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              fontSize: '13px',
-              fontWeight: '700',
-              fontFamily: 'inherit',
-              textTransform: 'uppercase',
-              opacity: saving ? 0.6 : 1
-            }}
+            className="btn-primary"
           >
             {saving ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
           </button>
@@ -347,7 +325,7 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
   );
 };
 
-const TasksPage = () => {
+const TasksPage = ({ globalSearch = '', onSearchChange }) => {
   const toast = useToast();
   const [tasks, setTasks] = useState([]);
   const [deals, setDeals] = useState([]);
@@ -360,7 +338,7 @@ const TasksPage = () => {
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [filterAssignee, setFilterAssignee] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(globalSearch);
   const [viewMode, setViewMode] = useState('list');
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
@@ -368,6 +346,10 @@ const TasksPage = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    setSearchTerm(globalSearch || '');
+  }, [globalSearch]);
 
   const loadData = async () => {
     try {
@@ -594,21 +576,7 @@ const TasksPage = () => {
               setSelectedTask(null);
               setShowModal(true);
             }}
-            style={{
-              background: '#0088ff',
-              color: '#ffffff',
-              border: 'none',
-              padding: '12px 20px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '700',
-              fontFamily: 'inherit',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              textTransform: 'uppercase'
-            }}
+            className="btn-primary"
           >
             <PlusIcon size={16} />
             New Task
@@ -690,7 +658,10 @@ const TasksPage = () => {
             type="text"
             placeholder="Search tasks, description, or assignee..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              if (onSearchChange) onSearchChange(e.target.value);
+            }}
             style={{
               flex: '1 1 240px',
               minWidth: '200px',
@@ -952,31 +923,15 @@ const TasksPage = () => {
                       {task.title}
                     </h3>
                     
-                    <span style={{
-                      fontSize: '10px',
+                    <span className="badge" style={{
                       color: priority?.color,
-                      background: `${priority?.color}15`,
-                      padding: '3px 8px',
-                      borderRadius: '3px',
-                      textTransform: 'uppercase',
-                      fontWeight: '700'
+                      background: `${priority?.color}15`
                     }}>
                       {priority?.label}
                     </span>
 
                     {overdue && (
-                      <span style={{
-                        fontSize: '10px',
-                        color: '#ff3333',
-                        background: '#ff333315',
-                        padding: '3px 8px',
-                        borderRadius: '3px',
-                        textTransform: 'uppercase',
-                        fontWeight: '700',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}>
+                      <span className="badge badge-danger" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <AlertIcon size={12} />
                         Overdue
                       </span>
@@ -1004,9 +959,9 @@ const TasksPage = () => {
                         <ClockIcon size={14} />
                         {formatDate(task.dueDate)}
                       </span>
-                      {task.dealId && <span>🏠 Linked to deal</span>}
-                      {task.type && <span style={{ textTransform: 'capitalize' }}>{task.type}</span>}
-                      <span>👤 {task.assignedToName || 'Unassigned'}</span>
+                      {task.dealId && <span className="badge badge-muted">🏠 Linked deal</span>}
+                      {task.type && <span className="badge badge-info" style={{ textTransform: 'capitalize' }}>{task.type}</span>}
+                      <span className="badge badge-outline">👤 {task.assignedToName || 'Unassigned'}</span>
                     </div>
                   </div>
 
@@ -1016,33 +971,13 @@ const TasksPage = () => {
                       setSelectedTask(task);
                       setShowModal(true);
                     }}
-                    style={{
-                      background: '#0088ff',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '6px 12px',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      fontSize: '11px',
-                      fontWeight: '600',
-                      fontFamily: 'inherit'
-                    }}
+                    className="btn-secondary btn-sm"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(task.id)}
-                    style={{
-                      background: '#ff3333',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '6px 12px',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      fontSize: '11px',
-                      fontWeight: '600',
-                      fontFamily: 'inherit'
-                    }}
+                    className="btn-danger btn-sm"
                   >
                     Delete
                   </button>

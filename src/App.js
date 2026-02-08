@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
 import { db } from './firebase';
 import DealsDashboard from './components/DealsDashboard';
@@ -242,7 +242,10 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
 
   return (
     <div className="sidebar">
-      <div className="logo">R</div>
+      <div className="logo">
+        <span className="logo-mark">R</span>
+        <span className="logo-text">REMS</span>
+      </div>
       <div className="nav-items">
         {navItems.slice(0, -1).map((item) => (
           <div
@@ -252,6 +255,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
             title={item.label}
           >
             <item.icon size={20} color={activeTab === item.id ? '#00ff88' : '#888888'} />
+            <span>{item.label}</span>
           </div>
         ))}
       </div>
@@ -261,14 +265,16 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         title="Settings"
       >
         <Settings size={20} color={activeTab === 'settings' ? '#00ff88' : '#888888'} />
+        <span>Settings</span>
       </div>
     </div>
   );
 };
 
 // Top Bar Component
-const TopBar = ({ title }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+const TopBar = ({ title, searchQuery, onSearchChange }) => {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notificationsRef = useRef(null);
 
   const getCurrentDateTime = () => {
     const now = new Date();
@@ -283,6 +289,17 @@ const TopBar = ({ title }) => {
     return `${dayName}, ${monthName} ${date}, ${year}`;
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <div className="top-bar">
       <div className="top-bar-left">
@@ -294,12 +311,28 @@ const TopBar = ({ title }) => {
           <Search size={16} color="#666666" />
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Search current page..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
-       <Bell size={18} color="#888888" style={{ cursor: 'pointer' }} />
+        <div className="notification-wrapper" ref={notificationsRef}>
+          <button
+            type="button"
+            className="btn-icon"
+            onClick={() => setShowNotifications((prev) => !prev)}
+            title="Notifications"
+          >
+            <Bell size={18} color="#888888" />
+          </button>
+          {showNotifications && (
+            <div className="notification-panel">
+              <div className="notification-header">Notifications</div>
+              <div className="notification-empty">No notifications yet.</div>
+              <div className="notification-footer">You are all caught up.</div>
+            </div>
+          )}
+        </div>
         <div className="user-profile" style={{ position: 'relative' }}>
           <div className="user-avatar">
             <User size={16} color="#00ff88" />
@@ -307,17 +340,7 @@ const TopBar = ({ title }) => {
           <span>{auth.currentUser?.email || 'Admin'}</span>
           <button
             onClick={() => signOut(auth)}
-            style={{
-              background: 'transparent',
-              border: '1px solid #1a1a1a',
-              borderRadius: '4px',
-              padding: '6px 12px',
-              marginLeft: '10px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
+            className="btn-ghost"
             title="Sign Out"
           >
             <LogOut size={14} color="#888888" />
@@ -549,9 +572,9 @@ const HomePage = ({ onNavigateToContacts }) => {
             </div>
             {tasks.map((task) => (
               <div key={task.id} className="table-row">
-                <div>{task.title || task.description}</div>
-                <div>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}</div>
-                <div>
+                <div data-label="Task">{task.title || task.description}</div>
+                <div data-label="Due Date">{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}</div>
+                <div data-label="Status">
                   <span style={{
                     fontSize: '10px',
                     color: task.completed ? '#00ff88' : '#ffaa00',
@@ -574,7 +597,7 @@ const HomePage = ({ onNavigateToContacts }) => {
 };
 
 // CONTACTS PAGE - WITH EDIT/DELETE
-const ContactsPage = ({ contactType = 'buyer', editContactId = null }) => {
+const ContactsPage = ({ contactType = 'buyer', editContactId = null, globalSearch = '', onSearchChange }) => {
   const [selectedContactType, setSelectedContactType] = useState(contactType);
   const [formData, setFormData] = useState({ 
     firstName: '', 
@@ -588,11 +611,16 @@ const ContactsPage = ({ contactType = 'buyer', editContactId = null }) => {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(editContactId);
+  const [searchTerm, setSearchTerm] = useState(globalSearch);
   const toast = useToast();
   // Load contacts from Firebase
   React.useEffect(() => {
     loadContacts();
   }, []);
+
+  useEffect(() => {
+    setSearchTerm(globalSearch || '');
+  }, [globalSearch]);
 
   // Load contact for editing if editContactId is provided
   React.useEffect(() => {
@@ -846,9 +874,8 @@ const handleSaveContact = async () => {
           </button>
           {editingId && (
             <button 
-              className="btn-primary" 
+              className="btn-secondary" 
               onClick={handleCancelEdit}
-              style={{ background: '#666666' }}
             >
               Cancel
             </button>
@@ -858,7 +885,28 @@ const handleSaveContact = async () => {
 
       {/* Contacts List */}
       <div className="section" style={{ marginTop: '40px' }}>
-        <div className="section-title">All Contacts ({contacts.length} total)</div>
+        <div className="section-title">All Contacts</div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <input
+            type="text"
+            placeholder="Search contacts by name, email, or phone..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              if (onSearchChange) onSearchChange(e.target.value);
+            }}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              background: '#0a0a0a',
+              border: '1px solid #1a1a1a',
+              borderRadius: '8px',
+              color: '#ffffff',
+              fontSize: '14px'
+            }}
+          />
+        </div>
         
         {loading ? (
           <div style={{ 
@@ -883,81 +931,90 @@ const handleSaveContact = async () => {
             No contacts yet. Add one above!
           </div>
         ) : (
-          <div className="tasks-table">
-            <div className="table-header" style={{ 
-              gridTemplateColumns: '200px 120px 150px 180px 120px 150px' 
-            }}>
-              <div>Name</div>
-              <div>Type</div>
-              <div>Phone</div>
-              <div>Email</div>
-              <div>Date Added</div>
-              <div>Actions</div>
-            </div>
+          (() => {
+            const filteredContacts = contacts.filter((contact) => {
+              if (!searchTerm) return true;
+              const search = searchTerm.toLowerCase();
+              return (
+                `${contact.firstName} ${contact.lastName}`.toLowerCase().includes(search) ||
+                contact.email?.toLowerCase().includes(search) ||
+                contact.phone?.toLowerCase().includes(search)
+              );
+            });
 
-            {contacts.map((contact) => (
-              <div
-                key={contact.id}
-                className="table-row"
-                style={{ gridTemplateColumns: '200px 120px 150px 180px 120px 150px' }}
-              >
-                <div style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
-                  {contact.firstName} {contact.lastName}
+            if (filteredContacts.length === 0) {
+              return (
+                <div style={{ 
+                  background: '#0a0a0a', 
+                  border: '1px solid #1a1a1a', 
+                  borderRadius: '4px',
+                  padding: '40px',
+                  textAlign: 'center',
+                  color: '#666666'
+                }}>
+                  No contacts match your search.
+                </div>
+              );
+            }
+
+            return (
+              <div className="tasks-table">
+                <div className="table-header" style={{ 
+                  gridTemplateColumns: '200px 120px 150px 180px 120px 150px' 
+                }}>
+                  <div>Name</div>
+                  <div>Type</div>
+                  <div>Phone</div>
+                  <div>Email</div>
+                  <div>Date Added</div>
+                  <div>Actions</div>
                 </div>
 
-                <div style={{ fontSize: '12px', color: '#00ff88', textTransform: 'capitalize' }}>
-                  {contact.contactType}
-                </div>
-
-                <div style={{ fontSize: '12px', color: '#888888' }}>
-                  {contact.phone}
-                </div>
-
-                <div style={{ fontSize: '12px', color: '#888888' }}>
-                  {contact.email}
-                </div>
-
-                <div style={{ fontSize: '12px', color: '#888888' }}>
-                  {contact.createdAt ? new Date(contact.createdAt).toLocaleDateString() : 'N/A'}
-                </div>
-
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={() => handleEditContact(contact)}
-                    style={{
-                      background: '#0088ff',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '6px 12px',
-                      fontSize: '11px',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      fontWeight: '600'
-                    }}
+                {filteredContacts.map((contact) => (
+                  <div
+                    key={contact.id}
+                    className="table-row"
+                    style={{ gridTemplateColumns: '200px 120px 150px 180px 120px 150px' }}
                   >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteContact(contact.id)}
-                    style={{
-                      background: '#ff3333',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '6px 12px',
-                      fontSize: '11px',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      fontWeight: '600'
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
+                    <div data-label="Name" style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
+                      {contact.firstName} {contact.lastName}
+                    </div>
+
+                    <div data-label="Type" style={{ fontSize: '12px', color: '#00ff88', textTransform: 'capitalize' }}>
+                      {contact.contactType}
+                    </div>
+
+                    <div data-label="Phone" style={{ fontSize: '12px', color: '#888888' }}>
+                      {contact.phone}
+                    </div>
+
+                    <div data-label="Email" style={{ fontSize: '12px', color: '#888888' }}>
+                      {contact.email}
+                    </div>
+
+                    <div data-label="Date Added" style={{ fontSize: '12px', color: '#888888' }}>
+                      {contact.createdAt ? new Date(contact.createdAt).toLocaleDateString() : 'N/A'}
+                    </div>
+
+                    <div data-label="Actions" style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => handleEditContact(contact)}
+                        className="btn-secondary btn-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteContact(contact.id)}
+                        className="btn-danger btn-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()
         )}
       </div>
     </div>
@@ -965,10 +1022,11 @@ const handleSaveContact = async () => {
 };
 
 // BUYERS LIST PAGE
-const BuyersListPage = () => {
+const BuyersListPage = ({ globalSearch = '', onSearchChange }) => {
   // Filters removed - not used in BuyersListPage
   const [buyers, setBuyers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState(globalSearch);
 
   // Load buyers from Firebase
   React.useEffect(() => {
@@ -1015,10 +1073,35 @@ const querySnapshot = isAdmin
     loadBuyers();
   }, []);
 
+  useEffect(() => {
+    setSearchTerm(globalSearch || '');
+  }, [globalSearch]);
+
   return (
     <div className="page-content">
       <div className="section">
-        <div className="section-title">Buyers List ({buyers.length} total)</div>
+        <div className="section-title">Buyers List</div>
+
+        <div style={{ marginBottom: '15px' }}>
+          <input
+            type="text"
+            placeholder="Search buyers by name, email, or phone..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              if (onSearchChange) onSearchChange(e.target.value);
+            }}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              background: '#0a0a0a',
+              border: '1px solid #1a1a1a',
+              borderRadius: '8px',
+              color: '#ffffff',
+              fontSize: '14px'
+            }}
+          />
+        </div>
         
         {loading ? (
           <div style={{ 
@@ -1043,60 +1126,89 @@ const querySnapshot = isAdmin
             No buyers yet. Add one from the Contacts page!
           </div>
         ) : (
-          <div className="tasks-table">
-            <div className="table-header" style={{ 
-              gridTemplateColumns: '250px 100px 120px 150px 150px' 
-            }}>
-              <div>Name / Email</div>
-              <div>Active</div>
-              <div>Phone</div>
-              <div>Buyer Type</div>
-              <div>Date Added</div>
-            </div>
+          (() => {
+            const filteredBuyers = buyers.filter((buyer) => {
+              if (!searchTerm) return true;
+              const search = searchTerm.toLowerCase();
+              return (
+                buyer.name?.toLowerCase().includes(search) ||
+                buyer.entity?.toLowerCase().includes(search) ||
+                buyer.phone?.toLowerCase().includes(search)
+              );
+            });
 
-            {buyers.map((buyer) => (
-              <div
-                key={buyer.id}
-                className="table-row"
-                style={{ gridTemplateColumns: '250px 100px 120px 150px 150px' }}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
-                    {buyer.name}
-                  </span>
-                  <span style={{ fontSize: '11px', color: '#666666' }}>
-                    {buyer.entity}
-                  </span>
+            if (filteredBuyers.length === 0) {
+              return (
+                <div style={{ 
+                  background: '#0a0a0a', 
+                  border: '1px solid #1a1a1a', 
+                  borderRadius: '4px',
+                  padding: '40px',
+                  textAlign: 'center',
+                  color: '#666666'
+                }}>
+                  No buyers match your search.
+                </div>
+              );
+            }
+
+            return (
+              <div className="tasks-table">
+                <div className="table-header" style={{ 
+                  gridTemplateColumns: '250px 100px 120px 150px 150px' 
+                }}>
+                  <div>Name / Email</div>
+                  <div>Active</div>
+                  <div>Phone</div>
+                  <div>Buyer Type</div>
+                  <div>Date Added</div>
                 </div>
 
-                <div>
-                  <span style={{
-                    fontSize: '10px',
-                    color: buyer.active ? '#00ff88' : '#ff6600',
-                    background: buyer.active ? '#00ff8815' : '#ff660015',
-                    padding: '4px 8px',
-                    borderRadius: '3px',
-                    textTransform: 'uppercase',
-                    fontWeight: '700'
-                  }}>
-                    {buyer.active ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
+                {filteredBuyers.map((buyer) => (
+                  <div
+                    key={buyer.id}
+                    className="table-row"
+                    style={{ gridTemplateColumns: '250px 100px 120px 150px 150px' }}
+                  >
+                    <div data-label="Name / Email" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
+                        {buyer.name}
+                      </span>
+                      <span style={{ fontSize: '11px', color: '#666666' }}>
+                        {buyer.entity}
+                      </span>
+                    </div>
 
-                <div style={{ fontSize: '12px', color: '#888888' }}>
-                  {buyer.phone}
-                </div>
+                    <div data-label="Active">
+                      <span style={{
+                        fontSize: '10px',
+                        color: buyer.active ? '#00ff88' : '#ff6600',
+                        background: buyer.active ? '#00ff8815' : '#ff660015',
+                        padding: '4px 8px',
+                        borderRadius: '3px',
+                        textTransform: 'uppercase',
+                        fontWeight: '700'
+                      }}>
+                        {buyer.active ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
 
-                <div style={{ fontSize: '12px', color: '#0088ff' }}>
-                  {buyer.type}
-                </div>
+                    <div data-label="Phone" style={{ fontSize: '12px', color: '#888888' }}>
+                      {buyer.phone}
+                    </div>
 
-                <div style={{ fontSize: '12px', color: '#888888' }}>
-                  {buyer.createdAt ? new Date(buyer.createdAt).toLocaleDateString() : 'N/A'}
-                </div>
+                    <div data-label="Buyer Type" style={{ fontSize: '12px', color: '#0088ff' }}>
+                      {buyer.type}
+                    </div>
+
+                    <div data-label="Date Added" style={{ fontSize: '12px', color: '#888888' }}>
+                      {buyer.createdAt ? new Date(buyer.createdAt).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()
         )}
       </div>
     </div>
@@ -1104,7 +1216,7 @@ const querySnapshot = isAdmin
 };
 
 // BUYERS PAGE with sub-nav
-const BuyersPage = ({ subTab, setSubTab, onNavigateToContacts }) => {
+const BuyersPage = ({ subTab, setSubTab, onNavigateToContacts, globalSearch, onSearchChange }) => {
   return (
     <div className="page-with-subnav">
       <div className="subnav">
@@ -1127,7 +1239,7 @@ const BuyersPage = ({ subTab, setSubTab, onNavigateToContacts }) => {
         </div>
       </div>
       <div className="subnav-content">
-        {subTab === 'list' && <BuyersListPage />}
+        {subTab === 'list' && <BuyersListPage globalSearch={globalSearch} onSearchChange={onSearchChange} />}
       </div>
     </div>
   );
@@ -2130,6 +2242,7 @@ function App() {
   const [buyersSubTab, setBuyersSubTab] = useState('list');
   const [dealsSubTab, setDealsSubTab] = useState('new');
   const [contactType, setContactType] = useState('buyer');
+  const [globalSearch, setGlobalSearch] = useState('');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [companyId, setCompanyId] = useState(null);
@@ -2165,6 +2278,10 @@ function App() {
     setContactType(type);
     setActiveTab('contacts');
   };
+
+  useEffect(() => {
+    setGlobalSearch('');
+  }, [activeTab]);
 
   // eslint-disable-next-line no-unused-vars
   const handleCompanySetup = (newCompanyId) => {
@@ -2204,16 +2321,20 @@ function App() {
       <div className="App">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="main-container">
-        <TopBar title={activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} />
+        <TopBar
+          title={activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+          searchQuery={globalSearch}
+          onSearchChange={setGlobalSearch}
+        />
         {activeTab === 'home' && <HomePage onNavigateToContacts={handleNavigateToContacts} />}
-        {activeTab === 'contacts' && <ContactsPage contactType={contactType} companyId={companyId} />}
-        {activeTab === 'buyers' && <BuyersPage subTab={buyersSubTab} setSubTab={setBuyersSubTab} onNavigateToContacts={handleNavigateToContacts} companyId={companyId} />}
+        {activeTab === 'contacts' && <ContactsPage contactType={contactType} companyId={companyId} globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
+        {activeTab === 'buyers' && <BuyersPage subTab={buyersSubTab} setSubTab={setBuyersSubTab} onNavigateToContacts={handleNavigateToContacts} companyId={companyId} globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'deals' && <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} companyId={companyId} />}
-        {activeTab === 'properties' && <PropertiesPage />}
+        {activeTab === 'properties' && <PropertiesPage globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'crm' && <CRMDashboard />}
         {activeTab === 'analytics' && <AnalyticsDashboard />}
-        {activeTab === 'tasks' && <TasksPage />}
-        {activeTab === 'documents' && <DocumentsPage />}
+        {activeTab === 'tasks' && <TasksPage globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
+        {activeTab === 'documents' && <DocumentsPage globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'websites' && <WebsitesPage />}
         {activeTab === 'settings' && <SettingsPage />}
         {!['home', 'contacts', 'buyers', 'deals', 'properties', 'crm', 'analytics', 'tasks', 'documents', 'websites', 'settings'].includes(activeTab) && (

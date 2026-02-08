@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 
-const PropertiesPage = () => {
+const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -13,7 +13,7 @@ const PropertiesPage = () => {
   const [uploading, setUploading] = useState(false);
 
   // Search & Filter States
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(globalSearch);
   const [filterStatus, setFilterStatus] = useState('all');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [bedsFilter, setBedsFilter] = useState('any');
@@ -43,6 +43,10 @@ const PropertiesPage = () => {
   useEffect(() => {
     loadProperties();
   }, []);
+
+  useEffect(() => {
+    setSearchTerm(globalSearch || '');
+  }, [globalSearch]);
 
   const loadProperties = async () => {
     try {
@@ -363,7 +367,7 @@ const PropertiesPage = () => {
             Showing {filteredAndSortedProperties.length} of {properties.length} properties
           </p>
         </div>
-        <button onClick={() => openModal()} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)', color: '#000000', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', textTransform: 'uppercase' }}>
+        <button onClick={() => openModal()} className="btn-primary">
           + Add Property
         </button>
       </div>
@@ -374,7 +378,10 @@ const PropertiesPage = () => {
           type="text"
           placeholder="Search by address, city, state, or zip..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            if (onSearchChange) onSearchChange(e.target.value);
+          }}
           style={{ width: '100%', padding: '14px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', color: '#ffffff', fontSize: '14px', transition: 'all 0.3s' }}
           onFocus={(e) => {
             e.target.style.borderColor = '#00ff88';
@@ -710,39 +717,13 @@ const PropertiesPage = () => {
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     onClick={(e) => { e.stopPropagation(); openModal(property); }}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      background: '#0088ff',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.target.style.background = '#0099ff'}
-                    onMouseLeave={(e) => e.target.style.background = '#0088ff'}
+                    className="btn-secondary btn-sm"
                   >
                     Edit
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); deleteProperty(property.id); }}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      background: '#ff3333',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.target.style.background = '#ff4444'}
-                    onMouseLeave={(e) => e.target.style.background = '#ff3333'}
+                    className="btn-danger btn-sm"
                   >
                     Delete
                   </button>
@@ -963,18 +944,7 @@ const PropertiesPage = () => {
                 <button
                   type="submit"
                   disabled={uploading}
-                  style={{
-                    flex: 1,
-                    padding: '14px',
-                    background: uploading ? '#333333' : 'linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)',
-                    color: uploading ? '#666666' : '#000000',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontWeight: '700',
-                    cursor: uploading ? 'not-allowed' : 'pointer',
-                    textTransform: 'uppercase'
-                  }}
+                  className="btn-primary btn-block"
                 >
                   {uploading ? 'Saving...' : editingProperty ? 'Update Property' : 'Add Property'}
                 </button>
@@ -982,18 +952,7 @@ const PropertiesPage = () => {
                   type="button"
                   onClick={closeModal}
                   disabled={uploading}
-                  style={{
-                    flex: 1,
-                    padding: '14px',
-                    background: '#1a1a1a',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontWeight: '700',
-                    cursor: uploading ? 'not-allowed' : 'pointer',
-                    textTransform: 'uppercase'
-                  }}
+                  className="btn-secondary btn-block"
                 >
                   Cancel
                 </button>
