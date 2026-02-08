@@ -354,7 +354,7 @@ const PropertiesPage = () => {
   return (
     <div className="page-content">
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+      <div className="responsive-header" style={{ marginBottom: '30px' }}>
         <div>
           <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '700', margin: 0, marginBottom: '4px' }}>
             Properties
@@ -423,7 +423,7 @@ const PropertiesPage = () => {
         {/* Price Range */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Price Range</label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div className="grid-two" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <input
               type="number"
               placeholder="Min Price"
@@ -442,7 +442,7 @@ const PropertiesPage = () => {
         </div>
 
         {/* Beds & Baths Filters */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+        <div className="grid-three" style={{ gridTemplateColumns: '1fr 1fr 1fr', marginBottom: '20px' }}>
           {/* Beds */}
           <div>
             <label style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Beds</label>
@@ -576,7 +576,7 @@ const PropertiesPage = () => {
           )}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+        <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
           {filteredAndSortedProperties.map((property) => (
             <div
               key={property.id}
@@ -755,9 +755,9 @@ const PropertiesPage = () => {
 
       {/* Add/Edit Property Modal - SAME AS BEFORE */}
       {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px', backdropFilter: 'blur(5px)' }} onClick={closeModal}>
-          <div style={{ background: '#0a0a0a', border: '2px solid #1a1a1a', borderRadius: '12px', padding: '30px', maxWidth: '800px', width: '100%', maxHeight: '90vh', overflow: 'auto' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" style={{ padding: '30px', maxWidth: '800px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header" style={{ marginBottom: '24px' }}>
               <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '600', margin: 0 }}>
                 {editingProperty ? 'Edit Property' : 'Add New Property'}
               </h2>
@@ -765,7 +765,7 @@ const PropertiesPage = () => {
             </div>
 
             <form onSubmit={handleSubmit}>
-              <div style={{ display: 'grid', gap: '20px' }}>
+                <div style={{ display: 'grid', gap: '20px' }}>
                 {/* Address */}
                 <div>
                   <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Address *</label>
@@ -779,7 +779,7 @@ const PropertiesPage = () => {
                 </div>
 
                 {/* City, State, Zip */}
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '15px' }}>
+                <div className="grid-city-state-zip" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '15px' }}>
                   <div>
                     <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>City *</label>
                     <input
@@ -814,7 +814,7 @@ const PropertiesPage = () => {
                 </div>
 
                 {/* Price, Beds, Baths, Sqft */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px' }}>
+                <div className="grid-four" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px' }}>
                   <div>
                     <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Price *</label>
                     <input
@@ -877,7 +877,7 @@ const PropertiesPage = () => {
                 </div>
 
                 {/* Property Type & Status */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div className="grid-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                   <div>
                     <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Property Type</label>
                     <select
@@ -1006,25 +1006,15 @@ const PropertiesPage = () => {
       {/* Gallery Modal - SAME AS BEFORE */}
       {showGalleryModal && selectedProperty && selectedProperty.images && selectedProperty.images.length > 0 && (
         <div 
-          style={{ 
-            position: 'fixed', 
-            top: 0, 
-            left: 0, 
-            right: 0, 
-            bottom: 0, 
-            background: 'rgba(0, 0, 0, 0.95)', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            zIndex: 2000,
-            padding: '20px'
-          }} 
+          className="modal-overlay gallery-overlay"
+          style={{ zIndex: 2000 }} 
           onClick={closeGallery}
         >
-          <div style={{ maxWidth: '1200px', width: '100%', height: '80vh', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+          <div className="gallery-modal" style={{ maxWidth: '1200px', width: '100%', height: '80vh', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
             {/* Close Button */}
             <button
               onClick={closeGallery}
+              className="gallery-close"
               style={{
                 position: 'absolute',
                 top: '-50px',
@@ -1049,7 +1039,7 @@ const PropertiesPage = () => {
               color: '#ffffff',
               fontSize: '14px',
               fontWeight: '600'
-            }}>
+            }} className="gallery-counter">
               {currentImageIndex + 1} / {selectedProperty.images.length}
             </div>
 
@@ -1078,6 +1068,7 @@ const PropertiesPage = () => {
                 <>
                   <button
                     onClick={prevImage}
+                    className="gallery-nav"
                     style={{
                       position: 'absolute',
                       left: '20px',
@@ -1095,6 +1086,7 @@ const PropertiesPage = () => {
                   </button>
                   <button
                     onClick={nextImage}
+                    className="gallery-nav"
                     style={{
                       position: 'absolute',
                       right: '20px',
@@ -1116,7 +1108,7 @@ const PropertiesPage = () => {
 
             {/* Thumbnail Strip */}
             {selectedProperty.images.length > 1 && (
-              <div style={{ 
+              <div className="gallery-thumbs" style={{ 
                 position: 'absolute', 
                 bottom: '-80px', 
                 left: 0, 

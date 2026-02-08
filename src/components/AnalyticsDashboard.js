@@ -218,7 +218,7 @@ const AnalyticsDashboard = () => {
   return (
     <div className="page-content">
       {/* Header */}
-      <div style={{ marginBottom: '30px' }}>
+      <div className="page-header" style={{ marginBottom: '30px' }}>
         <h2 style={{ fontSize: '24px', color: '#ffffff', fontWeight: '700', margin: 0, marginBottom: '8px' }}>
           Analytics Dashboard
         </h2>
@@ -232,7 +232,7 @@ const AnalyticsDashboard = () => {
         <label style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
           Date Range
         </label>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="filters-row">
           {['7', '30', '90', 'custom'].map((range) => (
             <div
               key={range}
@@ -289,7 +289,7 @@ const AnalyticsDashboard = () => {
       </div>
 
       {/* Key Metrics Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+      <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '30px' }}>
         {/* Total Revenue */}
         <div style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 100%)', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-20px', right: '-20px', fontSize: '80px', opacity: 0.05 }}>💰</div>
@@ -348,7 +348,7 @@ const AnalyticsDashboard = () => {
       </div>
 
       {/* Charts Row 1 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+      <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', marginBottom: '30px' }}>
         {/* Monthly Trend */}
         <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '24px' }}>
           <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '20px' }}>
@@ -391,7 +391,7 @@ const AnalyticsDashboard = () => {
       </div>
 
       {/* Charts Row 2 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+      <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', marginBottom: '30px' }}>
         {/* Deal Status Breakdown */}
         {dealStatusData.length > 0 && (
           <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '24px' }}>

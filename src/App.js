@@ -836,7 +836,7 @@ const handleSaveContact = async () => {
             </>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div className="header-actions">
           <button 
             className="btn-primary" 
             onClick={handleSaveContact}
@@ -1345,7 +1345,7 @@ const querySnapshot = isAdmin
 
       {/* Create Deal Button - Fixed Bottom Right */}
       {dealData.buyer && dealData.seller && dealData.property && (
-        <div style={{ 
+        <div className="floating-action" style={{ 
           position: 'fixed',
           bottom: '30px',
           right: '30px',
@@ -1385,29 +1385,9 @@ const querySnapshot = isAdmin
 
       {/* Buyer Selection Modal */}
       {showBuyerModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.9)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: '#0a0a0a',
-            border: '2px solid #0088ff',
-            borderRadius: '8px',
-            padding: '30px',
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '80vh',
-            overflow: 'auto'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ borderColor: '#0088ff', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
+            <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '20px', color: '#0088ff', margin: 0 }}>Select Buyer</h2>
               <button
                 onClick={() => setShowBuyerModal(false)}
@@ -1484,29 +1464,9 @@ const querySnapshot = isAdmin
 
       {/* Seller Selection Modal */}
       {showSellerModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.9)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: '#0a0a0a',
-            border: '2px solid #00ff88',
-            borderRadius: '8px',
-            padding: '30px',
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '80vh',
-            overflow: 'auto'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ borderColor: '#00ff88', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
+            <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '20px', color: '#00ff88', margin: 0 }}>Select Seller</h2>
               <button
                 onClick={() => setShowSellerModal(false)}
@@ -1578,27 +1538,9 @@ const querySnapshot = isAdmin
 
       {/* Property Input Modal */}
       {showPropertyModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.9)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: '#0a0a0a',
-            border: '2px solid #ffaa00',
-            borderRadius: '8px',
-            padding: '30px',
-            maxWidth: '500px',
-            width: '90%'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ borderColor: '#ffaa00', padding: '30px', maxWidth: '500px', width: '90%' }}>
+            <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '20px', color: '#ffaa00', margin: 0 }}>Enter Property Address</h2>
               <button
                 onClick={() => setShowPropertyModal(false)}

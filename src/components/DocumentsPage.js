@@ -225,14 +225,14 @@ const DocumentsPage = () => {
 
   return (
     <div className="page-content">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+      <div className="responsive-header" style={{ marginBottom: '30px' }}>
         <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '700', margin: 0 }}>Documents ({filteredDocuments.length})</h2>
         <button onClick={openUploadModal} style={{ padding: '12px 24px', background: '#00ff88', color: '#000000', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>+ Upload Document</button>
       </div>
 
       <div style={{ marginBottom: '30px' }}>
         <input type="text" placeholder="Search documents..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '15px' }} />
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <div className="filters-row">
           {categoryOptions.map((option) => (
             <div key={option.value} onClick={() => setFilterCategory(option.value)} style={{ padding: '10px 20px', background: filterCategory === option.value ? '#00ff88' : '#0a0a0a', border: `1px solid ${filterCategory === option.value ? '#00ff88' : '#1a1a1a'}`, borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '13px', fontWeight: '600', color: filterCategory === option.value ? '#000000' : '#ffffff' }}>{option.label}</span>
@@ -249,7 +249,7 @@ const DocumentsPage = () => {
           <div style={{ fontSize: '13px' }}>Upload your first document to get started</div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+        <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
           {filteredDocuments.map((document) => (
             <div key={document.id} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
@@ -275,9 +275,9 @@ const DocumentsPage = () => {
       )}
 
       {showUploadModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }} onClick={closeUploadModal}>
-          <div style={{ background: '#0a0a0a', border: '2px solid #1a1a1a', borderRadius: '12px', padding: '30px', maxWidth: '500px', width: '100%', maxHeight: '90vh', overflow: 'auto' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div className="modal-overlay" onClick={closeUploadModal}>
+          <div className="modal-content" style={{ padding: '30px', maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header" style={{ marginBottom: '24px' }}>
               <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '600', margin: 0 }}>Upload Document</h2>
               <button onClick={closeUploadModal} style={{ background: 'transparent', border: 'none', color: '#888888', fontSize: '24px', cursor: 'pointer', padding: 0 }}>×</button>
             </div>
