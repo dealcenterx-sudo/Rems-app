@@ -10,9 +10,15 @@ const PropertiesPage = () => {
   const [editingProperty, setEditingProperty] = useState(null);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [uploading, setUploading] = useState(false);
+
+  // Search & Filter States
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [uploading, setUploading] = useState(false);
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [bedsFilter, setBedsFilter] = useState('any');
+  const [bathsFilter, setBathsFilter] = useState('any');
+  const [sortBy, setSortBy] = useState('date-desc');
 
   const [formData, setFormData] = useState({
     address: '',
@@ -32,7 +38,7 @@ const PropertiesPage = () => {
   const [imageFiles, setImageFiles] = useState([]);
 
   const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned';
-  const CLOUDINARY_CLOUD_NAME = 'dcirl3j3v'; // Replace with your cloud name
+  const CLOUDINARY_CLOUD_NAME = 'djaq0av66'; // Replace with your cloud name
 
   useEffect(() => {
     loadProperties();
@@ -108,7 +114,6 @@ const PropertiesPage = () => {
     try {
       let uploadedImages = [...(formData.images || [])];
 
-      // Upload new images if any
       if (imageFiles.length > 0) {
         for (const file of imageFiles) {
           const imageData = await uploadToCloudinary(file);
@@ -242,6 +247,25 @@ const PropertiesPage = () => {
     }
   };
 
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setFilterStatus('all');
+    setPriceRange({ min: '', max: '' });
+    setBedsFilter('any');
+    setBathsFilter('any');
+    setSortBy('date-desc');
+  };
+
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (searchTerm) count++;
+    if (filterStatus !== 'all') count++;
+    if (priceRange.min || priceRange.max) count++;
+    if (bedsFilter !== 'any') count++;
+    if (bathsFilter !== 'any') count++;
+    return count;
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       available: '#00ff88',
@@ -252,8 +276,11 @@ const PropertiesPage = () => {
     return colors[status] || '#888888';
   };
 
-  const filteredProperties = properties
+  // Advanced Filtering Logic
+  const filteredAndSortedProperties = properties
+    // Status filter
     .filter(p => filterStatus === 'all' || p.status === filterStatus)
+    // Search filter
     .filter(p => {
       if (!searchTerm) return true;
       const search = searchTerm.toLowerCase();
@@ -263,14 +290,56 @@ const PropertiesPage = () => {
         p.state?.toLowerCase().includes(search) ||
         p.zipCode?.toLowerCase().includes(search)
       );
+    })
+    // Price range filter
+    .filter(p => {
+      if (!priceRange.min && !priceRange.max) return true;
+      const price = p.price || 0;
+      const min = priceRange.min ? parseFloat(priceRange.min) : 0;
+      const max = priceRange.max ? parseFloat(priceRange.max) : Infinity;
+      return price >= min && price <= max;
+    })
+    // Beds filter
+    .filter(p => {
+      if (bedsFilter === 'any') return true;
+      if (bedsFilter === '4+') return p.beds >= 4;
+      return p.beds === parseInt(bedsFilter);
+    })
+    // Baths filter
+    .filter(p => {
+      if (bathsFilter === 'any') return true;
+      if (bathsFilter === '3+') return p.baths >= 3;
+      return p.baths >= parseFloat(bathsFilter);
+    })
+    // Sort
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'price-asc':
+          return (a.price || 0) - (b.price || 0);
+        case 'price-desc':
+          return (b.price || 0) - (a.price || 0);
+        case 'sqft-asc':
+          return (a.sqft || 0) - (b.sqft || 0);
+        case 'sqft-desc':
+          return (b.sqft || 0) - (a.sqft || 0);
+        case 'date-desc':
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        case 'date-asc':
+          return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+        default:
+          return 0;
+      }
     });
 
   const statusOptions = [
-    { value: 'all', label: 'All Properties', count: properties.length },
+    { value: 'all', label: 'All', count: properties.length },
     { value: 'available', label: 'Available', count: properties.filter(p => p.status === 'available').length },
     { value: 'under-contract', label: 'Under Contract', count: properties.filter(p => p.status === 'under-contract').length },
     { value: 'sold', label: 'Sold', count: properties.filter(p => p.status === 'sold').length }
   ];
+
+  const bedsOptions = ['any', '1', '2', '3', '4+'];
+  const bathsOptions = ['any', '1', '2', '3+'];
 
   if (loading) {
     return (
@@ -286,75 +355,243 @@ const PropertiesPage = () => {
     <div className="page-content">
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '700', margin: 0 }}>
-          Properties ({filteredProperties.length})
-        </h2>
-        <button onClick={() => openModal()} style={{ padding: '12px 24px', background: '#00ff88', color: '#000000', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
+        <div>
+          <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '700', margin: 0, marginBottom: '4px' }}>
+            Properties
+          </h2>
+          <p style={{ fontSize: '13px', color: '#888888', margin: 0 }}>
+            Showing {filteredAndSortedProperties.length} of {properties.length} properties
+          </p>
+        </div>
+        <button onClick={() => openModal()} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)', color: '#000000', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', textTransform: 'uppercase' }}>
           + Add Property
         </button>
       </div>
 
-      {/* Search & Filters */}
-      <div style={{ marginBottom: '30px' }}>
+      {/* Search Bar */}
+      <div style={{ marginBottom: '20px' }}>
         <input
           type="text"
           placeholder="Search by address, city, state, or zip..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ width: '100%', padding: '12px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '15px' }}
+          style={{ width: '100%', padding: '14px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', color: '#ffffff', fontSize: '14px', transition: 'all 0.3s' }}
+          onFocus={(e) => {
+            e.target.style.borderColor = '#00ff88';
+            e.target.style.boxShadow = '0 0 0 3px rgba(0, 255, 136, 0.1)';
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = '#1a1a1a';
+            e.target.style.boxShadow = 'none';
+          }}
         />
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          {statusOptions.map((option) => (
-            <div
-              key={option.value}
-              onClick={() => setFilterStatus(option.value)}
+      </div>
+
+      {/* Filters Row */}
+      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '20px', marginBottom: '25px' }}>
+        {/* Status Filters */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Status</label>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {statusOptions.map((option) => (
+              <div
+                key={option.value}
+                onClick={() => setFilterStatus(option.value)}
+                style={{
+                  padding: '8px 16px',
+                  background: filterStatus === option.value ? '#00ff88' : '#0f0f0f',
+                  border: `1px solid ${filterStatus === option.value ? '#00ff88' : '#1a1a1a'}`,
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <span style={{ fontSize: '12px', fontWeight: '600', color: filterStatus === option.value ? '#000000' : '#ffffff' }}>
+                  {option.label}
+                </span>
+                <span style={{ fontSize: '10px', fontWeight: '700', color: filterStatus === option.value ? '#000000' : '#888888', background: filterStatus === option.value ? 'rgba(0,0,0,0.2)' : '#1a1a1a', padding: '2px 6px', borderRadius: '8px' }}>
+                  {option.count}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Price Range */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Price Range</label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <input
+              type="number"
+              placeholder="Min Price"
+              value={priceRange.min}
+              onChange={(e) => setPriceRange({...priceRange, min: e.target.value})}
+              style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '13px' }}
+            />
+            <input
+              type="number"
+              placeholder="Max Price"
+              value={priceRange.max}
+              onChange={(e) => setPriceRange({...priceRange, max: e.target.value})}
+              style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '13px' }}
+            />
+          </div>
+        </div>
+
+        {/* Beds & Baths Filters */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          {/* Beds */}
+          <div>
+            <label style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Beds</label>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {bedsOptions.map((bed) => (
+                <div
+                  key={bed}
+                  onClick={() => setBedsFilter(bed)}
+                  style={{
+                    padding: '8px 14px',
+                    background: bedsFilter === bed ? '#0088ff' : '#0f0f0f',
+                    border: `1px solid ${bedsFilter === bed ? '#0088ff' : '#1a1a1a'}`,
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: bedsFilter === bed ? '#ffffff' : '#888888',
+                    transition: 'all 0.2s',
+                    textTransform: 'capitalize'
+                  }}
+                >
+                  {bed}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Baths */}
+          <div>
+            <label style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Baths</label>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {bathsOptions.map((bath) => (
+                <div
+                  key={bath}
+                  onClick={() => setBathsFilter(bath)}
+                  style={{
+                    padding: '8px 14px',
+                    background: bathsFilter === bath ? '#0088ff' : '#0f0f0f',
+                    border: `1px solid ${bathsFilter === bath ? '#0088ff' : '#1a1a1a'}`,
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: bathsFilter === bath ? '#ffffff' : '#888888',
+                    transition: 'all 0.2s',
+                    textTransform: 'capitalize'
+                  }}
+                >
+                  {bath}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Sort By */}
+          <div>
+            <label style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Sort By</label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '13px', fontWeight: '500' }}
+            >
+              <option value="date-desc">Newest First</option>
+              <option value="date-asc">Oldest First</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="sqft-asc">Sqft: Low to High</option>
+              <option value="sqft-desc">Sqft: High to Low</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Active Filters & Clear All */}
+        {getActiveFiltersCount() > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '15px', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ fontSize: '12px', color: '#888888' }}>
+              {getActiveFiltersCount()} filter{getActiveFiltersCount() > 1 ? 's' : ''} active
+            </div>
+            <button
+              onClick={clearAllFilters}
               style={{
-                padding: '10px 20px',
-                background: filterStatus === option.value ? '#00ff88' : '#0a0a0a',
-                border: `1px solid ${filterStatus === option.value ? '#00ff88' : '#1a1a1a'}`,
+                padding: '6px 14px',
+                background: 'transparent',
+                border: '1px solid #ff3333',
                 borderRadius: '6px',
+                color: '#ff3333',
+                fontSize: '11px',
+                fontWeight: '600',
                 cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
+                textTransform: 'uppercase',
                 transition: 'all 0.2s'
               }}
+              onMouseEnter={(e) => {
+                e.target.style.background = '#ff3333';
+                e.target.style.color = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'transparent';
+                e.target.style.color = '#ff3333';
+              }}
             >
-              <span style={{ fontSize: '13px', fontWeight: '600', color: filterStatus === option.value ? '#000000' : '#ffffff' }}>
-                {option.label}
-              </span>
-              <span style={{ fontSize: '11px', fontWeight: '700', color: filterStatus === option.value ? '#000000' : '#888888', background: filterStatus === option.value ? '#ffffff' : '#1a1a1a', padding: '2px 8px', borderRadius: '10px' }}>
-                {option.count}
-              </span>
-            </div>
-          ))}
-        </div>
+              Clear All
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Properties Grid */}
-      {filteredProperties.length === 0 ? (
-        <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '60px', textAlign: 'center', color: '#666666' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏠</div>
-          <div style={{ fontSize: '16px', marginBottom: '8px' }}>No properties found</div>
-          <div style={{ fontSize: '13px' }}>Add your first property to get started</div>
+      {filteredAndSortedProperties.length === 0 ? (
+        <div style={{ background: '#0a0a0a', border: '1px dashed #1a1a1a', borderRadius: '12px', padding: '60px', textAlign: 'center', color: '#666666' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>🏠</div>
+          <div style={{ fontSize: '16px', marginBottom: '8px', color: '#ffffff' }}>No properties match your filters</div>
+          <div style={{ fontSize: '13px', marginBottom: '20px' }}>Try adjusting your search criteria</div>
+          {getActiveFiltersCount() > 0 && (
+            <button
+              onClick={clearAllFilters}
+              style={{
+                padding: '10px 20px',
+                background: '#00ff88',
+                color: '#000000',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                textTransform: 'uppercase'
+              }}
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
-          {filteredProperties.map((property) => (
+          {filteredAndSortedProperties.map((property) => (
             <div
               key={property.id}
               style={{
                 background: '#0a0a0a',
                 border: '1px solid #1a1a1a',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 overflow: 'hidden',
-                transition: 'all 0.3s',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 cursor: 'pointer'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = getStatusColor(property.status);
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = `0 8px 25px ${getStatusColor(property.status)}30`;
+                e.currentTarget.style.transform = 'translateY(-6px)';
+                e.currentTarget.style.boxShadow = `0 12px 30px ${getStatusColor(property.status)}30`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = '#1a1a1a';
@@ -387,7 +624,8 @@ const PropertiesPage = () => {
                   background: getStatusColor(property.status),
                   padding: '6px 12px',
                   borderRadius: '20px',
-                  textTransform: 'uppercase'
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
                 }}>
                   {property.status.replace('-', ' ')}
                 </div>
@@ -481,8 +719,11 @@ const PropertiesPage = () => {
                       borderRadius: '6px',
                       fontSize: '12px',
                       fontWeight: '600',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
                     }}
+                    onMouseEnter={(e) => e.target.style.background = '#0099ff'}
+                    onMouseLeave={(e) => e.target.style.background = '#0088ff'}
                   >
                     Edit
                   </button>
@@ -497,8 +738,11 @@ const PropertiesPage = () => {
                       borderRadius: '6px',
                       fontSize: '12px',
                       fontWeight: '600',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
                     }}
+                    onMouseEnter={(e) => e.target.style.background = '#ff4444'}
+                    onMouseLeave={(e) => e.target.style.background = '#ff3333'}
                   >
                     Delete
                   </button>
@@ -509,9 +753,9 @@ const PropertiesPage = () => {
         </div>
       )}
 
-      {/* Add/Edit Property Modal */}
+      {/* Add/Edit Property Modal - SAME AS BEFORE */}
       {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }} onClick={closeModal}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px', backdropFilter: 'blur(5px)' }} onClick={closeModal}>
           <div style={{ background: '#0a0a0a', border: '2px solid #1a1a1a', borderRadius: '12px', padding: '30px', maxWidth: '800px', width: '100%', maxHeight: '90vh', overflow: 'auto' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '600', margin: 0 }}>
@@ -697,11 +941,11 @@ const PropertiesPage = () => {
                 {editingProperty && formData.images && formData.images.length > 0 && (
                   <div>
                     <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '600', textTransform: 'uppercase' }}>
-                      Existing Photos
+                      Existing Photos ({formData.images.length})
                     </label>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px' }}>
                       {formData.images.map((img, idx) => (
-                        <div key={idx} style={{ position: 'relative', paddingTop: '100%', borderRadius: '6px', overflow: 'hidden' }}>
+                        <div key={idx} style={{ position: 'relative', paddingTop: '100%', borderRadius: '6px', overflow: 'hidden', border: '1px solid #1a1a1a' }}>
                           <img 
                             src={img.thumbnail || img.url} 
                             alt={`Property ${idx + 1}`}
@@ -759,7 +1003,7 @@ const PropertiesPage = () => {
         </div>
       )}
 
-      {/* Gallery Modal */}
+      {/* Gallery Modal - SAME AS BEFORE */}
       {showGalleryModal && selectedProperty && selectedProperty.images && selectedProperty.images.length > 0 && (
         <div 
           style={{ 
