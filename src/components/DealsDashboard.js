@@ -123,14 +123,8 @@ const DealsDashboard = () => {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '60px',
-        color: '#666666'
-      }}>
-        Loading deals...
+      <div className="loading-container">
+        <div className="loading-spinner" />
       </div>
     );
   }
@@ -138,18 +132,8 @@ const DealsDashboard = () => {
   return (
     <div className="page-content">
       {/* Stats Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '20px',
-        marginBottom: '30px'
-      }}>
-        <div style={{
-          background: '#0a0a0a',
-          border: '1px solid #1a1a1a',
-          borderRadius: '4px',
-          padding: '20px'
-        }}>
+      <div className="grid-four" style={{ gap: '20px', marginBottom: '30px' }}>
+        <div className="card-surface">
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -178,12 +162,7 @@ const DealsDashboard = () => {
           </div>
         </div>
 
-        <div style={{
-          background: '#0a0a0a',
-          border: '1px solid #1a1a1a',
-          borderRadius: '4px',
-          padding: '20px'
-        }}>
+        <div className="card-surface">
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -212,12 +191,7 @@ const DealsDashboard = () => {
           </div>
         </div>
 
-        <div style={{
-          background: '#0a0a0a',
-          border: '1px solid #1a1a1a',
-          borderRadius: '4px',
-          padding: '20px'
-        }}>
+        <div className="card-surface">
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -246,12 +220,7 @@ const DealsDashboard = () => {
           </div>
         </div>
 
-        <div style={{
-          background: '#0a0a0a',
-          border: '1px solid #1a1a1a',
-          borderRadius: '4px',
-          padding: '20px'
-        }}>
+        <div className="card-surface">
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -322,13 +291,9 @@ const DealsDashboard = () => {
                   }}>
                     {statusConfig.label}
                   </div>
-                  <div style={{
-                    background: `${statusConfig.color}15`,
+                  <div className="badge" style={{
                     color: statusConfig.color,
-                    padding: '2px 8px',
-                    borderRadius: '10px',
-                    fontSize: '11px',
-                    fontWeight: '700'
+                    background: `${statusConfig.color}15`
                   }}>
                     {statusDeals.length}
                   </div>
@@ -449,37 +414,32 @@ const DealsDashboard = () => {
                     gridTemplateColumns: '250px 150px 150px 120px 150px 120px'
                   }}
                 >
-                  <div style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
+                  <div data-label="Property" style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
                     {deal.propertyAddress || 'No address'}
                   </div>
 
-                  <div style={{ fontSize: '12px', color: '#0088ff' }}>
+                  <div data-label="Buyer" style={{ fontSize: '12px', color: '#0088ff' }}>
                     {deal.buyerName || 'N/A'}
                   </div>
 
-                  <div style={{ fontSize: '12px', color: '#00ff88' }}>
+                  <div data-label="Seller" style={{ fontSize: '12px', color: '#00ff88' }}>
                     {deal.sellerName || 'N/A'}
                   </div>
 
-                  <div>
-                    <span style={{
-                      fontSize: '10px',
+                  <div data-label="Status">
+                    <span className="badge" style={{
                       color: statusConfig.color,
-                      background: `${statusConfig.color}15`,
-                      padding: '4px 8px',
-                      borderRadius: '3px',
-                      textTransform: 'uppercase',
-                      fontWeight: '700'
+                      background: `${statusConfig.color}15`
                     }}>
                       {statusConfig.label}
                     </span>
                   </div>
 
-                  <div style={{ fontSize: '13px', color: '#ffaa00', fontWeight: '600' }}>
+                  <div data-label="Value" style={{ fontSize: '13px', color: '#ffaa00', fontWeight: '600' }}>
                     {deal.purchasePrice ? formatCurrency(deal.purchasePrice) : 'N/A'}
                   </div>
 
-                  <div style={{ fontSize: '12px', color: '#888888' }}>
+                  <div data-label="Created" style={{ fontSize: '12px', color: '#888888' }}>
                     {formatDate(deal.createdAt)}
                   </div>
                 </div>

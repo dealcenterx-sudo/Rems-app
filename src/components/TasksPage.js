@@ -526,14 +526,8 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '60px',
-        color: '#666666'
-      }}>
-        Loading tasks...
+      <div className="loading-container">
+        <div className="loading-spinner" />
       </div>
     );
   }

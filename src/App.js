@@ -224,21 +224,22 @@ const LogOut = ({ size = 24, color = "currentColor" }) => (
 
 // Unused Lock icon component removed
 
+const NAV_ITEMS = [
+  { id: 'home', label: 'Home', icon: Home },
+  { id: 'crm', label: 'CRM', icon: TrendingUp },
+  { id: 'analytics', label: 'Analytics', icon: BarChart },
+  { id: 'contacts', label: 'Contacts', icon: Users },
+  { id: 'buyers', label: 'Buyers', icon: UserPlus },
+  { id: 'deals', label: 'Deals', icon: FileText },
+  { id: 'properties', label: 'Properties', icon: Building2 },
+  { id: 'tasks', label: 'Tasks', icon: ClipboardCheck },
+  { id: 'documents', label: 'Documents', icon: FolderIcon },
+  { id: 'websites', label: 'Websites', icon: Globe },
+  { id: 'settings', label: 'Settings', icon: Settings }
+];
+
 // Sidebar Component
 const Sidebar = ({ activeTab, setActiveTab }) => {
-  const navItems = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'crm', label: 'CRM', icon: TrendingUp },
-    { id: 'analytics', label: 'Analytics', icon: BarChart },
-    { id: 'contacts', label: 'Contacts', icon: Users },
-    { id: 'buyers', label: 'Buyers', icon: UserPlus },
-    { id: 'deals', label: 'Deals', icon: FileText },
-    { id: 'properties', label: 'Properties', icon: Building2 },
-    { id: 'tasks', label: 'Tasks', icon: ClipboardCheck },
-    { id: 'documents', label: 'Documents', icon: FolderIcon },
-    { id: 'websites', label: 'Websites', icon: Globe },
-    { id: 'settings', label: 'Settings', icon: Settings }
-  ];
 
   return (
     <div className="sidebar">
@@ -247,7 +248,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         <span className="logo-text">REMS</span>
       </div>
       <div className="nav-items">
-        {navItems.slice(0, -1).map((item) => (
+        {NAV_ITEMS.slice(0, -1).map((item) => (
           <div
             key={item.id}
             onClick={() => setActiveTab(item.id)}
@@ -271,8 +272,29 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   );
 };
 
+// Bottom Nav for Mobile
+const BottomNav = ({ activeTab, setActiveTab }) => {
+  return (
+    <div className="bottom-nav">
+      <div className="bottom-nav-inner">
+        {NAV_ITEMS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => setActiveTab(item.id)}
+            className={`bottom-nav-item ${activeTab === item.id ? 'active' : ''}`}
+          >
+            <item.icon size={18} color={activeTab === item.id ? '#00ff88' : '#888888'} />
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // Top Bar Component
-const TopBar = ({ title, searchQuery, onSearchChange }) => {
+const TopBar = ({ title, searchQuery, onSearchChange, showSearch }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationsRef = useRef(null);
 
@@ -307,15 +329,17 @@ const TopBar = ({ title, searchQuery, onSearchChange }) => {
         <span className="date-time">{getCurrentDateTime()}</span>
       </div>
       <div className="top-bar-right">
-        <div className="search-box">
-          <Search size={16} color="#666666" />
-          <input
-            type="text"
-            placeholder="Search current page..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
-        </div>
+        {showSearch && (
+          <div className="search-box">
+            <Search size={16} color="#666666" />
+            <input
+              type="text"
+              placeholder="Search current page..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+          </div>
+        )}
         <div className="notification-wrapper" ref={notificationsRef}>
           <button
             type="button"
@@ -909,15 +933,8 @@ const handleSaveContact = async () => {
         </div>
         
         {loading ? (
-          <div style={{ 
-            background: '#0a0a0a', 
-            border: '1px solid #1a1a1a', 
-            borderRadius: '4px',
-            padding: '40px',
-            textAlign: 'center',
-            color: '#666666'
-          }}>
-            Loading contacts...
+          <div className="loading-container">
+            <div className="loading-spinner" />
           </div>
         ) : contacts.length === 0 ? (
           <div style={{ 
@@ -1104,15 +1121,8 @@ const querySnapshot = isAdmin
         </div>
         
         {loading ? (
-          <div style={{ 
-            background: '#0a0a0a', 
-            border: '1px solid #1a1a1a', 
-            borderRadius: '4px',
-            padding: '40px',
-            textAlign: 'center',
-            color: '#666666'
-          }}>
-            Loading buyers...
+          <div className="loading-container">
+            <div className="loading-spinner" />
           </div>
         ) : buyers.length === 0 ? (
           <div style={{ 
@@ -1503,16 +1513,7 @@ const querySnapshot = isAdmin
               <h2 style={{ fontSize: '20px', color: '#0088ff', margin: 0 }}>Select Buyer</h2>
               <button
                 onClick={() => setShowBuyerModal(false)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#888888',
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  padding: '0',
-                  width: '30px',
-                  height: '30px'
-                }}
+                className="icon-button"
               >×</button>
             </div>
 
@@ -1582,16 +1583,7 @@ const querySnapshot = isAdmin
               <h2 style={{ fontSize: '20px', color: '#00ff88', margin: 0 }}>Select Seller</h2>
               <button
                 onClick={() => setShowSellerModal(false)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#888888',
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  padding: '0',
-                  width: '30px',
-                  height: '30px'
-                }}
+                className="icon-button"
               >×</button>
             </div>
 
@@ -1656,16 +1648,7 @@ const querySnapshot = isAdmin
               <h2 style={{ fontSize: '20px', color: '#ffaa00', margin: 0 }}>Enter Property Address</h2>
               <button
                 onClick={() => setShowPropertyModal(false)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#888888',
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  padding: '0',
-                  width: '30px',
-                  height: '30px'
-                }}
+                className="icon-button"
               >×</button>
             </div>
 
@@ -1700,19 +1683,7 @@ const querySnapshot = isAdmin
                   toast.error('Please enter a property address');
                 }
               }}
-              style={{
-                width: '100%',
-                background: '#ffaa00',
-                color: '#000000',
-                border: 'none',
-                padding: '12px',
-                fontSize: '13px',
-                fontWeight: '700',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                textTransform: 'uppercase'
-              }}
+              className="btn-warning btn-block"
             >
               Save Property
             </button>
@@ -2316,6 +2287,8 @@ function App() {
   //   return <CompanySetupPage user={user} onComplete={handleCompanySetup} />;
   // }
 
+  const searchEnabledTabs = ['contacts', 'buyers', 'properties', 'tasks', 'documents'];
+
   return (
     <ToastProvider>
       <div className="App">
@@ -2325,6 +2298,7 @@ function App() {
           title={activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
           searchQuery={globalSearch}
           onSearchChange={setGlobalSearch}
+          showSearch={searchEnabledTabs.includes(activeTab)}
         />
         {activeTab === 'home' && <HomePage onNavigateToContacts={handleNavigateToContacts} />}
         {activeTab === 'contacts' && <ContactsPage contactType={contactType} companyId={companyId} globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
@@ -2345,6 +2319,7 @@ function App() {
         )}
         </div>
       </div>
+      <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </ToastProvider>
   );
 }

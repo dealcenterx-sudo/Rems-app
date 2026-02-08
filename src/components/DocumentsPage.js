@@ -220,8 +220,8 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   if (loading) {
     return (
       <div className="page-content">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px', color: '#666666', fontSize: '14px' }}>
-          Loading documents...
+        <div className="loading-container">
+          <div className="loading-spinner" />
         </div>
       </div>
     );
@@ -238,9 +238,13 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
         <input type="text" placeholder="Search documents..." value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); if (onSearchChange) onSearchChange(e.target.value); }} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '15px' }} />
         <div className="filters-row">
           {categoryOptions.map((option) => (
-            <div key={option.value} onClick={() => setFilterCategory(option.value)} style={{ padding: '10px 20px', background: filterCategory === option.value ? '#00ff88' : '#0a0a0a', border: `1px solid ${filterCategory === option.value ? '#00ff88' : '#1a1a1a'}`, borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '13px', fontWeight: '600', color: filterCategory === option.value ? '#000000' : '#ffffff' }}>{option.label}</span>
-              <span style={{ fontSize: '11px', fontWeight: '700', color: filterCategory === option.value ? '#000000' : '#888888', background: filterCategory === option.value ? '#ffffff' : '#1a1a1a', padding: '2px 8px', borderRadius: '10px' }}>{option.count}</span>
+            <div
+              key={option.value}
+              onClick={() => setFilterCategory(option.value)}
+              className={`filter-chip ${filterCategory === option.value ? 'active' : ''}`}
+            >
+              <span className="chip-label">{option.label}</span>
+              <span className="chip-count">{option.count}</span>
             </div>
           ))}
         </div>

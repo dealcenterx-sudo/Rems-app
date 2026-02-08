@@ -101,8 +101,8 @@ const ActiveDealsPage = () => {
   if (loading) {
     return (
       <div className="page-content">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px', color: '#666666', fontSize: '14px' }}>
-          Loading deals...
+        <div className="loading-container">
+          <div className="loading-spinner" />
         </div>
       </div>
     );
@@ -113,9 +113,14 @@ const ActiveDealsPage = () => {
       {/* Status Filter Tabs */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '30px', overflowX: 'auto', paddingBottom: '10px' }}>
         {statusOptions.map((option) => (
-          <div key={option.value} onClick={() => setFilterStatus(option.value)} style={{ padding: '12px 24px', background: filterStatus === option.value ? '#00ff88' : '#0a0a0a', border: `1px solid ${filterStatus === option.value ? '#00ff88' : '#1a1a1a'}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', transition: 'all 0.2s' }} onMouseEnter={(e) => { if (filterStatus !== option.value) { e.currentTarget.style.background = '#0f0f0f'; } }} onMouseLeave={(e) => { if (filterStatus !== option.value) { e.currentTarget.style.background = '#0a0a0a'; } }}>
-            <span style={{ fontSize: '14px', fontWeight: '600', color: filterStatus === option.value ? '#000000' : '#ffffff' }}>{option.label}</span>
-            <span style={{ fontSize: '12px', fontWeight: '700', color: filterStatus === option.value ? '#000000' : '#888888', background: filterStatus === option.value ? '#ffffff' : '#1a1a1a', padding: '2px 8px', borderRadius: '12px' }}>{option.count}</span>
+          <div
+            key={option.value}
+            onClick={() => setFilterStatus(option.value)}
+            className={`filter-chip ${filterStatus === option.value ? 'active' : ''}`}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            <span className="chip-label">{option.label}</span>
+            <span className="chip-count">{option.count}</span>
           </div>
         ))}
       </div>

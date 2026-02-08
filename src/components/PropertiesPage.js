@@ -348,8 +348,8 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   if (loading) {
     return (
       <div className="page-content">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px', color: '#666666', fontSize: '14px' }}>
-          Loading properties...
+        <div className="loading-container">
+          <div className="loading-spinner" />
         </div>
       </div>
     );

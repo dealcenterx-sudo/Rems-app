@@ -208,8 +208,8 @@ const AnalyticsDashboard = () => {
   if (loading) {
     return (
       <div className="page-content">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px', color: '#666666', fontSize: '14px' }}>
-          Loading analytics...
+        <div className="loading-container">
+          <div className="loading-spinner" />
         </div>
       </div>
     );
@@ -228,7 +228,7 @@ const AnalyticsDashboard = () => {
       </div>
 
       {/* Date Range Filters */}
-      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '20px', marginBottom: '30px' }}>
+      <div className="card-surface" style={{ padding: '20px', marginBottom: '30px' }}>
         <label style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
           Date Range
         </label>
@@ -237,20 +237,10 @@ const AnalyticsDashboard = () => {
             <div
               key={range}
               onClick={() => setDateRange(range)}
-              style={{
-                padding: '10px 20px',
-                background: dateRange === range ? '#00ff88' : '#0f0f0f',
-                border: `1px solid ${dateRange === range ? '#00ff88' : '#1a1a1a'}`,
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '13px',
-                fontWeight: '600',
-                color: dateRange === range ? '#000000' : '#ffffff',
-                transition: 'all 0.2s',
-                textTransform: 'capitalize'
-              }}
+              className={`filter-chip ${dateRange === range ? 'active' : ''}`}
+              style={{ textTransform: 'capitalize' }}
             >
-              {range === 'custom' ? 'Custom' : `Last ${range} Days`}
+              <span className="chip-label">{range === 'custom' ? 'Custom' : `Last ${range} Days`}</span>
             </div>
           ))}
           
@@ -291,7 +281,7 @@ const AnalyticsDashboard = () => {
       {/* Key Metrics Row */}
       <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '30px' }}>
         {/* Total Revenue */}
-        <div style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 100%)', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
+        <div className="card-surface" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 100%)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-20px', right: '-20px', fontSize: '80px', opacity: 0.05 }}>💰</div>
           <div style={{ fontSize: '12px', color: '#00ff88', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
             Total Revenue
@@ -305,7 +295,7 @@ const AnalyticsDashboard = () => {
         </div>
 
         {/* Avg Deal Size */}
-        <div style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 100%)', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
+        <div className="card-surface" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 100%)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-20px', right: '-20px', fontSize: '80px', opacity: 0.05 }}>📊</div>
           <div style={{ fontSize: '12px', color: '#0088ff', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
             Avg Deal Size
@@ -319,7 +309,7 @@ const AnalyticsDashboard = () => {
         </div>
 
         {/* Deal Velocity */}
-        <div style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 100%)', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
+        <div className="card-surface" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 100%)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-20px', right: '-20px', fontSize: '80px', opacity: 0.05 }}>⚡</div>
           <div style={{ fontSize: '12px', color: '#ffaa00', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
             Deal Velocity
@@ -333,7 +323,7 @@ const AnalyticsDashboard = () => {
         </div>
 
         {/* Conversion Rate */}
-        <div style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 100%)', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
+        <div className="card-surface" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 100%)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-20px', right: '-20px', fontSize: '80px', opacity: 0.05 }}>🎯</div>
           <div style={{ fontSize: '12px', color: '#aa00ff', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
             Conversion Rate
@@ -350,7 +340,7 @@ const AnalyticsDashboard = () => {
       {/* Charts Row 1 */}
       <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', marginBottom: '30px' }}>
         {/* Monthly Trend */}
-        <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '24px' }}>
+        <div className="card-surface">
           <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '20px' }}>
             Monthly Trend
           </h3>
@@ -371,7 +361,7 @@ const AnalyticsDashboard = () => {
         </div>
 
         {/* Revenue Trend */}
-        <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '24px' }}>
+        <div className="card-surface">
           <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '20px' }}>
             Revenue Trend (in $1000s)
           </h3>
@@ -394,7 +384,7 @@ const AnalyticsDashboard = () => {
       <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', marginBottom: '30px' }}>
         {/* Deal Status Breakdown */}
         {dealStatusData.length > 0 && (
-          <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '24px' }}>
+          <div className="card-surface">
             <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '20px' }}>
               Deal Status Breakdown
             </h3>
@@ -424,7 +414,7 @@ const AnalyticsDashboard = () => {
 
         {/* Property Status Breakdown */}
         {propertyStatusData.length > 0 && (
-          <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '24px' }}>
+          <div className="card-surface">
             <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '20px' }}>
               Property Status Breakdown
             </h3>
@@ -454,7 +444,7 @@ const AnalyticsDashboard = () => {
 
         {/* Avg Price by Type */}
         {avgPriceData.length > 0 && (
-          <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '24px' }}>
+          <div className="card-surface">
             <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '20px' }}>
               Avg Price by Type ($1000s)
             </h3>
@@ -476,7 +466,7 @@ const AnalyticsDashboard = () => {
 
       {/* Top Performers */}
       {topBuyersData.length > 0 && (
-        <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '24px' }}>
+        <div className="card-surface">
           <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '20px' }}>
             Top Buyers by Deal Count
           </h3>
@@ -538,27 +528,7 @@ const AnalyticsDashboard = () => {
       <div style={{ marginTop: '30px', textAlign: 'center' }}>
         <button
           onClick={() => alert('PDF export feature coming soon!')}
-          style={{
-            padding: '14px 32px',
-            background: 'linear-gradient(135deg, #0088ff 0%, #0066cc 100%)',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: '700',
-            cursor: 'pointer',
-            textTransform: 'uppercase',
-            transition: 'all 0.3s',
-            letterSpacing: '0.5px'
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.transform = 'translateY(-2px)';
-            e.target.style.boxShadow = '0 8px 20px rgba(0, 136, 255, 0.4)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = 'none';
-          }}
+          className="btn-secondary"
         >
           📥 Export Report to PDF
         </button>
