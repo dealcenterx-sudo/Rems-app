@@ -6,7 +6,7 @@ const BarChart = ({ data, title }) => {
   const maxValue = Math.max(...data.map(d => d.value), 1);
   
   return (
-    <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px' }}>
+    <div className="card-surface">
       <h3 style={{ fontSize: '16px', color: '#ffffff', marginBottom: '20px', fontWeight: '600' }}>{title}</h3>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '15px', height: '200px' }}>
         {data.map((item, idx) => (
@@ -25,7 +25,7 @@ const PieChart = ({ data, title }) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
   
   return (
-    <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px' }}>
+    <div className="card-surface">
       <h3 style={{ fontSize: '16px', color: '#ffffff', marginBottom: '20px', fontWeight: '600' }}>{title}</h3>
       <div style={{ display: 'flex', gap: '30px', alignItems: 'center' }}>
         <div style={{ width: '150px', height: '150px', borderRadius: '50%', background: `conic-gradient(${data.map((item, idx) => { const prevTotal = data.slice(0, idx).reduce((sum, d) => sum + d.value, 0); const percentage = (item.value / total) * 100; const prevPercentage = (prevTotal / total) * 100; return `${item.color} ${prevPercentage}% ${prevPercentage + percentage}%`; }).join(', ')})`, position: 'relative' }}>
@@ -51,7 +51,7 @@ const PieChart = ({ data, title }) => {
 };
 
 const MetricCard = ({ label, value, icon, color }) => (
-  <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+  <div className="card-surface" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
       <div style={{ fontSize: '12px', color: '#888888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
       <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>{icon}</div>
@@ -111,22 +111,28 @@ const CRMDashboard = () => {
   };
 
   if (loading) {
-    return <div className="page-content"><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px', color: '#666666', fontSize: '14px' }}>Loading CRM Dashboard...</div></div>;
+    return (
+      <div className="page-content">
+        <div className="loading-container">
+          <div className="loading-spinner" />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="page-content">
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+      <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', marginBottom: '30px' }}>
         <MetricCard label="Total Contacts" value={stats.totalContacts} icon="👥" color="#00ff88" />
         <MetricCard label="Total Deals" value={stats.totalDeals} icon="💼" color="#0088ff" />
         <MetricCard label="Conversion Rate" value={`${stats.conversionRate}%`} icon="📈" color="#ffaa00" />
         <MetricCard label="Active Buyers" value={stats.totalBuyers} icon="🏠" color="#ff6600" />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+      <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', marginBottom: '30px' }}>
         <BarChart data={stats.dealsByStatus} title="Deal Pipeline" />
         <PieChart data={stats.buyersByType} title="Buyer Distribution" />
       </div>
-      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px' }}>
+      <div className="card-surface">
         <h3 style={{ fontSize: '16px', color: '#ffffff', marginBottom: '20px', fontWeight: '600' }}>Quick Summary</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
           <div><div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px' }}>Sellers</div><div style={{ fontSize: '24px', color: '#00ff88', fontWeight: '700' }}>{stats.totalSellers}</div></div>

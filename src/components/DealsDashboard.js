@@ -267,13 +267,8 @@ const DealsDashboard = () => {
             return (
               <div
                 key={status}
-                style={{
-                  minWidth: '240px',
-                  background: '#0a0a0a',
-                  border: '1px solid #1a1a1a',
-                  borderRadius: '4px',
-                  padding: '15px'
-                }}
+                className="card-surface"
+                style={{ minWidth: '240px', padding: '15px' }}
               >
                 {/* Status Header */}
                 <div style={{
@@ -315,14 +310,8 @@ const DealsDashboard = () => {
                       <div
                         key={deal.id}
                         onClick={() => setSelectedDeal(deal)}
-                        style={{
-                          background: '#0f0f0f',
-                          border: '1px solid #1a1a1a',
-                          borderRadius: '3px',
-                          padding: '12px',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
+                        className="card-surface"
+                        style={{ background: '#0f0f0f', padding: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.borderColor = statusConfig.color;
                           e.currentTarget.style.background = '#151515';
@@ -427,10 +416,7 @@ const DealsDashboard = () => {
                   </div>
 
                   <div data-label="Status">
-                    <span className="badge" style={{
-                      color: statusConfig.color,
-                      background: `${statusConfig.color}15`
-                    }}>
+                    <span className="badge" style={{ color: statusConfig.color, background: `${statusConfig.color}15` }}>
                       {statusConfig.label}
                     </span>
                   </div>

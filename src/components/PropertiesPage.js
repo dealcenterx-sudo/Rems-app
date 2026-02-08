@@ -742,7 +742,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
               <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '600', margin: 0 }}>
                 {editingProperty ? 'Edit Property' : 'Add New Property'}
               </h2>
-              <button onClick={closeModal} style={{ background: 'transparent', border: 'none', color: '#888888', fontSize: '24px', cursor: 'pointer', padding: 0 }}>×</button>
+              <button onClick={closeModal} className="icon-button">×</button>
             </div>
 
             <form onSubmit={handleSubmit}>

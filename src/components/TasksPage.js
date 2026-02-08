@@ -161,13 +161,7 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
           <h2 style={{ fontSize: '20px', color: '#0088ff', margin: 0, fontWeight: '700' }}>
             {task ? 'Edit Task' : 'New Task'}
           </h2>
-          <button onClick={onClose} style={{
-            background: 'transparent',
-            border: 'none',
-            color: '#888888',
-            cursor: 'pointer',
-            padding: '5px'
-          }}>
+          <button onClick={onClose} className="icon-button">
             <XIcon size={24} />
           </button>
         </div>

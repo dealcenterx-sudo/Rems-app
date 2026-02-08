@@ -11,6 +11,9 @@ body {
   background: #000000;
   color: #e0e0e0;
   overflow-x: hidden;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* Smooth Page Transitions */
@@ -416,6 +419,15 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.page-header h2,
+.top-bar-left h1 {
+  letter-spacing: -0.3px;
+}
+
+.page-header p {
+  line-height: 1.4;
 }
 
 .section-title::before {

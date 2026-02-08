@@ -475,15 +475,8 @@ const HomePage = ({ onNavigateToContacts }) => {
   if (loading) {
     return (
       <div className="page-content">
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          height: '400px',
-          color: '#666666',
-          fontSize: '14px'
-        }}>
-          Loading dashboard...
+        <div className="loading-container">
+          <div className="loading-spinner" />
         </div>
       </div>
     );
@@ -577,14 +570,7 @@ const HomePage = ({ onNavigateToContacts }) => {
       <div className="section">
         <div className="section-title">Recent Tasks</div>
         {tasks.length === 0 ? (
-          <div style={{ 
-            background: '#0a0a0a', 
-            border: '1px solid #1a1a1a', 
-            borderRadius: '4px',
-            padding: '40px',
-            textAlign: 'center',
-            color: '#666666'
-          }}>
+          <div className="card-surface" style={{ textAlign: 'center', color: '#666666' }}>
             No tasks yet. Add one from the Tasks page!
           </div>
         ) : (
@@ -599,15 +585,7 @@ const HomePage = ({ onNavigateToContacts }) => {
                 <div data-label="Task">{task.title || task.description}</div>
                 <div data-label="Due Date">{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}</div>
                 <div data-label="Status">
-                  <span style={{
-                    fontSize: '10px',
-                    color: task.completed ? '#00ff88' : '#ffaa00',
-                    background: task.completed ? '#00ff8815' : '#ffaa0015',
-                    padding: '4px 8px',
-                    borderRadius: '3px',
-                    textTransform: 'uppercase',
-                    fontWeight: '700'
-                  }}>
+                  <span className="badge" style={{ color: task.completed ? '#00ff88' : '#ffaa00', background: task.completed ? '#00ff8815' : '#ffaa0015' }}>
                     {task.completed ? 'Completed' : 'Pending'}
                   </span>
                 </div>

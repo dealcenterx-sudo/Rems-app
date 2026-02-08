@@ -163,14 +163,16 @@ const ActiveDealsPage = () => {
       {showDetailModal && selectedDeal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ padding: '30px', maxWidth: '600px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+            <div className="modal-header" style={{ marginBottom: '24px' }}>
               <div>
                 <h2 style={{ fontSize: '20px', color: '#ffffff', marginBottom: '8px', fontWeight: '600' }}>Deal Details</h2>
-                <span style={{ fontSize: '11px', fontWeight: '700', color: getStatusColor(selectedDeal.status), background: `${getStatusColor(selectedDeal.status)}15`, padding: '4px 12px', borderRadius: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{getStatusLabel(selectedDeal.status)}</span>
+                <span className="badge" style={{ color: getStatusColor(selectedDeal.status), background: `${getStatusColor(selectedDeal.status)}15` }}>
+                  {getStatusLabel(selectedDeal.status)}
+                </span>
               </div>
-              <button onClick={() => setShowDetailModal(false)} style={{ background: 'transparent', border: 'none', color: '#888888', fontSize: '24px', cursor: 'pointer', padding: '0', width: '30px', height: '30px' }}>×</button>
+              <button onClick={() => setShowDetailModal(false)} className="icon-button">×</button>
             </div>
-            <div style={{ marginBottom: '24px' }}>
+            <div className="card-surface" style={{ marginBottom: '24px' }}>
               <div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Property Address</div>
               <div style={{ fontSize: '18px', color: '#ffffff', fontWeight: '600' }}>{selectedDeal.propertyAddress || 'Not set'}</div>
             </div>
@@ -194,17 +196,25 @@ const ActiveDealsPage = () => {
                 <div style={{ fontSize: '14px', color: '#ffffff' }}>{selectedDeal.updatedAt ? new Date(selectedDeal.updatedAt).toLocaleDateString() : 'N/A'}</div>
               </div>
             </div>
-            <div style={{ marginBottom: '24px' }}>
+            <div className="card-surface" style={{ marginBottom: '24px' }}>
               <div style={{ fontSize: '12px', color: '#888888', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Update Status</div>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 {['new', 'active', 'pending', 'closed'].map((status) => (
-                  <button key={status} onClick={() => updateDealStatus(selectedDeal.id, status)} disabled={selectedDeal.status === status} style={{ padding: '10px 20px', background: selectedDeal.status === status ? getStatusColor(status) : '#1a1a1a', color: selectedDeal.status === status ? '#000000' : '#ffffff', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: selectedDeal.status === status ? 'not-allowed' : 'pointer', opacity: selectedDeal.status === status ? 0.5 : 1, transition: 'all 0.2s' }} onMouseEnter={(e) => { if (selectedDeal.status !== status) { e.currentTarget.style.background = getStatusColor(status); e.currentTarget.style.color = '#000000'; } }} onMouseLeave={(e) => { if (selectedDeal.status !== status) { e.currentTarget.style.background = '#1a1a1a'; e.currentTarget.style.color = '#ffffff'; } }}>{getStatusLabel(status)}</button>
+                  <button
+                    key={status}
+                    onClick={() => updateDealStatus(selectedDeal.id, status)}
+                    disabled={selectedDeal.status === status}
+                    className={selectedDeal.status === status ? 'btn-primary' : 'btn-secondary'}
+                    style={selectedDeal.status === status ? { background: getStatusColor(status), color: '#000000' } : undefined}
+                  >
+                    {getStatusLabel(status)}
+                  </button>
                 ))}
               </div>
             </div>
             <div style={{ display: 'flex', gap: '10px', paddingTop: '20px', borderTop: '1px solid #1a1a1a' }}>
-              <button onClick={() => deleteDeal(selectedDeal.id)} style={{ flex: 1, padding: '12px', background: '#ff3333', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.background = '#ff5555'; }} onMouseLeave={(e) => { e.currentTarget.style.background = '#ff3333'; }}>Delete Deal</button>
-              <button onClick={() => setShowDetailModal(false)} style={{ flex: 1, padding: '12px', background: '#1a1a1a', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.background = '#2a2a2a'; }} onMouseLeave={(e) => { e.currentTarget.style.background = '#1a1a1a'; }}>Close</button>
+              <button onClick={() => deleteDeal(selectedDeal.id)} className="btn-danger btn-block">Delete Deal</button>
+              <button onClick={() => setShowDetailModal(false)} className="btn-secondary btn-block">Close</button>
             </div>
           </div>
         </div>

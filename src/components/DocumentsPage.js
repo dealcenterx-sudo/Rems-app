@@ -287,7 +287,7 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
           <div className="modal-content" style={{ padding: '30px', maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header" style={{ marginBottom: '24px' }}>
               <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '600', margin: 0 }}>Upload Document</h2>
-              <button onClick={closeUploadModal} style={{ background: 'transparent', border: 'none', color: '#888888', fontSize: '24px', cursor: 'pointer', padding: 0 }}>×</button>
+              <button onClick={closeUploadModal} className="icon-button">×</button>
             </div>
             <form onSubmit={handleUpload}>
               <div style={{ display: 'grid', gap: '16px' }}>

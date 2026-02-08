@@ -115,36 +115,10 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
   const commission = calculateCommission();
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'rgba(0, 0, 0, 0.9)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '20px'
-    }}>
-      <div style={{
-        background: '#0a0a0a',
-        border: '2px solid #00ff88',
-        borderRadius: '8px',
-        padding: '30px',
-        maxWidth: '700px',
-        width: '100%',
-        maxHeight: '90vh',
-        overflow: 'auto'
-      }}>
+    <div className="modal-overlay">
+      <div className="modal-content" style={{ border: '2px solid #00ff88', padding: '30px', maxWidth: '700px' }}>
         {/* Header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '25px'
-        }}>
+        <div className="modal-header" style={{ marginBottom: '25px' }}>
           <h2 style={{
             fontSize: '20px',
             color: '#00ff88',
@@ -155,28 +129,14 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
           </h2>
           <button
             onClick={onClose}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#888888',
-              cursor: 'pointer',
-              padding: '5px',
-              display: 'flex',
-              alignItems: 'center'
-            }}
+            className="icon-button"
           >
             <XIcon size={24} />
           </button>
         </div>
 
         {/* Deal Info */}
-        <div style={{
-          background: '#0f0f0f',
-          padding: '15px',
-          borderRadius: '4px',
-          marginBottom: '20px',
-          border: '1px solid #1a1a1a'
-        }}>
+        <div className="card-surface" style={{ background: '#0f0f0f', marginBottom: '20px' }}>
           <div style={{ fontSize: '12px', color: '#666666', marginBottom: '8px' }}>
             Deal Parties
           </div>
@@ -231,7 +191,7 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
           </div>
 
           {/* Prices */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+          <div className="grid-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
             <div className="form-field">
               <label>Purchase Price</label>
               <input
@@ -253,7 +213,7 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
           </div>
 
           {/* Commission */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+          <div className="grid-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
             <div className="form-field">
               <label>Commission %</label>
               <input
@@ -277,15 +237,7 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
 
           {/* Commission Calculation */}
           {formData.purchasePrice && (
-            <div style={{
-              background: '#0f0f0f',
-              padding: '12px',
-              borderRadius: '4px',
-              border: '1px solid #1a1a1a',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
+            <div className="card-surface" style={{ background: '#0f0f0f', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: '11px', color: '#666666' }}>Total Commission</div>
                 <div style={{ fontSize: '16px', color: '#ffaa00', fontWeight: '600' }}>
@@ -302,7 +254,7 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
           )}
 
           {/* Dates */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+          <div className="grid-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
             <div className="form-field">
               <label>Contract Date</label>
               <input
@@ -329,60 +281,23 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
               rows={4}
-              style={{
-                width: '100%',
-                background: '#0f0f0f',
-                border: '1px solid #1a1a1a',
-                borderRadius: '4px',
-                padding: '12px',
-                color: '#e0e0e0',
-                fontSize: '14px',
-                fontFamily: 'inherit',
-                resize: 'vertical'
-              }}
+              style={{ resize: 'vertical' }}
             />
           </div>
         </div>
 
         {/* Actions */}
-        <div style={{
-          display: 'flex',
-          gap: '10px',
-          marginTop: '25px',
-          justifyContent: 'flex-end'
-        }}>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '25px', justifyContent: 'flex-end' }}>
           <button
             onClick={onClose}
-            style={{
-              background: '#1a1a1a',
-              color: '#888888',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: '600',
-              fontFamily: 'inherit'
-            }}
+            className="btn-secondary"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            style={{
-              background: '#00ff88',
-              color: '#000000',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '4px',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              fontSize: '13px',
-              fontWeight: '700',
-              fontFamily: 'inherit',
-              textTransform: 'uppercase',
-              opacity: saving ? 0.6 : 1
-            }}
+            className="btn-primary"
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
