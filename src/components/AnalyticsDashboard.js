@@ -92,6 +92,7 @@ const AnalyticsDashboard = () => {
 
   const filteredDeals = filterByDateRange(deals);
   const filteredProperties = filterByDateRange(properties);
+  // eslint-disable-next-line no-unused-vars
   const filteredContacts = filterByDateRange(contacts);
 
   // Analytics Calculations
@@ -104,6 +105,7 @@ const AnalyticsDashboard = () => {
     : 0;
 
   const closedDeals = filteredDeals.filter(d => d.status === 'closed').length;
+  // eslint-disable-next-line no-unused-vars
   const activeDeals = filteredDeals.filter(d => d.status === 'active').length;
   const conversionRate = filteredDeals.length > 0 
     ? ((closedDeals / filteredDeals.length) * 100).toFixed(1)
