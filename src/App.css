@@ -1067,6 +1067,12 @@ body {
   gap: 15px;
 }
 
+.grid-seven {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;

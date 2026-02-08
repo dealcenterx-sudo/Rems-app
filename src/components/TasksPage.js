@@ -64,12 +64,18 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
     dueDate: '',
     dealId: '',
     contactId: '',
-    propertyId: ''
+    propertyId: '',
+    assignedTo: 'me'
   });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (task) {
+      const isContactAssignee = task.assignedToType === 'contact';
+      const assignedToValue = isContactAssignee && task.assignedToId
+        ? `contact:${task.assignedToId}`
+        : 'me';
+
       setFormData({
         title: task.title || '',
         description: task.description || '',
@@ -78,7 +84,8 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
         dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
         dealId: task.dealId || '',
         contactId: task.contactId || '',
-        propertyId: task.propertyId || ''
+        propertyId: task.propertyId || '',
+        assignedTo: assignedToValue
       });
     }
   }, [task]);
@@ -92,6 +99,17 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
     setSaving(true);
 
     try {
+      const assignedToId = formData.assignedTo === 'me'
+        ? auth.currentUser.uid
+        : formData.assignedTo.replace('contact:', '');
+      const assignedContact = contacts.find((c) => c.id === assignedToId);
+      const assignedToName = formData.assignedTo === 'me'
+        ? auth.currentUser?.email || 'Me'
+        : assignedContact
+          ? `${assignedContact.firstName} ${assignedContact.lastName}`
+          : 'Unassigned';
+      const assignedToType = formData.assignedTo === 'me' ? 'user' : 'contact';
+
       const taskData = {
         title: formData.title,
         description: formData.description,
@@ -103,7 +121,10 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
         contactId: formData.contactId || null,
         propertyId: formData.propertyId || null,
         userId: auth.currentUser.uid,
-        assignedTo: auth.currentUser.uid,
+        assignedTo: assignedToId,
+        assignedToId,
+        assignedToName,
+        assignedToType,
         createdBy: task?.createdBy || auth.currentUser.uid,
         updatedAt: new Date().toISOString()
       };
@@ -128,35 +149,15 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'rgba(0, 0, 0, 0.9)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '20px'
-    }}>
-      <div style={{
-        background: '#0a0a0a',
+    <div className="modal-overlay">
+      <div className="modal-content" style={{
         border: '2px solid #0088ff',
-        borderRadius: '8px',
         padding: '30px',
         maxWidth: '600px',
         width: '100%',
-        maxHeight: '90vh',
-        overflowY: 'auto'
+        maxHeight: '90vh'
       }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '25px'
-        }}>
+        <div className="modal-header" style={{ marginBottom: '25px' }}>
           <h2 style={{ fontSize: '20px', color: '#0088ff', margin: 0, fontWeight: '700' }}>
             {task ? 'Edit Task' : 'New Task'}
           </h2>
@@ -203,7 +204,7 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+          <div className="grid-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
             <div className="form-field">
               <label>Type</label>
               <select
@@ -227,6 +228,21 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
                 ))}
               </select>
             </div>
+          </div>
+
+          <div className="form-field">
+            <label>Assigned To</label>
+            <select
+              value={formData.assignedTo}
+              onChange={(e) => setFormData({...formData, assignedTo: e.target.value})}
+            >
+              <option value="me">Me ({auth.currentUser?.email || 'User'})</option>
+              {contacts.map(contact => (
+                <option key={contact.id} value={`contact:${contact.id}`}>
+                  {contact.firstName} {contact.lastName} ({contact.contactType || 'contact'})
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-field">
@@ -277,7 +293,7 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
               <option value="">None</option>
               {properties.map(property => (
                 <option key={property.id} value={property.id}>
-                  {property.address?.street || 'Unknown'}
+                  {property.address || 'Unknown'}
                 </option>
               ))}
             </select>
@@ -341,6 +357,13 @@ const TasksPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPriority, setFilterPriority] = useState('all');
+  const [filterType, setFilterType] = useState('all');
+  const [filterAssignee, setFilterAssignee] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState('list');
+  const [calendarDate, setCalendarDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -458,6 +481,24 @@ const TasksPage = () => {
     if (filterStatus === 'completed') return task.status === 'completed';
     if (filterStatus === 'overdue') return isOverdue(task);
     return true;
+  }).filter(task => {
+    if (filterPriority === 'all') return true;
+    return task.priority === filterPriority;
+  }).filter(task => {
+    if (filterType === 'all') return true;
+    return task.type === filterType;
+  }).filter(task => {
+    if (filterAssignee === 'all') return true;
+    if (filterAssignee === 'me') return task.assignedToId === auth.currentUser.uid || task.assignedTo === auth.currentUser.uid;
+    return task.assignedToId === filterAssignee || task.assignedTo === filterAssignee;
+  }).filter(task => {
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      task.title?.toLowerCase().includes(search) ||
+      task.description?.toLowerCase().includes(search) ||
+      task.assignedToName?.toLowerCase().includes(search)
+    );
   });
 
   const stats = {
@@ -466,6 +507,40 @@ const TasksPage = () => {
     completed: tasks.filter(t => t.status === 'completed').length,
     overdue: tasks.filter(t => isOverdue(t)).length
   };
+
+  const getDateKey = (date) => {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = `${d.getMonth() + 1}`.padStart(2, '0');
+    const day = `${d.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const monthStart = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
+  const monthEnd = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0);
+  const startDay = new Date(monthStart);
+  startDay.setDate(monthStart.getDate() - monthStart.getDay());
+  const endDay = new Date(monthEnd);
+  endDay.setDate(monthEnd.getDate() + (6 - monthEnd.getDay()));
+
+  const calendarDays = [];
+  let day = new Date(startDay);
+  while (day <= endDay) {
+    calendarDays.push(new Date(day));
+    day.setDate(day.getDate() + 1);
+  }
+
+  const tasksByDate = filteredTasks.reduce((acc, task) => {
+    if (!task.dueDate) return acc;
+    const key = getDateKey(task.dueDate);
+    acc[key] = acc[key] || [];
+    acc[key].push(task);
+    return acc;
+  }, {});
+
+  const tasksForSelectedDate = selectedDate
+    ? (tasksByDate[getDateKey(selectedDate)] || [])
+    : [];
 
   if (loading) {
     return (
@@ -483,12 +558,7 @@ const TasksPage = () => {
 
   return (
     <div className="page-content">
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '25px'
-      }}>
+      <div className="responsive-header" style={{ marginBottom: '25px' }}>
         <div>
           <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', margin: '0 0 5px 0' }}>
             Tasks
@@ -497,38 +567,56 @@ const TasksPage = () => {
             {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <button
-          onClick={() => {
-            setSelectedTask(null);
-            setShowModal(true);
-          }}
-          style={{
-            background: '#0088ff',
-            color: '#ffffff',
-            border: 'none',
-            padding: '12px 20px',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: '700',
-            fontFamily: 'inherit',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            textTransform: 'uppercase'
-          }}
-        >
-          <PlusIcon size={16} />
-          New Task
-        </button>
+        <div className="header-actions">
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {['list', 'calendar'].map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                style={{
+                  background: viewMode === mode ? '#1a1a1a' : '#0a0a0a',
+                  color: viewMode === mode ? '#ffffff' : '#888888',
+                  border: `1px solid ${viewMode === mode ? '#0088ff' : '#1a1a1a'}`,
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  textTransform: 'uppercase'
+                }}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => {
+              setSelectedTask(null);
+              setShowModal(true);
+            }}
+            style={{
+              background: '#0088ff',
+              color: '#ffffff',
+              border: 'none',
+              padding: '12px 20px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '700',
+              fontFamily: 'inherit',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              textTransform: 'uppercase'
+            }}
+          >
+            <PlusIcon size={16} />
+            New Task
+          </button>
+        </div>
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '15px',
-        marginBottom: '20px'
-      }}>
+      <div className="grid-four" style={{ marginBottom: '20px' }}>
         <div
           onClick={() => setFilterStatus('all')}
           style={{
@@ -590,7 +678,207 @@ const TasksPage = () => {
         </div>
       </div>
 
-      {filteredTasks.length === 0 ? (
+      <div style={{
+        background: '#0a0a0a',
+        border: '1px solid #1a1a1a',
+        borderRadius: '8px',
+        padding: '16px',
+        marginBottom: '20px'
+      }}>
+        <div className="filters-row">
+          <input
+            type="text"
+            placeholder="Search tasks, description, or assignee..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              flex: '1 1 240px',
+              minWidth: '200px',
+              padding: '10px 12px',
+              background: '#0f0f0f',
+              border: '1px solid #1a1a1a',
+              borderRadius: '6px',
+              color: '#ffffff',
+              fontSize: '13px'
+            }}
+          />
+          <select
+            value={filterPriority}
+            onChange={(e) => setFilterPriority(e.target.value)}
+            style={{
+              padding: '10px 12px',
+              background: '#0f0f0f',
+              border: '1px solid #1a1a1a',
+              borderRadius: '6px',
+              color: '#ffffff',
+              fontSize: '13px'
+            }}
+          >
+            <option value="all">All Priorities</option>
+            {PRIORITIES.map((p) => (
+              <option key={p.value} value={p.value}>{p.label}</option>
+            ))}
+          </select>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            style={{
+              padding: '10px 12px',
+              background: '#0f0f0f',
+              border: '1px solid #1a1a1a',
+              borderRadius: '6px',
+              color: '#ffffff',
+              fontSize: '13px'
+            }}
+          >
+            <option value="all">All Types</option>
+            {TASK_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>{t.label}</option>
+            ))}
+          </select>
+          <select
+            value={filterAssignee}
+            onChange={(e) => setFilterAssignee(e.target.value)}
+            style={{
+              padding: '10px 12px',
+              background: '#0f0f0f',
+              border: '1px solid #1a1a1a',
+              borderRadius: '6px',
+              color: '#ffffff',
+              fontSize: '13px'
+            }}
+          >
+            <option value="all">All Assignees</option>
+            <option value="me">Me</option>
+            {contacts.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.firstName} {c.lastName}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {viewMode === 'calendar' ? (
+        <div style={{
+          background: '#0a0a0a',
+          border: '1px solid #1a1a1a',
+          borderRadius: '10px',
+          padding: '20px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: '#ffffff' }}>
+              {calendarDate.toLocaleString('default', { month: 'long' })} {calendarDate.getFullYear()}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))}
+                style={{ background: '#1a1a1a', color: '#ffffff', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}
+              >
+                ←
+              </button>
+              <button
+                onClick={() => setCalendarDate(new Date())}
+                style={{ background: '#0f0f0f', color: '#ffffff', border: '1px solid #1a1a1a', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}
+              >
+                Today
+              </button>
+              <button
+                onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))}
+                style={{ background: '#1a1a1a', color: '#ffffff', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}
+              >
+                →
+              </button>
+            </div>
+          </div>
+
+          <div className="grid-seven" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dayLabel) => (
+              <div key={dayLabel} style={{ fontSize: '11px', color: '#666666', textAlign: 'center', padding: '6px 0' }}>
+                {dayLabel}
+              </div>
+            ))}
+
+            {calendarDays.map((date) => {
+              const isCurrentMonth = date.getMonth() === calendarDate.getMonth();
+              const key = getDateKey(date);
+              const dayTasks = tasksByDate[key] || [];
+              const isSelected = selectedDate && getDateKey(selectedDate) === key;
+              const isToday = getDateKey(new Date()) === key;
+
+              return (
+                <div
+                  key={key}
+                  onClick={() => setSelectedDate(date)}
+                  style={{
+                    minHeight: '80px',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    border: isSelected ? '1px solid #00ff88' : '1px solid #1a1a1a',
+                    background: isSelected ? '#00ff8815' : '#0f0f0f',
+                    opacity: isCurrentMonth ? 1 : 0.4,
+                    cursor: 'pointer',
+                    position: 'relative'
+                  }}
+                >
+                  <div style={{
+                    fontSize: '12px',
+                    color: isToday ? '#00ff88' : '#ffffff',
+                    fontWeight: isToday ? '700' : '600'
+                  }}>
+                    {date.getDate()}
+                  </div>
+                  {dayTasks.length > 0 && (
+                    <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {dayTasks.slice(0, 3).map((task) => (
+                        <div key={task.id} style={{
+                          fontSize: '10px',
+                          color: '#ffffff',
+                          background: '#1a1a1a',
+                          padding: '3px 6px',
+                          borderRadius: '4px',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}>
+                          {task.title}
+                        </div>
+                      ))}
+                      {dayTasks.length > 3 && (
+                        <div style={{ fontSize: '10px', color: '#888888' }}>+{dayTasks.length - 3} more</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{ marginTop: '20px' }}>
+            <div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px' }}>
+              {selectedDate ? `Tasks for ${selectedDate.toLocaleDateString()}` : 'Select a day to view tasks'}
+            </div>
+            {selectedDate && tasksForSelectedDate.length === 0 && (
+              <div style={{ fontSize: '12px', color: '#666666' }}>No tasks due this day.</div>
+            )}
+            {selectedDate && tasksForSelectedDate.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {tasksForSelectedDate.map((task) => {
+                  const priority = PRIORITIES.find(p => p.value === task.priority);
+                  return (
+                    <div key={task.id} style={{ background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', padding: '12px' }}>
+                      <div style={{ fontSize: '13px', fontWeight: '600', color: '#ffffff' }}>{task.title}</div>
+                      <div style={{ fontSize: '11px', color: '#888888', marginTop: '4px' }}>
+                        {task.assignedToName || 'Unassigned'} • {priority?.label || 'Medium'}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : filteredTasks.length === 0 ? (
         <div style={{
           background: '#0a0a0a',
           border: '1px solid #1a1a1a',
@@ -695,32 +983,32 @@ const TasksPage = () => {
                     )}
                   </div>
 
-                  {task.description && (
-                    <p style={{
-                      fontSize: '12px',
-                      color: '#888888',
-                      margin: '0 0 5px 0'
-                    }}>
-                      {task.description}
-                    </p>
-                  )}
-
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '15px',
-                    fontSize: '11px',
-                    color: '#666666'
-                  }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <ClockIcon size={14} />
-                      {formatDate(task.dueDate)}
-                    </span>
-                    {task.dealId && (
-                      <span>🏠 Linked to deal</span>
+                    {task.description && (
+                      <p style={{
+                        fontSize: '12px',
+                        color: '#888888',
+                        margin: '0 0 5px 0'
+                      }}>
+                        {task.description}
+                      </p>
                     )}
+
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '15px',
+                      fontSize: '11px',
+                      color: '#666666'
+                    }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <ClockIcon size={14} />
+                        {formatDate(task.dueDate)}
+                      </span>
+                      {task.dealId && <span>🏠 Linked to deal</span>}
+                      {task.type && <span style={{ textTransform: 'capitalize' }}>{task.type}</span>}
+                      <span>👤 {task.assignedToName || 'Unassigned'}</span>
+                    </div>
                   </div>
-                </div>
 
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                   <button
