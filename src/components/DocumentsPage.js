@@ -33,17 +33,17 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   const loadDocuments = async () => {
     try {
       const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
-      
+
       const docsQuery = isAdmin
         ? query(collection(db, 'documents'), orderBy('createdAt', 'desc'))
         : query(collection(db, 'documents'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
-      
+
       const docsSnapshot = await getDocs(docsQuery);
       const docsData = [];
       docsSnapshot.forEach((doc) => {
         docsData.push({ id: doc.id, ...doc.data() });
       });
-      
+
       setDocuments(docsData);
       setLoading(false);
     } catch (error) {
@@ -281,7 +281,6 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
           ))}
         </div>
       )}
-
       {showUploadModal && (
         <div className="modal-overlay" onClick={closeUploadModal}>
           <div className="modal-content" style={{ padding: '30px', maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
