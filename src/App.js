@@ -270,16 +270,6 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         <span>Settings</span>
       </div>
 
-      <ConfirmModal
-        open={confirmDelete.open}
-        title="Delete contact?"
-        message={confirmDelete.contact ? `Delete "${confirmDelete.contact.firstName} ${confirmDelete.contact.lastName}"? This action can't be undone.` : "This action can't be undone."}
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
-        danger
-        onConfirm={confirmDeleteContact}
-        onCancel={() => setConfirmDelete({ open: false, contact: null })}
-      />
     </div>
   );
 };
@@ -1021,6 +1011,17 @@ const handleSaveContact = async () => {
           })()
         )}
       </div>
+
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Delete contact?"
+        message={confirmDelete.contact ? `Delete "${confirmDelete.contact.firstName} ${confirmDelete.contact.lastName}"? This action can't be undone.` : "This action can't be undone."}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        danger
+        onConfirm={confirmDeleteContact}
+        onCancel={() => setConfirmDelete({ open: false, contact: null })}
+      />
     </div>
   );
 };
