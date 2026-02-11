@@ -90,14 +90,8 @@ const ClosedDealsPage = () => {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '60px',
-        color: '#666666'
-      }}>
-        Loading closed deals...
+      <div className="loading-container">
+        <div className="loading-spinner" />
       </div>
     );
   }
@@ -110,17 +104,8 @@ const ClosedDealsPage = () => {
           Closed Deals
         </h2>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '20px'
-        }}>
-          <div style={{
-            background: '#0a0a0a',
-            border: '1px solid #1a1a1a',
-            borderRadius: '4px',
-            padding: '20px'
-          }}>
+        <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          <div className="card-surface hover-lift">
             <div style={{ fontSize: '11px', color: '#666666', marginBottom: '8px', textTransform: 'uppercase' }}>
               Total Closed
             </div>
@@ -129,12 +114,7 @@ const ClosedDealsPage = () => {
             </div>
           </div>
 
-          <div style={{
-            background: '#0a0a0a',
-            border: '1px solid #1a1a1a',
-            borderRadius: '4px',
-            padding: '20px'
-          }}>
+          <div className="card-surface hover-lift">
             <div style={{ fontSize: '11px', color: '#666666', marginBottom: '8px', textTransform: 'uppercase' }}>
               Total Volume
             </div>
@@ -143,12 +123,7 @@ const ClosedDealsPage = () => {
             </div>
           </div>
 
-          <div style={{
-            background: '#0a0a0a',
-            border: '1px solid #1a1a1a',
-            borderRadius: '4px',
-            padding: '20px'
-          }}>
+          <div className="card-surface hover-lift">
             <div style={{ fontSize: '11px', color: '#666666', marginBottom: '8px', textTransform: 'uppercase' }}>
               Total Earnings
             </div>
@@ -160,13 +135,7 @@ const ClosedDealsPage = () => {
       </div>
 
       {/* Search */}
-      <div style={{
-        background: '#0a0a0a',
-        border: '1px solid #1a1a1a',
-        borderRadius: '4px',
-        padding: '20px',
-        marginBottom: '20px'
-      }}>
+      <div className="card-surface" style={{ marginBottom: '20px' }}>
         <div className="form-field" style={{ margin: 0 }}>
           <label style={{ marginBottom: '8px' }}>Search Closed Deals</label>
           <input
@@ -180,17 +149,14 @@ const ClosedDealsPage = () => {
 
       {/* Deals Table */}
       {filteredDeals.length === 0 ? (
-        <div style={{
-          background: '#0a0a0a',
-          border: '1px solid #1a1a1a',
-          borderRadius: '4px',
-          padding: '40px',
-          textAlign: 'center',
-          color: '#666666'
-        }}>
-          {deals.length === 0 
-            ? 'No closed deals yet. Keep working those active deals!' 
-            : 'No closed deals match your search.'}
+        <div className="empty-state-card">
+          <div className="empty-state-icon">✅</div>
+          <div className="empty-state-title">
+            {deals.length === 0 ? 'No closed deals yet' : 'No closed deals match your search'}
+          </div>
+          <div className="empty-state-subtitle">
+            {deals.length === 0 ? 'Keep working those active deals.' : 'Try a different property, buyer, or seller.'}
+          </div>
         </div>
       ) : (
         <div className="tasks-table">
@@ -216,27 +182,27 @@ const ClosedDealsPage = () => {
                   cursor: 'pointer'
                 }}
               >
-                <div style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
+                <div data-label="Property" style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
                   {deal.propertyAddress || 'No address'}
                 </div>
 
-                <div style={{ fontSize: '12px', color: '#0088ff' }}>
+                <div data-label="Buyer" style={{ fontSize: '12px', color: '#0088ff' }}>
                   {deal.buyerName || 'N/A'}
                 </div>
 
-                <div style={{ fontSize: '12px', color: '#00ff88' }}>
+                <div data-label="Seller" style={{ fontSize: '12px', color: '#00ff88' }}>
                   {deal.sellerName || 'N/A'}
                 </div>
 
-                <div style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
+                <div data-label="Sale Price" style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
                   {formatCurrency(deal.purchasePrice)}
                 </div>
 
-                <div style={{ fontSize: '13px', color: '#ffaa00', fontWeight: '700' }}>
+                <div data-label="Your Earnings" style={{ fontSize: '13px', color: '#ffaa00', fontWeight: '700' }}>
                   {formatCurrency(deal.commission?.agentEarnings)}
                 </div>
 
-                <div style={{ fontSize: '12px', color: '#888888' }}>
+                <div data-label="Close Date" style={{ fontSize: '12px', color: '#888888' }}>
                   {formatDate(deal.actualCloseDate || deal.expectedCloseDate)}
                 </div>
               </div>

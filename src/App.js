@@ -376,7 +376,7 @@ const TopBar = ({ title, searchQuery, onSearchChange, showSearch }) => {
 };
 
 // HOME PAGE - WITH LIVE FIREBASE DATA
-const HomePage = ({ onNavigateToContacts }) => {
+const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProperties }) => {
   const [stats, setStats] = useState({
     totalContacts: 0,
     totalSellers: 0,
@@ -467,9 +467,9 @@ const HomePage = ({ onNavigateToContacts }) => {
   const quickLinks = [
     { label: 'New Seller', icon: UserPlus, color: '#00ff88', action: () => onNavigateToContacts('seller') },
     { label: 'New Buyer', icon: UserPlus, color: '#0088ff', action: () => onNavigateToContacts('buyer') },
-    { label: 'New Deal', icon: FileText, color: '#ffaa00' },
-    { label: 'Inventory Retail', icon: ShoppingCart, color: '#ff6600' },
-    { label: 'Properties Owned', icon: Key, color: '#aa00ff' }
+    { label: 'New Deal', icon: FileText, color: '#ffaa00', action: onNavigateToDealsNew },
+    { label: 'Inventory Retail', icon: ShoppingCart, color: '#ff6600', action: onNavigateToProperties },
+    { label: 'Properties Owned', icon: Key, color: '#aa00ff', action: onNavigateToProperties }
   ];
 
   if (loading) {
@@ -2208,6 +2208,15 @@ function App() {
     setActiveTab('contacts');
   };
 
+  const handleNavigateToDealsNew = () => {
+    setDealsSubTab('new');
+    setActiveTab('deals');
+  };
+
+  const handleNavigateToProperties = () => {
+    setActiveTab('properties');
+  };
+
   useEffect(() => {
     setGlobalSearch('');
   }, [activeTab]);
@@ -2258,7 +2267,13 @@ function App() {
           onSearchChange={setGlobalSearch}
           showSearch={searchEnabledTabs.includes(activeTab)}
         />
-        {activeTab === 'home' && <HomePage onNavigateToContacts={handleNavigateToContacts} />}
+        {activeTab === 'home' && (
+          <HomePage
+            onNavigateToContacts={handleNavigateToContacts}
+            onNavigateToDealsNew={handleNavigateToDealsNew}
+            onNavigateToProperties={handleNavigateToProperties}
+          />
+        )}
         {activeTab === 'contacts' && <ContactsPage contactType={contactType} companyId={companyId} globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'buyers' && <BuyersPage subTab={buyersSubTab} setSubTab={setBuyersSubTab} onNavigateToContacts={handleNavigateToContacts} companyId={companyId} globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'deals' && <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} companyId={companyId} />}
