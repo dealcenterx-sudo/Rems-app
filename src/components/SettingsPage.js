@@ -157,7 +157,7 @@ const SettingsPage = () => {
         <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff', margin: '0 0 5px 0' }}>
           Settings
         </h2>
-        <p style={{ fontSize: '13px', color: '#666666', margin: 0 }}>
+        <p style={{ fontSize: '13px', color: '#888888', margin: 0 }}>
           Manage your account and preferences
         </p>
       </div>
@@ -165,13 +165,7 @@ const SettingsPage = () => {
       {/* Layout */}
       <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: '30px' }}>
         {/* Sidebar Navigation */}
-        <div style={{
-          background: '#0a0a0a',
-          border: '1px solid #1a1a1a',
-          borderRadius: '4px',
-          padding: '20px',
-          height: 'fit-content'
-        }}>
+        <div className="card-surface" style={{ height: 'fit-content' }}>
           {sections.map(section => (
             <div
               key={section.id}
@@ -212,12 +206,7 @@ const SettingsPage = () => {
         </div>
 
         {/* Content Area */}
-        <div style={{
-          background: '#0a0a0a',
-          border: '1px solid #1a1a1a',
-          borderRadius: '4px',
-          padding: '30px'
-        }}>
+        <div className="card-surface" style={{ padding: '30px' }}>
           {/* Profile Section */}
           {activeSection === 'profile' && (
             <div>
@@ -252,18 +241,7 @@ const SettingsPage = () => {
                   <button
                     onClick={handleUpdateProfile}
                     disabled={saving}
-                    style={{
-                      background: '#0088ff',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '12px 24px',
-                      borderRadius: '4px',
-                      cursor: saving ? 'not-allowed' : 'pointer',
-                      fontSize: '13px',
-                      fontWeight: '700',
-                      fontFamily: 'inherit',
-                      opacity: saving ? 0.6 : 1
-                    }}
+                    className="btn-primary"
                   >
                     {saving ? 'Saving...' : 'Update Profile'}
                   </button>
@@ -272,18 +250,7 @@ const SettingsPage = () => {
                     <button
                       onClick={handleUpdateEmail}
                       disabled={saving}
-                      style={{
-                        background: '#00ff88',
-                        color: '#000000',
-                        border: 'none',
-                        padding: '12px 24px',
-                        borderRadius: '4px',
-                        cursor: saving ? 'not-allowed' : 'pointer',
-                        fontSize: '13px',
-                        fontWeight: '700',
-                        fontFamily: 'inherit',
-                        opacity: saving ? 0.6 : 1
-                      }}
+                      className="btn-secondary"
                     >
                       {saving ? 'Updating...' : 'Update Email'}
                     </button>
@@ -324,19 +291,7 @@ const SettingsPage = () => {
                 <button
                   onClick={handleUpdatePassword}
                   disabled={saving}
-                  style={{
-                    background: '#0088ff',
-                    color: '#ffffff',
-                    border: 'none',
-                    padding: '12px 24px',
-                    borderRadius: '4px',
-                    cursor: saving ? 'not-allowed' : 'pointer',
-                    fontSize: '13px',
-                    fontWeight: '700',
-                    fontFamily: 'inherit',
-                    width: 'fit-content',
-                    opacity: saving ? 0.6 : 1
-                  }}
+                  className="btn-primary"
                 >
                   {saving ? 'Updating...' : 'Update Password'}
                 </button>
@@ -351,17 +306,10 @@ const SettingsPage = () => {
                 Company Settings
               </h3>
 
-              <div style={{
-                background: '#0f0f0f',
-                border: '1px solid #1a1a1a',
-                borderRadius: '4px',
-                padding: '30px',
-                textAlign: 'center'
-              }}>
+              <div className="empty-state-card">
                 <BuildingIcon size={48} color="#666666" />
-                <p style={{ fontSize: '14px', color: '#888888', marginTop: '15px' }}>
-                  Company management features coming soon
-                </p>
+                <div className="empty-state-title">Company settings</div>
+                <div className="empty-state-subtitle">Company management features coming soon</div>
               </div>
             </div>
           )}
@@ -373,17 +321,10 @@ const SettingsPage = () => {
                 Notification Preferences
               </h3>
 
-              <div style={{
-                background: '#0f0f0f',
-                border: '1px solid #1a1a1a',
-                borderRadius: '4px',
-                padding: '30px',
-                textAlign: 'center'
-              }}>
+              <div className="empty-state-card">
                 <BellIcon size={48} color="#666666" />
-                <p style={{ fontSize: '14px', color: '#888888', marginTop: '15px' }}>
-                  Notification settings coming soon
-                </p>
+                <div className="empty-state-title">Notifications</div>
+                <div className="empty-state-subtitle">Notification settings coming soon</div>
               </div>
             </div>
           )}

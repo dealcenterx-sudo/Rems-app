@@ -26,19 +26,13 @@ const WebsitesPage = () => {
         <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff', margin: '0 0 5px 0' }}>
           Websites
         </h2>
-        <p style={{ fontSize: '13px', color: '#666666', margin: 0 }}>
+        <p style={{ fontSize: '13px', color: '#888888', margin: 0 }}>
           Marketing tools and property websites
         </p>
       </div>
 
       {/* Coming Soon Card */}
-      <div style={{
-        background: '#0a0a0a',
-        border: '1px solid #1a1a1a',
-        borderRadius: '4px',
-        padding: '60px 40px',
-        textAlign: 'center'
-      }}>
+      <div className="card-surface" style={{ padding: '60px 40px', textAlign: 'center' }}>
         <div style={{
           width: '120px',
           height: '120px',
@@ -84,14 +78,8 @@ const WebsitesPage = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              style={{
-                background: '#0f0f0f',
-                border: '1px solid #1a1a1a',
-                borderRadius: '4px',
-                padding: '20px',
-                textAlign: 'left',
-                transition: 'all 0.2s'
-              }}
+              className="card-surface hover-lift"
+              style={{ background: '#0f0f0f', textAlign: 'left' }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = '#0088ff';
                 e.currentTarget.style.background = '#151515';
@@ -122,15 +110,7 @@ const WebsitesPage = () => {
         </div>
 
         {/* CTA */}
-        <div style={{
-          marginTop: '40px',
-          padding: '20px',
-          background: '#0088ff15',
-          border: '1px solid #0088ff',
-          borderRadius: '4px',
-          maxWidth: '600px',
-          margin: '40px auto 0'
-        }}>
+        <div className="card-surface" style={{ marginTop: '40px', padding: '20px', background: '#0088ff15', border: '1px solid #0088ff', maxWidth: '600px', margin: '40px auto 0' }}>
           <p style={{
             fontSize: '13px',
             color: '#0088ff',
