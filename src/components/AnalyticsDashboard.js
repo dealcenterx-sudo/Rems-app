@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useToast } from './Toast';
 
 const AnalyticsDashboard = () => {
+  const toast = useToast();
   const [deals, setDeals] = useState([]);
   const [properties, setProperties] = useState([]);
   const [contacts, setContacts] = useState([]);
@@ -527,7 +529,7 @@ const AnalyticsDashboard = () => {
       {/* Export Button */}
       <div style={{ marginTop: '30px', textAlign: 'center' }}>
         <button
-          onClick={() => alert('PDF export feature coming soon!')}
+          onClick={() => toast.info('PDF export feature coming soon!')}
           className="btn-secondary"
         >
           📥 Export Report to PDF

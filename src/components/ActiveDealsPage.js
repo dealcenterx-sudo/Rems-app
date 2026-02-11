@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, where, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
+import { useToast } from './Toast';
 
 const ActiveDealsPage = () => {
+  const toast = useToast();
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDeal, setSelectedDeal] = useState(null);
@@ -47,7 +49,7 @@ const ActiveDealsPage = () => {
       }
     } catch (error) {
       console.error('Error updating deal:', error);
-      alert('Error updating deal status');
+      toast.error('Error updating deal status');
     }
   };
 
@@ -60,9 +62,10 @@ const ActiveDealsPage = () => {
       await deleteDoc(doc(db, 'deals', dealId));
       loadDeals();
       setShowDetailModal(false);
+      toast.success('Deal deleted successfully');
     } catch (error) {
       console.error('Error deleting deal:', error);
-      alert('Error deleting deal');
+      toast.error('Error deleting deal');
     }
   };
 

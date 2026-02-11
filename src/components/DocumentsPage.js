@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
+import { useToast } from './Toast';
 
 const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
+  const toast = useToast();
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -98,7 +100,7 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
     e.preventDefault();
     
     if (!uploadData.file) {
-      alert('Please select a file');
+      toast.error('Please select a file');
       return;
     }
 
@@ -123,10 +125,10 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
 
       loadDocuments();
       closeUploadModal();
-      alert('Document uploaded successfully!');
+      toast.success('Document uploaded successfully!');
     } catch (error) {
       console.error('Error uploading document:', error);
-      alert('Error uploading document. Please try again.');
+      toast.error('Error uploading document. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -140,10 +142,10 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
     try {
       await deleteDoc(doc(db, 'documents', documentId));
       loadDocuments();
-      alert('Document deleted successfully');
+      toast.success('Document deleted successfully');
     } catch (error) {
       console.error('Error deleting document:', error);
-      alert('Error deleting document');
+      toast.error('Error deleting document');
     }
   };
 
