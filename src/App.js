@@ -1862,6 +1862,7 @@ const LoginPage = ({ onLoginSuccess }) => {
 // COMPANY SETUP PAGE (CURRENTLY DISABLED)
 // eslint-disable-next-line no-unused-vars
 const CompanySetupPage = ({ user, onComplete }) => {
+  const toast = useToast();
   const [step, setStep] = useState('check'); // 'check', 'create', 'join'
   const [companyName, setCompanyName] = useState('');
   const [companyCode, setCompanyCode] = useState('');
@@ -1929,7 +1930,7 @@ const CompanySetupPage = ({ user, onComplete }) => {
         joinedAt: new Date().toISOString()
       });
 
-      alert(`Company created! Your company code is: ${newCompanyCode}\nShare this with your team members.`);
+      toast.success(`Company created! Code: ${newCompanyCode}`);
       onComplete(companyRef.id);
     } catch (error) {
       console.error('Error creating company:', error);
@@ -1979,7 +1980,7 @@ const CompanySetupPage = ({ user, onComplete }) => {
         joinedAt: new Date().toISOString()
       });
 
-      alert(`Successfully joined ${companyData.name}!`);
+      toast.success(`Successfully joined ${companyData.name}!`);
       onComplete(companyDoc.id);
     } catch (error) {
       console.error('Error joining company:', error);

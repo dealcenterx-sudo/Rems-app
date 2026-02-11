@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
+import { useToast } from './Toast';
 
 const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
+  const toast = useToast();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -109,7 +111,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
     e.preventDefault();
     
     if (!formData.address || !formData.city || !formData.state || !formData.zipCode || !formData.price) {
-      alert('Please fill in all required fields');
+      toast.error('Please fill in all required fields');
       return;
     }
 
@@ -145,20 +147,20 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
       if (editingProperty) {
         await updateDoc(doc(db, 'properties', editingProperty), propertyData);
-        alert('Property updated successfully!');
+        toast.success('Property updated successfully!');
       } else {
         await addDoc(collection(db, 'properties'), {
           ...propertyData,
           createdAt: new Date().toISOString()
         });
-        alert('Property added successfully!');
+        toast.success('Property added successfully!');
       }
 
       closeModal();
       loadProperties();
     } catch (error) {
       console.error('Error saving property:', error);
-      alert('Error saving property. Please try again.');
+      toast.error('Error saving property. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -172,10 +174,10 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
     try {
       await deleteDoc(doc(db, 'properties', propertyId));
       loadProperties();
-      alert('Property deleted successfully');
+      toast.success('Property deleted successfully');
     } catch (error) {
       console.error('Error deleting property:', error);
-      alert('Error deleting property');
+      toast.error('Error deleting property');
     }
   };
 
