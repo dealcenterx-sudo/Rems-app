@@ -11,6 +11,7 @@ import SettingsPage from './components/SettingsPage';
 import DocumentsPage from './components/DocumentsPage';
 import WebsitesPage from './components/WebsitesPage';
 import { ToastProvider, useToast } from './components/Toast';
+import ConfirmModal from './components/ConfirmModal';
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { auth, googleProvider } from './firebase';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
@@ -268,6 +269,17 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         <Settings size={20} color={activeTab === 'settings' ? '#00ff88' : '#888888'} />
         <span>Settings</span>
       </div>
+
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Delete contact?"
+        message={confirmDelete.contact ? `Delete "${confirmDelete.contact.firstName} ${confirmDelete.contact.lastName}"? This action can't be undone.` : "This action can't be undone."}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        danger
+        onConfirm={confirmDeleteContact}
+        onCancel={() => setConfirmDelete({ open: false, contact: null })}
+      />
     </div>
   );
 };
@@ -614,6 +626,7 @@ const ContactsPage = ({ contactType = 'buyer', editContactId = null, globalSearc
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(editContactId);
   const [searchTerm, setSearchTerm] = useState(globalSearch);
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, contact: null });
   const toast = useToast();
   // Load contacts from Firebase
   React.useEffect(() => {
@@ -725,10 +738,6 @@ const handleSaveContact = async () => {
 };
 
   const handleDeleteContact = async (contactId) => {
-    if (!window.confirm('Are you sure you want to delete this contact?')) {
-      return;
-    }
-
     try {
       await deleteDoc(doc(db, 'contacts', contactId));
       toast.success('Contact deleted successfully!');
@@ -737,6 +746,16 @@ const handleSaveContact = async () => {
       console.error('Error deleting contact:', error);
       toast.error('Error deleting contact. Check console.');
     }
+  };
+
+  const requestDeleteContact = (contact) => {
+    setConfirmDelete({ open: true, contact });
+  };
+
+  const confirmDeleteContact = async () => {
+    if (!confirmDelete.contact?.id) return;
+    await handleDeleteContact(confirmDelete.contact.id);
+    setConfirmDelete({ open: false, contact: null });
   };
 
   const handleEditContact = (contact) => {
@@ -989,7 +1008,7 @@ const handleSaveContact = async () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDeleteContact(contact.id)}
+                        onClick={() => requestDeleteContact(contact)}
                         className="btn-danger btn-sm"
                       >
                         Delete

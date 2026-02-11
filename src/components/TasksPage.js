@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { collection, addDoc, getDocs, query, where, orderBy, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { useToast } from './Toast';
+import ConfirmModal from './ConfirmModal';
 
 // Icons
 const PlusIcon = ({ size = 20 }) => (
@@ -333,6 +334,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
   const [filterType, setFilterType] = useState('all');
   const [filterAssignee, setFilterAssignee] = useState('all');
   const [searchTerm, setSearchTerm] = useState(globalSearch);
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, task: null });
   const [viewMode, setViewMode] = useState('list');
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
@@ -420,8 +422,6 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
   };
 
   const handleDelete = async (taskId) => {
-    if (!window.confirm('Are you sure you want to delete this task?')) return;
-
     try {
       await deleteDoc(doc(db, 'tasks', taskId));
       toast.success('Task deleted successfully!');
@@ -430,6 +430,16 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
       console.error('Error deleting task:', error);
       toast.error('Failed to delete task. Please try again.');
     }
+  };
+
+  const requestDelete = (task) => {
+    setConfirmDelete({ open: true, task });
+  };
+
+  const confirmDeleteTask = async () => {
+    if (!confirmDelete.task?.id) return;
+    await handleDelete(confirmDelete.task.id);
+    setConfirmDelete({ open: false, task: null });
   };
 
   const isOverdue = (task) => {
@@ -957,7 +967,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(task.id)}
+                    onClick={() => requestDelete(task)}
                     className="btn-danger btn-sm"
                   >
                     Delete
@@ -982,6 +992,17 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
           onSave={loadData}
         />
       )}
+
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Delete task?"
+        message={confirmDelete.task?.title ? `Delete "${confirmDelete.task.title}"? This action can't be undone.` : "This action can't be undone."}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        danger
+        onConfirm={confirmDeleteTask}
+        onCancel={() => setConfirmDelete({ open: false, task: null })}
+      />
     </div>
   );
 };

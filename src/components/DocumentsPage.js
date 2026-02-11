@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
+import ConfirmModal from './ConfirmModal';
 
 const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   const toast = useToast();
@@ -11,6 +12,7 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState(globalSearch);
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, document: null });
   
   const [uploadData, setUploadData] = useState({
     file: null,
@@ -135,10 +137,6 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   };
 
   const deleteDocument = async (documentId) => {
-    if (!window.confirm('Are you sure you want to delete this document?')) {
-      return;
-    }
-
     try {
       await deleteDoc(doc(db, 'documents', documentId));
       loadDocuments();
@@ -147,6 +145,16 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
       console.error('Error deleting document:', error);
       toast.error('Error deleting document');
     }
+  };
+
+  const requestDelete = (document) => {
+    setConfirmDelete({ open: true, document });
+  };
+
+  const confirmDeleteDocument = async () => {
+    if (!confirmDelete.document?.id) return;
+    await deleteDocument(confirmDelete.document.id);
+    setConfirmDelete({ open: false, document: null });
   };
 
   const openUploadModal = () => {
@@ -277,7 +285,7 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
               <div style={{ fontSize: '11px', color: '#666666', marginBottom: '16px', borderTop: '1px solid #1a1a1a', paddingTop: '12px' }}>Uploaded: {document.createdAt ? new Date(document.createdAt).toLocaleDateString() : 'N/A'}</div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <a href={document.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm btn-block">View</a>
-                <button onClick={() => deleteDocument(document.id)} className="btn-danger btn-sm btn-block">Delete</button>
+                <button onClick={() => requestDelete(document)} className="btn-danger btn-sm btn-block">Delete</button>
               </div>
             </div>
           ))}
@@ -344,6 +352,17 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Delete document?"
+        message={confirmDelete.document?.fileName ? `Delete "${confirmDelete.document.fileName}"? This action can't be undone.` : "This action can't be undone."}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        danger
+        onConfirm={confirmDeleteDocument}
+        onCancel={() => setConfirmDelete({ open: false, document: null })}
+      />
     </div>
   );
 };

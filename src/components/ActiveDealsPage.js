@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, where, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
+import ConfirmModal from './ConfirmModal';
 
 const ActiveDealsPage = () => {
   const toast = useToast();
@@ -10,6 +11,7 @@ const ActiveDealsPage = () => {
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, deal: null });
 
   useEffect(() => {
     loadDeals();
@@ -54,10 +56,6 @@ const ActiveDealsPage = () => {
   };
 
   const deleteDeal = async (dealId) => {
-    if (!window.confirm('Are you sure you want to delete this deal?')) {
-      return;
-    }
-
     try {
       await deleteDoc(doc(db, 'deals', dealId));
       loadDeals();
@@ -67,6 +65,16 @@ const ActiveDealsPage = () => {
       console.error('Error deleting deal:', error);
       toast.error('Error deleting deal');
     }
+  };
+
+  const requestDelete = (deal) => {
+    setConfirmDelete({ open: true, deal });
+  };
+
+  const confirmDeleteDeal = async () => {
+    if (!confirmDelete.deal?.id) return;
+    await deleteDeal(confirmDelete.deal.id);
+    setConfirmDelete({ open: false, deal: null });
   };
 
   const getStatusColor = (status) => {
@@ -216,12 +224,23 @@ const ActiveDealsPage = () => {
               </div>
             </div>
             <div style={{ display: 'flex', gap: '10px', paddingTop: '20px', borderTop: '1px solid #1a1a1a' }}>
-              <button onClick={() => deleteDeal(selectedDeal.id)} className="btn-danger btn-block">Delete Deal</button>
+              <button onClick={() => requestDelete(selectedDeal)} className="btn-danger btn-block">Delete Deal</button>
               <button onClick={() => setShowDetailModal(false)} className="btn-secondary btn-block">Close</button>
             </div>
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Delete deal?"
+        message={confirmDelete.deal?.propertyAddress ? `Delete "${confirmDelete.deal.propertyAddress}"? This action can't be undone.` : "This action can't be undone."}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        danger
+        onConfirm={confirmDeleteDeal}
+        onCancel={() => setConfirmDelete({ open: false, deal: null })}
+      />
     </div>
   );
 };

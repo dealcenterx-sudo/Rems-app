@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
+import ConfirmModal from './ConfirmModal';
 
 const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   const toast = useToast();
@@ -13,6 +14,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, property: null });
 
   // Search & Filter States
   const [searchTerm, setSearchTerm] = useState(globalSearch);
@@ -167,10 +169,6 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   };
 
   const deleteProperty = async (propertyId) => {
-    if (!window.confirm('Are you sure you want to delete this property?')) {
-      return;
-    }
-
     try {
       await deleteDoc(doc(db, 'properties', propertyId));
       loadProperties();
@@ -179,6 +177,16 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
       console.error('Error deleting property:', error);
       toast.error('Error deleting property');
     }
+  };
+
+  const requestDelete = (property) => {
+    setConfirmDelete({ open: true, property });
+  };
+
+  const confirmDeleteProperty = async () => {
+    if (!confirmDelete.property?.id) return;
+    await deleteProperty(confirmDelete.property.id);
+    setConfirmDelete({ open: false, property: null });
   };
 
   const openModal = (property = null) => {
@@ -708,7 +716,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                     Edit
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); deleteProperty(property.id); }}
+                    onClick={(e) => { e.stopPropagation(); requestDelete(property); }}
                     className="btn-danger btn-sm"
                   >
                     Delete
@@ -1091,6 +1099,17 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Delete property?"
+        message={confirmDelete.property?.address ? `Delete "${confirmDelete.property.address}"? This action can't be undone.` : "This action can't be undone."}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        danger
+        onConfirm={confirmDeleteProperty}
+        onCancel={() => setConfirmDelete({ open: false, property: null })}
+      />
     </div>
   );
 };
