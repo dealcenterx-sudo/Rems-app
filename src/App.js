@@ -245,8 +245,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   return (
     <div className="sidebar">
       <div className="logo">
-        <span className="logo-mark">R</span>
-        <span className="logo-text">REMS</span>
+        <img src="/dealcenter-logo.png" alt="DealCenter" className="logo-image" />
       </div>
       <div className="nav-items">
         {NAV_ITEMS.slice(0, -1).map((item) => (

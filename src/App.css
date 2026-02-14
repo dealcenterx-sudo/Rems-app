@@ -147,48 +147,36 @@ body {
 }
 
 .logo {
-  width: 45px;
-  height: 45px;
-  background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+  width: 50px;
+  height: 50px;
+  background: #0a0a0a;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  font-size: 22px;
-  font-weight: 800;
-  color: #000000;
+  border-radius: 12px;
+  border: 1px solid #1a1a1a;
   margin-bottom: 40px;
-  box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
   transition: all var(--motion-med) var(--ease-standard);
   overflow: hidden;
-  gap: 10px;
-  padding: 0 12px;
+  padding: 6px;
 }
 
 .sidebar:hover .logo {
   width: 180px;
   border-radius: 8px;
   justify-content: flex-start;
+  padding: 6px 10px;
 }
 
-.logo-text {
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  opacity: 0;
-  transform: translateX(-8px);
-  transition: all var(--motion-med) var(--ease-standard);
+.logo-image {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  transition: width var(--motion-med) var(--ease-standard);
 }
 
-.logo-mark {
-  font-size: 22px;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.sidebar:hover .logo-text {
-  opacity: 1;
-  transform: translateX(0);
+.sidebar:hover .logo-image {
+  width: 160px;
 }
 
 .nav-items {
