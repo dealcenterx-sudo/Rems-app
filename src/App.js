@@ -697,17 +697,23 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
 };
 
 // CONTACTS PAGE - WITH EDIT/DELETE
-const CONTACT_VIEW_TABS = ['all', 'buyer', 'seller', 'agent', 'lender', 'investor'];
+const CONTACT_FORM_TYPES = ['buyer', 'seller', 'agent', 'lender', 'investor'];
+const CONTACT_LIST_TABS = ['all', 'buyer', 'seller', 'agent', 'lender', 'investor'];
+
+const resolveContactsInitialState = (initialTab = 'all') => {
+  if (CONTACT_FORM_TYPES.includes(initialTab)) {
+    return { tab: 'add', contactType: initialTab };
+  }
+  if (CONTACT_LIST_TABS.includes(initialTab)) {
+    return { tab: initialTab, contactType: initialTab === 'all' ? 'buyer' : initialTab };
+  }
+  return { tab: 'all', contactType: 'buyer' };
+};
 
 const ContactsPage = ({ initialTab = 'all', editContactId = null, globalSearch = '', onSearchChange }) => {
-  const getInitialTab = () => {
-    if (CONTACT_VIEW_TABS.includes(initialTab)) return initialTab;
-    const savedTab = localStorage.getItem('contactsViewTab');
-    return CONTACT_VIEW_TABS.includes(savedTab) ? savedTab : 'all';
-  };
-
-  const [selectedViewTab, setSelectedViewTab] = useState(getInitialTab);
-  const [selectedContactType, setSelectedContactType] = useState(initialTab === 'all' ? 'buyer' : initialTab);
+  const initialState = resolveContactsInitialState(initialTab);
+  const [selectedViewTab, setSelectedViewTab] = useState(initialState.tab);
+  const [selectedContactType, setSelectedContactType] = useState(initialState.contactType);
   const [formData, setFormData] = useState({ 
     firstName: '', 
     lastName: '', 
@@ -734,17 +740,10 @@ const ContactsPage = ({ initialTab = 'all', editContactId = null, globalSearch =
   }, [globalSearch]);
 
   useEffect(() => {
-    if (CONTACT_VIEW_TABS.includes(initialTab)) {
-      setSelectedViewTab(initialTab);
-    }
+    const nextState = resolveContactsInitialState(initialTab);
+    setSelectedViewTab(nextState.tab);
+    setSelectedContactType(nextState.contactType);
   }, [initialTab]);
-
-  useEffect(() => {
-    localStorage.setItem('contactsViewTab', selectedViewTab);
-    if (selectedViewTab !== 'all') {
-      setSelectedContactType(selectedViewTab);
-    }
-  }, [selectedViewTab]);
 
   // Load contact for editing if editContactId is provided
   React.useEffect(() => {
@@ -761,7 +760,7 @@ const ContactsPage = ({ initialTab = 'all', editContactId = null, globalSearch =
           activelySelling: contactToEdit.activelySelling !== false
         });
         setSelectedContactType(contactToEdit.contactType);
-        setSelectedViewTab(contactToEdit.contactType);
+        setSelectedViewTab('add');
         setEditingId(editContactId);
       }
     }
@@ -881,6 +880,7 @@ const handleSaveContact = async () => {
       activelySelling: contact.activelySelling !== false
     });
     setSelectedContactType(contact.contactType);
+    setSelectedViewTab('add');
     setEditingId(contact.id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -907,6 +907,7 @@ const handleSaveContact = async () => {
   ];
 
   const contactViewTabs = [
+    { id: 'add', label: 'Add Contact' },
     { id: 'all', label: 'All Contacts' },
     { id: 'buyer', label: 'Buyers' },
     { id: 'seller', label: 'Sellers' },
@@ -918,23 +919,30 @@ const handleSaveContact = async () => {
   return (
     <div className="page-content">
       <div className="page-header">
-        <h2>{editingId ? 'Edit Contact' : 'Add New Contact'}</h2>
-        <p>Select contact type and enter details</p>
+        <h2>Contacts</h2>
+        <p>Use subtabs to add contacts or browse filtered contact lists</p>
       </div>
 
       <div className="section">
-        <div className="section-title">Contact Folders</div>
+        <div className="section-title">Subtabs</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
           {contactViewTabs.map((tab) => (
             <div
               key={tab.id}
-              onClick={() => setSelectedViewTab(tab.id)}
+              onClick={() => {
+                setSelectedViewTab(tab.id);
+                if (tab.id !== 'all' && tab.id !== 'add') {
+                  setSelectedContactType(tab.id);
+                }
+              }}
               className={`filter-chip ${selectedViewTab === tab.id ? 'active' : ''}`}
               style={{ whiteSpace: 'nowrap' }}
             >
               <span className="chip-label">{tab.label}</span>
               <span className="chip-count">
-                {tab.id === 'all'
+                {tab.id === 'add'
+                  ? editingId ? 1 : 0
+                  : tab.id === 'all'
                   ? contacts.length
                   : contacts.filter((contact) => contact.contactType === tab.id).length}
               </span>
@@ -943,6 +951,7 @@ const handleSaveContact = async () => {
         </div>
       </div>
 
+      {selectedViewTab === 'add' && (
       <div className="contact-form">
         <div className="section-title">Contact Information</div>
         <div className="form-grid">
@@ -982,21 +991,19 @@ const handleSaveContact = async () => {
               onChange={(e) => setFormData({...formData, email: e.target.value})}
             />
           </div>
-          {selectedViewTab === 'all' && (
-            <div className="form-field">
-              <label>Contact Type</label>
-              <select
-                value={selectedContactType}
-                onChange={(e) => setSelectedContactType(e.target.value)}
-              >
-                {contactTypes.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div className="form-field">
+            <label>Contact Type</label>
+            <select
+              value={selectedContactType}
+              onChange={(e) => setSelectedContactType(e.target.value)}
+            >
+              {contactTypes.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+          </div>
           {selectedContactType === 'buyer' && (
             <>
               <div className="form-field">
@@ -1058,10 +1065,14 @@ const handleSaveContact = async () => {
           )}
         </div>
       </div>
+      )}
 
       {/* Contacts List */}
+      {selectedViewTab !== 'add' && (
       <div className="section" style={{ marginTop: '40px' }}>
-        <div className="section-title">All Contacts</div>
+        <div className="section-title">
+          {selectedViewTab === 'all' ? 'All Contacts' : `${selectedViewTab.charAt(0).toUpperCase() + selectedViewTab.slice(1)} Contacts`}
+        </div>
 
         <div style={{ marginBottom: '15px' }}>
           <input
@@ -1182,6 +1193,7 @@ const handleSaveContact = async () => {
           })()
         )}
       </div>
+      )}
 
       <ConfirmModal
         open={confirmDelete.open}
