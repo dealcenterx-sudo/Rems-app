@@ -230,7 +230,6 @@ const NAV_ITEMS = [
   { id: 'crm', label: 'CRM', icon: TrendingUp },
   { id: 'analytics', label: 'Analytics', icon: BarChart },
   { id: 'contacts', label: 'Contacts', icon: Users },
-  { id: 'buyers', label: 'Buyers', icon: UserPlus },
   { id: 'deals', label: 'Deals', icon: FileText },
   { id: 'properties', label: 'Properties', icon: Building2 },
   { id: 'tasks', label: 'Tasks', icon: ClipboardCheck },
@@ -698,8 +697,17 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
 };
 
 // CONTACTS PAGE - WITH EDIT/DELETE
-const ContactsPage = ({ contactType = 'buyer', editContactId = null, globalSearch = '', onSearchChange }) => {
-  const [selectedContactType, setSelectedContactType] = useState(contactType);
+const CONTACT_VIEW_TABS = ['all', 'buyer', 'seller', 'agent', 'lender', 'investor'];
+
+const ContactsPage = ({ initialTab = 'all', editContactId = null, globalSearch = '', onSearchChange }) => {
+  const getInitialTab = () => {
+    if (CONTACT_VIEW_TABS.includes(initialTab)) return initialTab;
+    const savedTab = localStorage.getItem('contactsViewTab');
+    return CONTACT_VIEW_TABS.includes(savedTab) ? savedTab : 'all';
+  };
+
+  const [selectedViewTab, setSelectedViewTab] = useState(getInitialTab);
+  const [selectedContactType, setSelectedContactType] = useState(initialTab === 'all' ? 'buyer' : initialTab);
   const [formData, setFormData] = useState({ 
     firstName: '', 
     lastName: '', 
@@ -725,6 +733,19 @@ const ContactsPage = ({ contactType = 'buyer', editContactId = null, globalSearc
     setSearchTerm(globalSearch || '');
   }, [globalSearch]);
 
+  useEffect(() => {
+    if (CONTACT_VIEW_TABS.includes(initialTab)) {
+      setSelectedViewTab(initialTab);
+    }
+  }, [initialTab]);
+
+  useEffect(() => {
+    localStorage.setItem('contactsViewTab', selectedViewTab);
+    if (selectedViewTab !== 'all') {
+      setSelectedContactType(selectedViewTab);
+    }
+  }, [selectedViewTab]);
+
   // Load contact for editing if editContactId is provided
   React.useEffect(() => {
     if (editContactId && contacts.length > 0) {
@@ -740,6 +761,7 @@ const ContactsPage = ({ contactType = 'buyer', editContactId = null, globalSearc
           activelySelling: contactToEdit.activelySelling !== false
         });
         setSelectedContactType(contactToEdit.contactType);
+        setSelectedViewTab(contactToEdit.contactType);
         setEditingId(editContactId);
       }
     }
@@ -877,11 +899,20 @@ const handleSaveContact = async () => {
   };
 
   const contactTypes = [
-    { id: 'buyer', label: 'New Buyer' },
-    { id: 'seller', label: 'New Seller' },
+    { id: 'buyer', label: 'Buyer' },
+    { id: 'seller', label: 'Seller' },
     { id: 'agent', label: 'Agent' },
     { id: 'lender', label: 'Lender' },
     { id: 'investor', label: 'Investor' }
+  ];
+
+  const contactViewTabs = [
+    { id: 'all', label: 'All Contacts' },
+    { id: 'buyer', label: 'Buyers' },
+    { id: 'seller', label: 'Sellers' },
+    { id: 'agent', label: 'Agents' },
+    { id: 'lender', label: 'Lenders' },
+    { id: 'investor', label: 'Investors' }
   ];
 
   return (
@@ -892,18 +923,21 @@ const handleSaveContact = async () => {
       </div>
 
       <div className="section">
-        <div className="section-title">Contact Type</div>
-        <div className="contact-type-selector">
-          {contactTypes.map((type) => (
+        <div className="section-title">Contact Folders</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+          {contactViewTabs.map((tab) => (
             <div
-              key={type.id}
-              onClick={() => setSelectedContactType(type.id)}
-              className={`contact-type-option ${selectedContactType === type.id ? 'selected' : ''}`}
+              key={tab.id}
+              onClick={() => setSelectedViewTab(tab.id)}
+              className={`filter-chip ${selectedViewTab === tab.id ? 'active' : ''}`}
+              style={{ whiteSpace: 'nowrap' }}
             >
-              <div className="checkbox">
-                {selectedContactType === type.id && <Check size={12} color="#000000" />}
-              </div>
-              <span>{type.label}</span>
+              <span className="chip-label">{tab.label}</span>
+              <span className="chip-count">
+                {tab.id === 'all'
+                  ? contacts.length
+                  : contacts.filter((contact) => contact.contactType === tab.id).length}
+              </span>
             </div>
           ))}
         </div>
@@ -948,6 +982,21 @@ const handleSaveContact = async () => {
               onChange={(e) => setFormData({...formData, email: e.target.value})}
             />
           </div>
+          {selectedViewTab === 'all' && (
+            <div className="form-field">
+              <label>Contact Type</label>
+              <select
+                value={selectedContactType}
+                onChange={(e) => setSelectedContactType(e.target.value)}
+              >
+                {contactTypes.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           {selectedContactType === 'buyer' && (
             <>
               <div className="form-field">
@@ -1048,6 +1097,7 @@ const handleSaveContact = async () => {
         ) : (
           (() => {
             const filteredContacts = contacts.filter((contact) => {
+              if (selectedViewTab !== 'all' && contact.contactType !== selectedViewTab) return false;
               if (!searchTerm) return true;
               const search = searchTerm.toLowerCase();
               return (
@@ -1061,8 +1111,8 @@ const handleSaveContact = async () => {
               return (
                 <div className="empty-state-card">
                   <div className="empty-state-icon">🔍</div>
-                  <div className="empty-state-title">No contacts match your search</div>
-                  <div className="empty-state-subtitle">Try a different name, email, or phone.</div>
+                  <div className="empty-state-title">No contacts in this folder</div>
+                  <div className="empty-state-subtitle">Try another folder or different search criteria.</div>
                 </div>
               );
             }
@@ -1143,213 +1193,6 @@ const handleSaveContact = async () => {
         onConfirm={confirmDeleteContact}
         onCancel={() => setConfirmDelete({ open: false, contact: null })}
       />
-    </div>
-  );
-};
-
-// BUYERS LIST PAGE
-const BuyersListPage = ({ globalSearch = '', onSearchChange }) => {
-  // Filters removed - not used in BuyersListPage
-  const [buyers, setBuyers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(globalSearch);
-
-  // Load buyers from Firebase
-  React.useEffect(() => {
-    const loadBuyers = async () => {
-      try {
-const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
-
-const querySnapshot = isAdmin
-  ? await getDocs(query(collection(db, 'contacts'), orderBy('createdAt', 'desc')))
-  : await getDocs(
-      query(
-        collection(db, 'contacts'),
-        where('userId', '==', auth.currentUser.uid),
-        orderBy('createdAt', 'desc')
-      )
-    );
-        
-        const buyersData = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          // Only show contacts that are buyers
-          if (data.contactType === 'buyer') {
-            buyersData.push({
-              id: doc.id,
-              name: `${data.firstName} ${data.lastName}`,
-              entity: data.email,
-              active: data.activelyBuying || false,
-              state: 'N/A',
-              zipcode: 'N/A',
-              type: data.buyerType || 'N/A',
-              ...data
-            });
-          }
-        });
-        
-        setBuyers(buyersData);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error loading buyers:', error);
-        setLoading(false);
-      }
-    };
-
-    loadBuyers();
-  }, []);
-
-  useEffect(() => {
-    setSearchTerm(globalSearch || '');
-  }, [globalSearch]);
-
-  return (
-    <div className="page-content">
-      <div className="section">
-        <div className="section-title">Buyers List</div>
-
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="text"
-            placeholder="Search buyers by name, email, or phone..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              if (onSearchChange) onSearchChange(e.target.value);
-            }}
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              background: '#0a0a0a',
-              border: '1px solid #1a1a1a',
-              borderRadius: '8px',
-              color: '#ffffff',
-              fontSize: '14px'
-            }}
-          />
-        </div>
-        
-        {loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner" />
-          </div>
-        ) : buyers.length === 0 ? (
-          <div className="empty-state-card">
-            <div className="empty-state-icon">🏠</div>
-            <div className="empty-state-title">No buyers yet</div>
-            <div className="empty-state-subtitle">Add one from the Contacts page.</div>
-          </div>
-        ) : (
-          (() => {
-            const filteredBuyers = buyers.filter((buyer) => {
-              if (!searchTerm) return true;
-              const search = searchTerm.toLowerCase();
-              return (
-                buyer.name?.toLowerCase().includes(search) ||
-                buyer.entity?.toLowerCase().includes(search) ||
-                buyer.phone?.toLowerCase().includes(search)
-              );
-            });
-
-            if (filteredBuyers.length === 0) {
-              return (
-                <div className="empty-state-card">
-                  <div className="empty-state-icon">🔍</div>
-                  <div className="empty-state-title">No buyers match your search</div>
-                  <div className="empty-state-subtitle">Try a different name, email, or phone.</div>
-                </div>
-              );
-            }
-
-            return (
-              <div className="tasks-table">
-                <div className="table-header" style={{ 
-                  gridTemplateColumns: '250px 100px 120px 150px 150px' 
-                }}>
-                  <div>Name / Email</div>
-                  <div>Active</div>
-                  <div>Phone</div>
-                  <div>Buyer Type</div>
-                  <div>Date Added</div>
-                </div>
-
-                {filteredBuyers.map((buyer) => (
-                  <div
-                    key={buyer.id}
-                    className="table-row"
-                    style={{ gridTemplateColumns: '250px 100px 120px 150px 150px' }}
-                  >
-                    <div data-label="Name / Email" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
-                        {buyer.name}
-                      </span>
-                      <span style={{ fontSize: '11px', color: '#666666' }}>
-                        {buyer.entity}
-                      </span>
-                    </div>
-
-                    <div data-label="Active">
-                      <span style={{
-                        fontSize: '10px',
-                        color: buyer.active ? '#00ff88' : '#ff6600',
-                        background: buyer.active ? '#00ff8815' : '#ff660015',
-                        padding: '4px 8px',
-                        borderRadius: '3px',
-                        textTransform: 'uppercase',
-                        fontWeight: '700'
-                      }}>
-                        {buyer.active ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-
-                    <div data-label="Phone" style={{ fontSize: '12px', color: '#888888' }}>
-                      {buyer.phone}
-                    </div>
-
-                    <div data-label="Buyer Type" style={{ fontSize: '12px', color: '#0088ff' }}>
-                      {buyer.type}
-                    </div>
-
-                    <div data-label="Date Added" style={{ fontSize: '12px', color: '#888888' }}>
-                      {buyer.createdAt ? new Date(buyer.createdAt).toLocaleDateString() : 'N/A'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            );
-          })()
-        )}
-      </div>
-    </div>
-  );
-};
-
-// BUYERS PAGE with sub-nav
-const BuyersPage = ({ subTab, setSubTab, onNavigateToContacts, globalSearch, onSearchChange }) => {
-  return (
-    <div className="page-with-subnav">
-      <div className="subnav">
-        <div className="subnav-title">Buyers</div>
-        <div className="subnav-items">
-          <div
-            onClick={() => onNavigateToContacts('buyer')}
-            className="subnav-item"
-          >
-            <UserPlus size={18} color="#888888" />
-            <span>Add New Buyer</span>
-          </div>
-          <div
-            onClick={() => setSubTab('list')}
-            className={`subnav-item ${subTab === 'list' ? 'active' : ''}`}
-          >
-            <List size={18} color={subTab === 'list' ? '#00ff88' : '#888888'} />
-            <span>Buyers List</span>
-          </div>
-        </div>
-      </div>
-      <div className="subnav-content">
-        {subTab === 'list' && <BuyersListPage globalSearch={globalSearch} onSearchChange={onSearchChange} />}
-      </div>
     </div>
   );
 };
@@ -2344,9 +2187,8 @@ const DealsPage = ({ subTab, setSubTab }) => {
 // Main App Component
 function App() {
   const [activeTab, setActiveTab] = useState('home');
-  const [buyersSubTab, setBuyersSubTab] = useState('list');
   const [dealsSubTab, setDealsSubTab] = useState('new');
-  const [contactType, setContactType] = useState('buyer');
+  const [contactsViewTab, setContactsViewTab] = useState('all');
   const [globalSearch, setGlobalSearch] = useState('');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -2380,7 +2222,7 @@ function App() {
   }, []);
 
   const handleNavigateToContacts = (type) => {
-    setContactType(type);
+    setContactsViewTab(type || 'all');
     setActiveTab('contacts');
   };
 
@@ -2430,7 +2272,7 @@ function App() {
   //   return <CompanySetupPage user={user} onComplete={handleCompanySetup} />;
   // }
 
-  const searchEnabledTabs = ['contacts', 'buyers', 'properties', 'tasks', 'documents'];
+  const searchEnabledTabs = ['contacts', 'properties', 'tasks', 'documents'];
 
   return (
     <ToastProvider>
@@ -2450,8 +2292,7 @@ function App() {
             onNavigateToProperties={handleNavigateToProperties}
           />
         )}
-        {activeTab === 'contacts' && <ContactsPage contactType={contactType} companyId={companyId} globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
-        {activeTab === 'buyers' && <BuyersPage subTab={buyersSubTab} setSubTab={setBuyersSubTab} onNavigateToContacts={handleNavigateToContacts} companyId={companyId} globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
+        {activeTab === 'contacts' && <ContactsPage initialTab={contactsViewTab} companyId={companyId} globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'deals' && <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} companyId={companyId} />}
         {activeTab === 'properties' && <PropertiesPage globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'crm' && <CRMDashboard />}
@@ -2460,7 +2301,7 @@ function App() {
         {activeTab === 'documents' && <DocumentsPage globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'websites' && <WebsitesPage />}
         {activeTab === 'settings' && <SettingsPage />}
-        {!['home', 'contacts', 'buyers', 'deals', 'properties', 'crm', 'analytics', 'tasks', 'documents', 'websites', 'settings'].includes(activeTab) && (
+        {!['home', 'contacts', 'deals', 'properties', 'crm', 'analytics', 'tasks', 'documents', 'websites', 'settings'].includes(activeTab) && (
           <div className="placeholder">
             <div className="placeholder-icon">🚧</div>
             <div>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} page coming soon</div>
