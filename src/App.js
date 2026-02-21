@@ -916,16 +916,22 @@ const handleSaveContact = async () => {
     { id: 'investor', label: 'Investors' }
   ];
 
-  return (
-    <div className="page-content">
-      <div className="page-header">
-        <h2>Contacts</h2>
-        <p>Use subtabs to add contacts or browse filtered contact lists</p>
-      </div>
+  const filteredContacts = contacts.filter((contact) => {
+    if (selectedViewTab !== 'all' && contact.contactType !== selectedViewTab) return false;
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      `${contact.firstName} ${contact.lastName}`.toLowerCase().includes(search) ||
+      contact.email?.toLowerCase().includes(search) ||
+      contact.phone?.toLowerCase().includes(search)
+    );
+  });
 
-      <div className="section">
-        <div className="section-title">Subtabs</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+  return (
+    <div className="page-with-subnav">
+      <div className="subnav">
+        <div className="subnav-title">Contacts</div>
+        <div className="subnav-items">
           {contactViewTabs.map((tab) => (
             <div
               key={tab.id}
@@ -935,276 +941,185 @@ const handleSaveContact = async () => {
                   setSelectedContactType(tab.id);
                 }
               }}
-              className={`filter-chip ${selectedViewTab === tab.id ? 'active' : ''}`}
-              style={{ whiteSpace: 'nowrap' }}
+              className={`subnav-item ${selectedViewTab === tab.id ? 'active' : ''}`}
             >
-              <span className="chip-label">{tab.label}</span>
-              <span className="chip-count">
-                {tab.id === 'add'
-                  ? editingId ? 1 : 0
-                  : tab.id === 'all'
-                  ? contacts.length
-                  : contacts.filter((contact) => contact.contactType === tab.id).length}
-              </span>
+              <Users size={18} color={selectedViewTab === tab.id ? '#00ff88' : '#888888'} />
+              <span>{tab.label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {selectedViewTab === 'add' && (
-      <div className="contact-form">
-        <div className="section-title">Contact Information</div>
-        <div className="form-grid">
-          <div className="form-field">
-            <label>First Name *</label>
-            <input 
-              type="text" 
-              placeholder="Enter first name" 
-              value={formData.firstName}
-              onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-            />
-          </div>
-          <div className="form-field">
-            <label>Last Name *</label>
-            <input 
-              type="text" 
-              placeholder="Enter last name" 
-              value={formData.lastName}
-              onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-            />
-          </div>
-          <div className="form-field">
-            <label>Phone Number *</label>
-            <input 
-              type="tel" 
-              placeholder="(555) 555-5555" 
-              value={formData.phone}
-              onChange={(e) => setFormData({...formData, phone: e.target.value})}
-            />
-          </div>
-          <div className="form-field">
-            <label>Email *</label>
-            <input 
-              type="email" 
-              placeholder="email@example.com" 
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-            />
-          </div>
-          <div className="form-field">
-            <label>Contact Type</label>
-            <select
-              value={selectedContactType}
-              onChange={(e) => setSelectedContactType(e.target.value)}
-            >
-              {contactTypes.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          {selectedContactType === 'buyer' && (
-            <>
-              <div className="form-field">
-                <label>Buyer Type</label>
-                <select 
-                  value={formData.buyerType}
-                  onChange={(e) => setFormData({...formData, buyerType: e.target.value})}
-                >
-                  <option value="">Select type</option>
-                  <option value="flipper">Flipper</option>
-                  <option value="builder">Builder</option>
-                  <option value="holder">Holder</option>
-                </select>
-              </div>
-              <div className="form-field">
-                <label>Actively Buying</label>
-                <div 
-                  onClick={() => setFormData({...formData, activelyBuying: !formData.activelyBuying})} 
-                  className="checkbox-field"
-                >
-                  <div className={`checkbox ${formData.activelyBuying ? 'checked' : ''}`}>
-                    {formData.activelyBuying && <Check size={14} color="#000000" />}
+      <div className="subnav-content">
+        <div className="page-content">
+          {selectedViewTab === 'add' && (
+            <div className="contact-form">
+              <div className="section-title">{editingId ? 'Edit Contact' : 'Add New Contact'}</div>
+              <div className="form-grid">
+                <div className="form-field">
+                  <label>First Name *</label>
+                  <input type="text" placeholder="Enter first name" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} />
+                </div>
+                <div className="form-field">
+                  <label>Last Name *</label>
+                  <input type="text" placeholder="Enter last name" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} />
+                </div>
+                <div className="form-field">
+                  <label>Phone Number *</label>
+                  <input type="tel" placeholder="(555) 555-5555" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
+                </div>
+                <div className="form-field">
+                  <label>Email *</label>
+                  <input type="email" placeholder="email@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
+                </div>
+                <div className="form-field">
+                  <label>Contact Type</label>
+                  <select value={selectedContactType} onChange={(e) => setSelectedContactType(e.target.value)}>
+                    {contactTypes.map((type) => (
+                      <option key={type.id} value={type.id}>{type.label}</option>
+                    ))}
+                  </select>
+                </div>
+                {selectedContactType === 'buyer' && (
+                  <>
+                    <div className="form-field">
+                      <label>Buyer Type</label>
+                      <select value={formData.buyerType} onChange={(e) => setFormData({...formData, buyerType: e.target.value})}>
+                        <option value="">Select type</option>
+                        <option value="flipper">Flipper</option>
+                        <option value="builder">Builder</option>
+                        <option value="holder">Holder</option>
+                      </select>
+                    </div>
+                    <div className="form-field">
+                      <label>Actively Buying</label>
+                      <div onClick={() => setFormData({...formData, activelyBuying: !formData.activelyBuying})} className="checkbox-field">
+                        <div className={`checkbox ${formData.activelyBuying ? 'checked' : ''}`}>
+                          {formData.activelyBuying && <Check size={14} color="#000000" />}
+                        </div>
+                        <span>Yes, actively buying</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {selectedContactType === 'seller' && (
+                  <div className="form-field">
+                    <label>Actively Selling</label>
+                    <div onClick={() => setFormData({...formData, activelySelling: !formData.activelySelling})} className="checkbox-field">
+                      <div className={`checkbox ${formData.activelySelling ? 'checked' : ''}`}>
+                        {formData.activelySelling && <Check size={14} color="#000000" />}
+                      </div>
+                      <span>{formData.activelySelling ? 'Yes, actively selling' : 'Inactive seller'}</span>
+                    </div>
                   </div>
-                  <span>Yes, actively buying</span>
-                </div>
+                )}
               </div>
-            </>
-          )}
-          {selectedContactType === 'seller' && (
-            <div className="form-field">
-              <label>Actively Selling</label>
-              <div
-                onClick={() => setFormData({...formData, activelySelling: !formData.activelySelling})}
-                className="checkbox-field"
-              >
-                <div className={`checkbox ${formData.activelySelling ? 'checked' : ''}`}>
-                  {formData.activelySelling && <Check size={14} color="#000000" />}
-                </div>
-                <span>{formData.activelySelling ? 'Yes, actively selling' : 'Inactive seller'}</span>
+              <div className="header-actions">
+                <button className="btn-primary" onClick={handleSaveContact} disabled={saving}>
+                  {saving ? 'Saving...' : editingId ? 'Update Contact' : 'Save Contact'}
+                </button>
+                {editingId && (
+                  <button className="btn-secondary" onClick={handleCancelEdit}>
+                    Cancel
+                  </button>
+                )}
               </div>
             </div>
           )}
-        </div>
-        <div className="header-actions">
-          <button 
-            className="btn-primary" 
-            onClick={handleSaveContact}
-            disabled={saving}
-          >
-            {saving ? 'Saving...' : editingId ? 'Update Contact' : 'Save Contact'}
-          </button>
-          {editingId && (
-            <button 
-              className="btn-secondary" 
-              onClick={handleCancelEdit}
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-      </div>
-      )}
 
-      {/* Contacts List */}
-      {selectedViewTab !== 'add' && (
-      <div className="section" style={{ marginTop: '40px' }}>
-        <div className="section-title">
-          {selectedViewTab === 'all' ? 'All Contacts' : `${selectedViewTab.charAt(0).toUpperCase() + selectedViewTab.slice(1)} Contacts`}
-        </div>
+          {selectedViewTab !== 'add' && (
+            <div className="section">
+              <div className="section-title">
+                {selectedViewTab === 'all' ? 'All Contacts' : `${selectedViewTab.charAt(0).toUpperCase() + selectedViewTab.slice(1)} Contacts`}
+              </div>
+              <div style={{ marginBottom: '15px' }}>
+                <input
+                  type="text"
+                  placeholder="Search contacts by name, email, or phone..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    if (onSearchChange) onSearchChange(e.target.value);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    background: '#0a0a0a',
+                    border: '1px solid #1a1a1a',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <input
-            type="text"
-            placeholder="Search contacts by name, email, or phone..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              if (onSearchChange) onSearchChange(e.target.value);
-            }}
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              background: '#0a0a0a',
-              border: '1px solid #1a1a1a',
-              borderRadius: '8px',
-              color: '#ffffff',
-              fontSize: '14px'
-            }}
-          />
-        </div>
-        
-        {loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner" />
-          </div>
-        ) : contacts.length === 0 ? (
-          <div className="empty-state-card">
-            <div className="empty-state-icon">👥</div>
-            <div className="empty-state-title">No contacts yet</div>
-            <div className="empty-state-subtitle">Add one above to get started.</div>
-          </div>
-        ) : (
-          (() => {
-            const filteredContacts = contacts.filter((contact) => {
-              if (selectedViewTab !== 'all' && contact.contactType !== selectedViewTab) return false;
-              if (!searchTerm) return true;
-              const search = searchTerm.toLowerCase();
-              return (
-                `${contact.firstName} ${contact.lastName}`.toLowerCase().includes(search) ||
-                contact.email?.toLowerCase().includes(search) ||
-                contact.phone?.toLowerCase().includes(search)
-              );
-            });
-
-            if (filteredContacts.length === 0) {
-              return (
+              {loading ? (
+                <div className="loading-container">
+                  <div className="loading-spinner" />
+                </div>
+              ) : contacts.length === 0 ? (
+                <div className="empty-state-card">
+                  <div className="empty-state-icon">👥</div>
+                  <div className="empty-state-title">No contacts yet</div>
+                  <div className="empty-state-subtitle">Use Add Contact to create your first record.</div>
+                </div>
+              ) : filteredContacts.length === 0 ? (
                 <div className="empty-state-card">
                   <div className="empty-state-icon">🔍</div>
-                  <div className="empty-state-title">No contacts in this folder</div>
-                  <div className="empty-state-subtitle">Try another folder or different search criteria.</div>
+                  <div className="empty-state-title">No contacts in this subtab</div>
+                  <div className="empty-state-subtitle">Try another subtab or adjust your search.</div>
                 </div>
-              );
-            }
-
-            return (
-              <div className="tasks-table">
-                <div className="table-header" style={{ 
-                  gridTemplateColumns: '200px 120px 150px 180px 120px 150px' 
-                }}>
-                  <div>Name</div>
-                  <div>Type</div>
-                  <div>Phone</div>
-                  <div>Email</div>
-                  <div>Date Added</div>
-                  <div>Actions</div>
-                </div>
-
-                {filteredContacts.map((contact) => (
-                  <div
-                    key={contact.id}
-                    className="table-row"
-                    style={{ gridTemplateColumns: '200px 120px 150px 180px 120px 150px' }}
-                  >
-                    <div data-label="Name" style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
-                      {contact.firstName} {contact.lastName}
-                    </div>
-
-                    <div data-label="Type" style={{ fontSize: '12px', color: '#00ff88', textTransform: 'capitalize' }}>
-                      {contact.contactType}
-                      {contact.contactType === 'seller' && (
-                        <span style={{ marginLeft: '6px', color: contact.activelySelling === false ? '#ff6600' : '#00ff88' }}>
-                          ({contact.activelySelling === false ? 'Inactive' : 'Active'})
-                        </span>
-                      )}
-                    </div>
-
-                    <div data-label="Phone" style={{ fontSize: '12px', color: '#888888' }}>
-                      {contact.phone}
-                    </div>
-
-                    <div data-label="Email" style={{ fontSize: '12px', color: '#888888' }}>
-                      {contact.email}
-                    </div>
-
-                    <div data-label="Date Added" style={{ fontSize: '12px', color: '#888888' }}>
-                      {contact.createdAt ? new Date(contact.createdAt).toLocaleDateString() : 'N/A'}
-                    </div>
-
-                    <div data-label="Actions" style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => handleEditContact(contact)}
-                        className="btn-secondary btn-sm"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => requestDeleteContact(contact)}
-                        className="btn-danger btn-sm"
-                      >
-                        Delete
-                      </button>
-                    </div>
+              ) : (
+                <div className="tasks-table">
+                  <div className="table-header" style={{ gridTemplateColumns: '200px 120px 150px 180px 120px 150px' }}>
+                    <div>Name</div>
+                    <div>Type</div>
+                    <div>Phone</div>
+                    <div>Email</div>
+                    <div>Date Added</div>
+                    <div>Actions</div>
                   </div>
-                ))}
-              </div>
-            );
-          })()
-        )}
-      </div>
-      )}
+                  {filteredContacts.map((contact) => (
+                    <div key={contact.id} className="table-row" style={{ gridTemplateColumns: '200px 120px 150px 180px 120px 150px' }}>
+                      <div data-label="Name" style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
+                        {contact.firstName} {contact.lastName}
+                      </div>
+                      <div data-label="Type" style={{ fontSize: '12px', color: '#00ff88', textTransform: 'capitalize' }}>
+                        {contact.contactType}
+                        {contact.contactType === 'seller' && (
+                          <span style={{ marginLeft: '6px', color: contact.activelySelling === false ? '#ff6600' : '#00ff88' }}>
+                            ({contact.activelySelling === false ? 'Inactive' : 'Active'})
+                          </span>
+                        )}
+                      </div>
+                      <div data-label="Phone" style={{ fontSize: '12px', color: '#888888' }}>{contact.phone}</div>
+                      <div data-label="Email" style={{ fontSize: '12px', color: '#888888' }}>{contact.email}</div>
+                      <div data-label="Date Added" style={{ fontSize: '12px', color: '#888888' }}>
+                        {contact.createdAt ? new Date(contact.createdAt).toLocaleDateString() : 'N/A'}
+                      </div>
+                      <div data-label="Actions" style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => handleEditContact(contact)} className="btn-secondary btn-sm">Edit</button>
+                        <button onClick={() => requestDeleteContact(contact)} className="btn-danger btn-sm">Delete</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-      <ConfirmModal
-        open={confirmDelete.open}
-        title="Delete contact?"
-        message={confirmDelete.contact ? `Delete "${confirmDelete.contact.firstName} ${confirmDelete.contact.lastName}"? This action can't be undone.` : "This action can't be undone."}
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
-        danger
-        onConfirm={confirmDeleteContact}
-        onCancel={() => setConfirmDelete({ open: false, contact: null })}
-      />
+          <ConfirmModal
+            open={confirmDelete.open}
+            title="Delete contact?"
+            message={confirmDelete.contact ? `Delete "${confirmDelete.contact.firstName} ${confirmDelete.contact.lastName}"? This action can't be undone.` : "This action can't be undone."}
+            confirmLabel="Delete"
+            cancelLabel="Cancel"
+            danger
+            onConfirm={confirmDeleteContact}
+            onCancel={() => setConfirmDelete({ open: false, contact: null })}
+          />
+        </div>
+      </div>
     </div>
   );
 };
