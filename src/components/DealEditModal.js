@@ -65,6 +65,7 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
     setError('');
 
     try {
+      const previousStatus = deal?.status;
       const purchasePrice = parseFloat(formData.purchasePrice) || 0;
       const commissionPercent = parseFloat(formData.commissionPercent) || 0;
       const commissionAmount = purchasePrice * (commissionPercent / 100);
@@ -89,6 +90,17 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
       };
 
       await updateDoc(doc(db, 'deals', deal.id), updateData);
+
+      if (formData.status === 'closed' && previousStatus !== 'closed' && deal?.sellerId) {
+        try {
+          await updateDoc(doc(db, 'contacts', deal.sellerId), {
+            activelySelling: false,
+            updatedAt: new Date().toISOString()
+          });
+        } catch (sellerUpdateError) {
+          console.error('Failed to update seller activity status:', sellerUpdateError);
+        }
+      }
       
       if (onUpdate) {
         onUpdate();

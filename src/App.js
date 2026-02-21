@@ -396,6 +396,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
   const [stats, setStats] = useState({
     totalContacts: 0,
     totalSellers: 0,
+    activeSellers: 0,
     inactiveSellers: 0,
     singleFamilySellers: 0,
     multiFamilySellers: 0,
@@ -404,6 +405,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
     activeBuyers: 0,
     totalDeals: 0,
     activeDeals: 0,
+    closedDeals: 0,
     flippers: 0,
     builders: 0,
     holders: 0,
@@ -470,6 +472,8 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
         const builders = buyers.filter(b => b.buyerType === 'builder');
         const holders = buyers.filter(b => b.buyerType === 'holder');
         const activeDeals = dealsData.filter(d => d.status !== 'closed');
+        const closedDeals = dealsData.filter(d => d.status === 'closed');
+        const activeSellers = sellers.filter(s => s.activelySelling !== false);
         const inactiveSellers = sellers.filter(s => s.activelySelling === false);
 
         const addressToProperty = new Map();
@@ -512,6 +516,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
         setStats({
           totalContacts: contactsData.length,
           totalSellers: sellers.length,
+          activeSellers: activeSellers.length,
           inactiveSellers: inactiveSellers.length,
           singleFamilySellers: singleFamilySellers.length,
           multiFamilySellers: multiFamilySellers.length,
@@ -520,6 +525,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
           activeBuyers: activeBuyers.length,
           totalDeals: dealsData.length,
           activeDeals: activeDeals.length,
+          closedDeals: closedDeals.length,
           flippers: flippers.length,
           builders: builders.length,
           holders: holders.length,
@@ -582,6 +588,10 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
                 <span className="kpi-value">{stats.totalSellers}</span>
               </div>
               <div className="kpi-item">
+                <span className="kpi-label">Active Sellers</span>
+                <span className="kpi-value">{stats.activeSellers}</span>
+              </div>
+              <div className="kpi-item">
                 <span className="kpi-label">Inactive Sellers</span>
                 <span className="kpi-value">{stats.inactiveSellers}</span>
               </div>
@@ -610,6 +620,10 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
               <div className="kpi-item">
                 <span className="kpi-label">Active Deals</span>
                 <span className="kpi-value">{stats.activeDeals}</span>
+              </div>
+              <div className="kpi-item">
+                <span className="kpi-label">Closed Deals</span>
+                <span className="kpi-value">{stats.closedDeals}</span>
               </div>
             </div>
           </div>

@@ -41,10 +41,25 @@ const ActiveDealsPage = () => {
 
   const updateDealStatus = async (dealId, newStatus) => {
     try {
+      const currentDeal = deals.find((d) => d.id === dealId);
+      const previousStatus = currentDeal?.status;
+
       await updateDoc(doc(db, 'deals', dealId), {
         status: newStatus,
         updatedAt: new Date().toISOString()
       });
+
+      if (newStatus === 'closed' && previousStatus !== 'closed' && currentDeal?.sellerId) {
+        try {
+          await updateDoc(doc(db, 'contacts', currentDeal.sellerId), {
+            activelySelling: false,
+            updatedAt: new Date().toISOString()
+          });
+        } catch (sellerUpdateError) {
+          console.error('Failed to update seller activity status:', sellerUpdateError);
+        }
+      }
+
       loadDeals();
       if (selectedDeal && selectedDeal.id === dealId) {
         setSelectedDeal({ ...selectedDeal, status: newStatus });
