@@ -7,6 +7,7 @@ import ConfirmModal from './ConfirmModal';
 const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   const toast = useToast();
   const [properties, setProperties] = useState([]);
+  const [sellers, setSellers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
@@ -36,7 +37,9 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
     propertyType: 'single-family',
     status: 'available',
     description: '',
-    images: []
+    images: [],
+    sellerId: '',
+    sellerName: ''
   });
 
   const [imageFiles, setImageFiles] = useState([]);
@@ -46,6 +49,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
   useEffect(() => {
     loadProperties();
+    loadSellers();
   }, []);
 
   useEffect(() => {
@@ -71,6 +75,28 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
     } catch (error) {
       console.error('Error loading properties:', error);
       setLoading(false);
+    }
+  };
+
+  const loadSellers = async () => {
+    try {
+      const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+      const sellersQuery = isAdmin
+        ? query(collection(db, 'contacts'), where('contactType', '==', 'seller'))
+        : query(
+            collection(db, 'contacts'),
+            where('userId', '==', auth.currentUser.uid),
+            where('contactType', '==', 'seller')
+          );
+
+      const sellersSnapshot = await getDocs(sellersQuery);
+      const sellersData = [];
+      sellersSnapshot.forEach((sellerDoc) => {
+        sellersData.push({ id: sellerDoc.id, ...sellerDoc.data() });
+      });
+      setSellers(sellersData);
+    } catch (error) {
+      console.error('Error loading sellers:', error);
     }
   };
 
@@ -139,6 +165,8 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
         baths: parseFloat(formData.baths) || 0,
         sqft: parseInt(formData.sqft) || 0,
         propertyType: formData.propertyType,
+        sellerId: formData.sellerId || null,
+        sellerName: formData.sellerName || null,
         status: formData.status,
         description: formData.description,
         images: uploadedImages,
@@ -203,7 +231,9 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
         propertyType: property.propertyType,
         status: property.status,
         description: property.description || '',
-        images: property.images || []
+        images: property.images || [],
+        sellerId: property.sellerId || '',
+        sellerName: property.sellerName || ''
       });
       setEditingProperty(property.id);
     } else {
@@ -219,7 +249,9 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
         propertyType: 'single-family',
         status: 'available',
         description: '',
-        images: []
+        images: [],
+        sellerId: '',
+        sellerName: ''
       });
       setEditingProperty(null);
     }
@@ -707,6 +739,12 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                   {property.propertyType?.replace('-', ' ')}
                 </div>
 
+                {property.sellerName && (
+                  <div style={{ fontSize: '11px', color: '#00ff88', marginBottom: '15px' }}>
+                    Seller: {property.sellerName}
+                  </div>
+                )}
+
                 {/* Action Buttons */}
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
@@ -864,6 +902,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                       <option value="condo">Condo</option>
                       <option value="townhouse">Townhouse</option>
                       <option value="multi-family">Multi-Family</option>
+                      <option value="commercial">Commercial</option>
                       <option value="land">Land</option>
                     </select>
                   </div>
@@ -880,6 +919,29 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                       <option value="sold">Sold</option>
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Associated Seller</label>
+                  <select
+                    value={formData.sellerId}
+                    onChange={(e) => {
+                      const selectedSeller = sellers.find((seller) => seller.id === e.target.value);
+                      setFormData({
+                        ...formData,
+                        sellerId: e.target.value,
+                        sellerName: selectedSeller ? `${selectedSeller.firstName} ${selectedSeller.lastName}` : ''
+                      });
+                    }}
+                    style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
+                  >
+                    <option value="">None selected</option>
+                    {sellers.map((seller) => (
+                      <option key={seller.id} value={seller.id}>
+                        {seller.firstName} {seller.lastName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Description */}

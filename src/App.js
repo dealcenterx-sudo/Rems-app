@@ -376,11 +376,30 @@ const TopBar = ({ title, searchQuery, onSearchChange, showSearch }) => {
   );
 };
 
+const normalizeAddressValue = (value = '') =>
+  value
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const normalizePropertyTypeBucket = (propertyType = '') => {
+  const type = propertyType.toLowerCase().replace(/\s+/g, '-');
+  if (type === 'single-family') return 'single-family';
+  if (type === 'multi-family' || type === 'multifamily') return 'multi-family';
+  if (type === 'commercial') return 'commercial';
+  return null;
+};
+
 // HOME PAGE - WITH LIVE FIREBASE DATA
 const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProperties }) => {
   const [stats, setStats] = useState({
     totalContacts: 0,
     totalSellers: 0,
+    inactiveSellers: 0,
+    singleFamilySellers: 0,
+    multiFamilySellers: 0,
+    commercialSellers: 0,
     totalBuyers: 0,
     activeBuyers: 0,
     totalDeals: 0,
@@ -421,6 +440,17 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
           dealsData.push({ id: doc.id, ...doc.data() });
         });
 
+        // Load properties
+        const propertiesQuery = isAdmin
+          ? query(collection(db, 'properties'))
+          : query(collection(db, 'properties'), where('userId', '==', auth.currentUser.uid));
+
+        const propertiesSnapshot = await getDocs(propertiesQuery);
+        const propertiesData = [];
+        propertiesSnapshot.forEach((doc) => {
+          propertiesData.push({ id: doc.id, ...doc.data() });
+        });
+
         // Load tasks
         const tasksQuery = isAdmin
           ? query(collection(db, 'tasks'), orderBy('dueDate', 'asc'))
@@ -440,10 +470,52 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
         const builders = buyers.filter(b => b.buyerType === 'builder');
         const holders = buyers.filter(b => b.buyerType === 'holder');
         const activeDeals = dealsData.filter(d => d.status !== 'closed');
+        const inactiveSellers = sellers.filter(s => s.activelySelling === false);
+
+        const addressToProperty = new Map();
+        propertiesData.forEach((property) => {
+          const fullAddress = `${property.address || ''}, ${property.city || ''}, ${property.state || ''} ${property.zipCode || ''}`;
+          const normalizedFullAddress = normalizeAddressValue(fullAddress);
+          const normalizedStreetAddress = normalizeAddressValue(property.address || '');
+
+          if (normalizedFullAddress && !addressToProperty.has(normalizedFullAddress)) {
+            addressToProperty.set(normalizedFullAddress, property);
+          }
+          if (normalizedStreetAddress && !addressToProperty.has(normalizedStreetAddress)) {
+            addressToProperty.set(normalizedStreetAddress, property);
+          }
+        });
+
+        const sellerTypeBuckets = new Map();
+        const addSellerBucket = (sellerId, propertyType) => {
+          const bucket = normalizePropertyTypeBucket(propertyType);
+          if (!sellerId || !bucket) return;
+          const current = sellerTypeBuckets.get(sellerId) || new Set();
+          current.add(bucket);
+          sellerTypeBuckets.set(sellerId, current);
+        };
+
+        propertiesData.forEach((property) => {
+          addSellerBucket(property.sellerId, property.propertyType);
+        });
+
+        dealsData.forEach((deal) => {
+          const normalizedDealAddress = normalizeAddressValue(deal.propertyAddress || '');
+          const matchedProperty = addressToProperty.get(normalizedDealAddress);
+          addSellerBucket(deal.sellerId, matchedProperty?.propertyType || deal.propertyType);
+        });
+
+        const singleFamilySellers = sellers.filter((seller) => sellerTypeBuckets.get(seller.id)?.has('single-family'));
+        const multiFamilySellers = sellers.filter((seller) => sellerTypeBuckets.get(seller.id)?.has('multi-family'));
+        const commercialSellers = sellers.filter((seller) => sellerTypeBuckets.get(seller.id)?.has('commercial'));
 
         setStats({
           totalContacts: contactsData.length,
           totalSellers: sellers.length,
+          inactiveSellers: inactiveSellers.length,
+          singleFamilySellers: singleFamilySellers.length,
+          multiFamilySellers: multiFamilySellers.length,
+          commercialSellers: commercialSellers.length,
           totalBuyers: buyers.length,
           activeBuyers: activeBuyers.length,
           totalDeals: dealsData.length,
@@ -510,8 +582,20 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
                 <span className="kpi-value">{stats.totalSellers}</span>
               </div>
               <div className="kpi-item">
-                <span className="kpi-label">Total Contacts</span>
-                <span className="kpi-value">{stats.totalContacts}</span>
+                <span className="kpi-label">Inactive Sellers</span>
+                <span className="kpi-value">{stats.inactiveSellers}</span>
+              </div>
+              <div className="kpi-item">
+                <span className="kpi-label">Single Family Sellers</span>
+                <span className="kpi-value">{stats.singleFamilySellers}</span>
+              </div>
+              <div className="kpi-item">
+                <span className="kpi-label">Multifamily Sellers</span>
+                <span className="kpi-value">{stats.multiFamilySellers}</span>
+              </div>
+              <div className="kpi-item">
+                <span className="kpi-label">Commercial Sellers</span>
+                <span className="kpi-value">{stats.commercialSellers}</span>
               </div>
             </div>
           </div>
@@ -608,7 +692,8 @@ const ContactsPage = ({ contactType = 'buyer', editContactId = null, globalSearc
     phone: '', 
     email: '', 
     buyerType: '', 
-    activelyBuying: false 
+    activelyBuying: false,
+    activelySelling: true
   });
   const [saving, setSaving] = useState(false);
   const [contacts, setContacts] = useState([]);
@@ -637,7 +722,8 @@ const ContactsPage = ({ contactType = 'buyer', editContactId = null, globalSearc
           phone: contactToEdit.phone,
           email: contactToEdit.email,
           buyerType: contactToEdit.buyerType || '',
-          activelyBuying: contactToEdit.activelyBuying || false
+          activelyBuying: contactToEdit.activelyBuying || false,
+          activelySelling: contactToEdit.activelySelling !== false
         });
         setSelectedContactType(contactToEdit.contactType);
         setEditingId(editContactId);
@@ -713,7 +799,8 @@ const handleSaveContact = async () => {
       phone: '', 
       email: '', 
       buyerType: '', 
-      activelyBuying: false 
+      activelyBuying: false,
+      activelySelling: true
     });
     
     // Reload contacts
@@ -754,7 +841,8 @@ const handleSaveContact = async () => {
       phone: contact.phone,
       email: contact.email,
       buyerType: contact.buyerType || '',
-      activelyBuying: contact.activelyBuying || false
+      activelyBuying: contact.activelyBuying || false,
+      activelySelling: contact.activelySelling !== false
     });
     setSelectedContactType(contact.contactType);
     setEditingId(contact.id);
@@ -769,7 +857,8 @@ const handleSaveContact = async () => {
       phone: '', 
       email: '', 
       buyerType: '', 
-      activelyBuying: false 
+      activelyBuying: false,
+      activelySelling: true
     });
   };
 
@@ -873,6 +962,20 @@ const handleSaveContact = async () => {
               </div>
             </>
           )}
+          {selectedContactType === 'seller' && (
+            <div className="form-field">
+              <label>Actively Selling</label>
+              <div
+                onClick={() => setFormData({...formData, activelySelling: !formData.activelySelling})}
+                className="checkbox-field"
+              >
+                <div className={`checkbox ${formData.activelySelling ? 'checked' : ''}`}>
+                  {formData.activelySelling && <Check size={14} color="#000000" />}
+                </div>
+                <span>{formData.activelySelling ? 'Yes, actively selling' : 'Inactive seller'}</span>
+              </div>
+            </div>
+          )}
         </div>
         <div className="header-actions">
           <button 
@@ -975,6 +1078,11 @@ const handleSaveContact = async () => {
 
                     <div data-label="Type" style={{ fontSize: '12px', color: '#00ff88', textTransform: 'capitalize' }}>
                       {contact.contactType}
+                      {contact.contactType === 'seller' && (
+                        <span style={{ marginLeft: '6px', color: contact.activelySelling === false ? '#ff6600' : '#00ff88' }}>
+                          ({contact.activelySelling === false ? 'Inactive' : 'Active'})
+                        </span>
+                      )}
                     </div>
 
                     <div data-label="Phone" style={{ fontSize: '12px', color: '#888888' }}>
@@ -1240,15 +1348,16 @@ const NewDealPage = () => {
     property: ''
   });
   const [contacts, setContacts] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [saving, setSaving] = useState(false);
   const [showBuyerModal, setShowBuyerModal] = useState(false);
   const [showSellerModal, setShowSellerModal] = useState(false);
   const [showPropertyModal, setShowPropertyModal] = useState(false);
   const [propertyInput, setPropertyInput] = useState('');
   const toast = useToast();
-  // Load contacts from Firebase
+  // Load contacts and properties from Firebase
   React.useEffect(() => {
-    const loadContacts = async () => {
+    const loadData = async () => {
       try {
 const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
 
@@ -1268,11 +1377,25 @@ const querySnapshot = isAdmin
           });
         });
         setContacts(contactsData);
+
+        const propertiesQuery = isAdmin
+          ? query(collection(db, 'properties'))
+          : query(collection(db, 'properties'), where('userId', '==', auth.currentUser.uid));
+
+        const propertiesSnapshot = await getDocs(propertiesQuery);
+        const propertiesData = [];
+        propertiesSnapshot.forEach((propertyDoc) => {
+          propertiesData.push({
+            id: propertyDoc.id,
+            ...propertyDoc.data()
+          });
+        });
+        setProperties(propertiesData);
       } catch (error) {
-        console.error('Error loading contacts:', error);
+        console.error('Error loading contacts/properties:', error);
       }
     };
-    loadContacts();
+    loadData();
   }, []);
 
   const handleSaveDeal = async () => {
@@ -1286,17 +1409,36 @@ const querySnapshot = isAdmin
     try {
       const buyer = contacts.find(c => c.id === dealData.buyer);
       const seller = contacts.find(c => c.id === dealData.seller);
+      const sellerName = `${seller.firstName} ${seller.lastName}`;
+      const normalizedPropertyInput = normalizeAddressValue(dealData.property);
+      const matchedProperty = properties.find((property) => {
+        const fullAddress = `${property.address || ''}, ${property.city || ''}, ${property.state || ''} ${property.zipCode || ''}`;
+        return (
+          normalizeAddressValue(fullAddress) === normalizedPropertyInput ||
+          normalizeAddressValue(property.address || '') === normalizedPropertyInput
+        );
+      });
       
       await addDoc(collection(db, 'deals'), {
   buyerId: dealData.buyer,
   buyerName: `${buyer.firstName} ${buyer.lastName}`,
   sellerId: dealData.seller,
-  sellerName: `${seller.firstName} ${seller.lastName}`,
+  sellerName,
+  propertyId: matchedProperty?.id || null,
+  propertyType: matchedProperty?.propertyType || null,
   propertyAddress: dealData.property,
   status: 'new',
   userId: auth.currentUser.uid,
   createdAt: new Date().toISOString()
 });
+
+      if (matchedProperty?.id) {
+        await updateDoc(doc(db, 'properties', matchedProperty.id), {
+          sellerId: dealData.seller,
+          sellerName,
+          updatedAt: new Date().toISOString()
+        });
+      }
       
       toast.success('Deal created successfully!');
       
