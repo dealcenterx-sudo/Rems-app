@@ -898,6 +898,23 @@ const handleSaveContact = async () => {
     });
   };
 
+  const openAddContactForTab = (tabId) => {
+    setEditingId(null);
+    setFormData({
+      firstName: '',
+      lastName: '',
+      phone: '',
+      email: '',
+      buyerType: '',
+      activelyBuying: false,
+      activelySelling: true
+    });
+    if (tabId !== 'all' && tabId !== 'add') {
+      setSelectedContactType(tabId);
+    }
+    setSelectedViewTab('add');
+  };
+
   const contactTypes = [
     { id: 'buyer', label: 'Buyer' },
     { id: 'seller', label: 'Seller' },
@@ -1031,6 +1048,14 @@ const handleSaveContact = async () => {
             <div className="section">
               <div className="section-title">
                 {selectedViewTab === 'all' ? 'All Contacts' : `${selectedViewTab.charAt(0).toUpperCase() + selectedViewTab.slice(1)} Contacts`}
+              </div>
+              <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => openAddContactForTab(selectedViewTab)}
+                  className="btn-primary"
+                >
+                  + Add Contact
+                </button>
               </div>
               <div style={{ marginBottom: '15px' }}>
                 <input
