@@ -192,6 +192,20 @@ const FolderIcon = ({ size = 24, color = "currentColor" }) => (
   </svg>
 );
 
+const Mail = ({ size = 24, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="5" width="18" height="14" rx="2"/>
+    <path d="m3 7 9 6 9-6"/>
+  </svg>
+);
+
+const LinkIcon = ({ size = 24, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L10 5"/>
+    <path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L14 19"/>
+  </svg>
+);
+
 const BuyerIcon = ({ size = 80, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
@@ -2136,9 +2150,61 @@ const DealsPage = ({ subTab, setSubTab }) => {
   );
 };
 
+const CRMPlaceholderPage = ({ title, description }) => (
+  <div className="page-content">
+    <div className="empty-state-card">
+      <div className="empty-state-icon">⚙️</div>
+      <div className="empty-state-title">{title}</div>
+      <div className="empty-state-subtitle">{description}</div>
+    </div>
+  </div>
+);
+
+const CRMPage = ({ subTab, setSubTab }) => {
+  const crmItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart },
+    { id: 'leads', label: 'Leads', icon: Users },
+    { id: 'campaigns', label: 'Campaigns', icon: TrendingUp },
+    { id: 'messages', label: 'Messages', icon: FileText },
+    { id: 'email', label: 'Email', icon: Mail },
+    { id: 'reports', label: 'Reports', icon: List },
+    { id: 'connector', label: 'Connector', icon: LinkIcon }
+  ];
+
+  return (
+    <div className="page-with-subnav">
+      <div className="subnav">
+        <div className="subnav-title">CRM</div>
+        <div className="subnav-items">
+          {crmItems.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => setSubTab(item.id)}
+              className={`subnav-item ${subTab === item.id ? 'active' : ''}`}
+            >
+              <item.icon size={18} color={subTab === item.id ? '#00ff88' : '#888888'} />
+              <span>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="subnav-content">
+        {subTab === 'dashboard' && <CRMDashboard />}
+        {subTab === 'leads' && <CRMPlaceholderPage title="Leads" description="Lead management workflows will live here." />}
+        {subTab === 'campaigns' && <CRMPlaceholderPage title="Campaigns" description="Build and track outbound campaigns from this view." />}
+        {subTab === 'messages' && <CRMPlaceholderPage title="Messages" description="Centralized message inbox and history will appear here." />}
+        {subTab === 'email' && <CRMPlaceholderPage title="Email" description="Email templates, sends, and tracking will be managed here." />}
+        {subTab === 'reports' && <CRMPlaceholderPage title="Reports" description="CRM-specific reports and performance summaries will appear here." />}
+        {subTab === 'connector' && <CRMPlaceholderPage title="Connector" description="XML push and API lead communication settings will be configured here." />}
+      </div>
+    </div>
+  );
+};
+
 // Main App Component
 function App() {
   const [activeTab, setActiveTab] = useState('home');
+  const [crmSubTab, setCrmSubTab] = useState('dashboard');
   const [dealsSubTab, setDealsSubTab] = useState('new');
   const [contactsViewTab, setContactsViewTab] = useState('all');
   const [globalSearch, setGlobalSearch] = useState('');
@@ -2247,7 +2313,7 @@ function App() {
         {activeTab === 'contacts' && <ContactsPage initialTab={contactsViewTab} companyId={companyId} globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'deals' && <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} companyId={companyId} />}
         {activeTab === 'properties' && <PropertiesPage globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
-        {activeTab === 'crm' && <CRMDashboard />}
+        {activeTab === 'crm' && <CRMPage subTab={crmSubTab} setSubTab={setCrmSubTab} />}
         {activeTab === 'analytics' && <AnalyticsDashboard />}
         {activeTab === 'tasks' && <TasksPage globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'documents' && <DocumentsPage globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
