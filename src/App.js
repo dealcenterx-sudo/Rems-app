@@ -2224,6 +2224,20 @@ const CRMLeadsPage = () => {
         .filter(Boolean)
     )
   );
+  const monthOptions = [
+    { value: '1', label: 'January' },
+    { value: '2', label: 'February' },
+    { value: '3', label: 'March' },
+    { value: '4', label: 'April' },
+    { value: '5', label: 'May' },
+    { value: '6', label: 'June' },
+    { value: '7', label: 'July' },
+    { value: '8', label: 'August' },
+    { value: '9', label: 'September' },
+    { value: '10', label: 'October' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'December' }
+  ];
 
   const formatDate = (dateValue) => {
     if (!dateValue) return 'N/A';
@@ -2246,7 +2260,7 @@ const CRMLeadsPage = () => {
 
     const matchesFromDate = !fromDate || (submittedDate && submittedDate >= new Date(`${fromDate}T00:00:00`));
     const matchesToDate = !toDate || (submittedDate && submittedDate <= new Date(`${toDate}T23:59:59`));
-    const matchesMonth = !monthFilter || (submittedDate && submittedDate.toISOString().slice(0, 7) === monthFilter);
+    const matchesMonth = !monthFilter || (submittedDate && submittedDate.getMonth() + 1 === Number(monthFilter));
     const matchesYear = !yearFilter || (submittedDate && submittedDate.getFullYear().toString() === yearFilter);
     const matchesService = serviceFilter === 'all' || serviceType === serviceFilter;
     const matchesCity = !cityFilter || city.toLowerCase().includes(cityFilter.toLowerCase());
@@ -2306,6 +2320,7 @@ const CRMLeadsPage = () => {
                   type="date"
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
+                  onDoubleClick={() => setFromDate('')}
                   style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
                 />
               </div>
@@ -2315,17 +2330,24 @@ const CRMLeadsPage = () => {
                   type="date"
                   value={toDate}
                   onChange={(e) => setToDate(e.target.value)}
+                  onDoubleClick={() => setToDate('')}
                   style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
                 />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>Month</label>
-                <input
-                  type="month"
+                <select
                   value={monthFilter}
                   onChange={(e) => setMonthFilter(e.target.value)}
                   style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
-                />
+                >
+                  <option value="">All Months</option>
+                  {monthOptions.map((monthOption) => (
+                    <option key={monthOption.value} value={monthOption.value}>
+                      {monthOption.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>Year</label>
