@@ -2184,6 +2184,8 @@ const CRMLeadsPage = () => {
   const [showToCalendar, setShowToCalendar] = useState(false);
   const [tempFromDate, setTempFromDate] = useState('');
   const [tempToDate, setTempToDate] = useState('');
+  const [fromCalendarMonth, setFromCalendarMonth] = useState(new Date());
+  const [toCalendarMonth, setToCalendarMonth] = useState(new Date());
 
   useEffect(() => {
     const loadLeads = async () => {
@@ -2260,6 +2262,26 @@ const CRMLeadsPage = () => {
   const formatFilterDate = (dateValue) => {
     if (!dateValue) return '';
     return new Date(`${dateValue}T00:00:00`).toLocaleDateString();
+  };
+
+  const toDateInputString = (dateObj) => {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const buildCalendarGrid = (monthDate) => {
+    const year = monthDate.getFullYear();
+    const month = monthDate.getMonth();
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    const cells = [];
+
+    for (let i = 0; i < firstDayIndex; i += 1) cells.push(null);
+    for (let day = 1; day <= totalDays; day += 1) cells.push(new Date(year, month, day));
+    while (cells.length % 7 !== 0) cells.push(null);
+    return cells;
   };
 
   const filteredLeads = displayLeads.filter((lead) => {
@@ -2348,6 +2370,7 @@ const CRMLeadsPage = () => {
                     className="btn-secondary"
                     onClick={() => {
                       setTempFromDate(fromDate);
+                      setFromCalendarMonth(fromDate ? new Date(`${fromDate}T00:00:00`) : new Date());
                       setShowFromCalendar((prev) => !prev);
                       setShowToCalendar(false);
                     }}
@@ -2359,12 +2382,42 @@ const CRMLeadsPage = () => {
                   {showFromCalendar && (
                     <div className="card-surface" style={{ position: 'absolute', top: '46px', right: 0, zIndex: 30, width: '260px' }}>
                       <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '6px' }}>Choose From Date</label>
-                      <input
-                        type="date"
-                        value={tempFromDate}
-                        onChange={(e) => setTempFromDate(e.target.value)}
-                        style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', marginBottom: '10px' }}
-                      />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <button type="button" className="btn-secondary btn-sm" onClick={() => setFromCalendarMonth(new Date(fromCalendarMonth.getFullYear(), fromCalendarMonth.getMonth() - 1, 1))}>{'<'}</button>
+                        <div style={{ fontSize: '12px', color: '#ffffff', fontWeight: '600' }}>
+                          {fromCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                        </div>
+                        <button type="button" className="btn-secondary btn-sm" onClick={() => setFromCalendarMonth(new Date(fromCalendarMonth.getFullYear(), fromCalendarMonth.getMonth() + 1, 1))}>{'>'}</button>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '6px' }}>
+                        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+                          <div key={day} style={{ fontSize: '10px', color: '#888888', textAlign: 'center' }}>{day}</div>
+                        ))}
+                        {buildCalendarGrid(fromCalendarMonth).map((dateCell, idx) => {
+                          if (!dateCell) return <div key={`from-empty-${idx}`} />;
+                          const value = toDateInputString(dateCell);
+                          const selected = tempFromDate === value;
+                          return (
+                            <button
+                              key={value}
+                              type="button"
+                              onClick={() => setTempFromDate(value)}
+                              style={{
+                                border: '1px solid',
+                                borderColor: selected ? '#00ff88' : '#1a1a1a',
+                                background: selected ? '#00ff8815' : '#0f0f0f',
+                                color: '#ffffff',
+                                borderRadius: '6px',
+                                padding: '6px 0',
+                                fontSize: '11px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {dateCell.getDate()}
+                            </button>
+                          );
+                        })}
+                      </div>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => setShowFromCalendar(false)}>Cancel</button>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => { setFromDate(''); setTempFromDate(''); setShowFromCalendar(false); }}>Clear</button>
@@ -2390,6 +2443,7 @@ const CRMLeadsPage = () => {
                     className="btn-secondary"
                     onClick={() => {
                       setTempToDate(toDate);
+                      setToCalendarMonth(toDate ? new Date(`${toDate}T00:00:00`) : new Date());
                       setShowToCalendar((prev) => !prev);
                       setShowFromCalendar(false);
                     }}
@@ -2401,12 +2455,42 @@ const CRMLeadsPage = () => {
                   {showToCalendar && (
                     <div className="card-surface" style={{ position: 'absolute', top: '46px', right: 0, zIndex: 30, width: '260px' }}>
                       <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '6px' }}>Choose To Date</label>
-                      <input
-                        type="date"
-                        value={tempToDate}
-                        onChange={(e) => setTempToDate(e.target.value)}
-                        style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', marginBottom: '10px' }}
-                      />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <button type="button" className="btn-secondary btn-sm" onClick={() => setToCalendarMonth(new Date(toCalendarMonth.getFullYear(), toCalendarMonth.getMonth() - 1, 1))}>{'<'}</button>
+                        <div style={{ fontSize: '12px', color: '#ffffff', fontWeight: '600' }}>
+                          {toCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                        </div>
+                        <button type="button" className="btn-secondary btn-sm" onClick={() => setToCalendarMonth(new Date(toCalendarMonth.getFullYear(), toCalendarMonth.getMonth() + 1, 1))}>{'>'}</button>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '6px' }}>
+                        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+                          <div key={day} style={{ fontSize: '10px', color: '#888888', textAlign: 'center' }}>{day}</div>
+                        ))}
+                        {buildCalendarGrid(toCalendarMonth).map((dateCell, idx) => {
+                          if (!dateCell) return <div key={`to-empty-${idx}`} />;
+                          const value = toDateInputString(dateCell);
+                          const selected = tempToDate === value;
+                          return (
+                            <button
+                              key={value}
+                              type="button"
+                              onClick={() => setTempToDate(value)}
+                              style={{
+                                border: '1px solid',
+                                borderColor: selected ? '#00ff88' : '#1a1a1a',
+                                background: selected ? '#00ff8815' : '#0f0f0f',
+                                color: '#ffffff',
+                                borderRadius: '6px',
+                                padding: '6px 0',
+                                fontSize: '11px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {dateCell.getDate()}
+                            </button>
+                          );
+                        })}
+                      </div>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => setShowToCalendar(false)}>Cancel</button>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => { setToDate(''); setTempToDate(''); setShowToCalendar(false); }}>Clear</button>
