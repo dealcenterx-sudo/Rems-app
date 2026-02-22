@@ -2182,10 +2182,14 @@ const CRMLeadsPage = () => {
   const [zipFilter, setZipFilter] = useState('');
   const [showFromCalendar, setShowFromCalendar] = useState(false);
   const [showToCalendar, setShowToCalendar] = useState(false);
+  const [showFromMonthYearPicker, setShowFromMonthYearPicker] = useState(false);
+  const [showToMonthYearPicker, setShowToMonthYearPicker] = useState(false);
   const [tempFromDate, setTempFromDate] = useState('');
   const [tempToDate, setTempToDate] = useState('');
   const [fromCalendarMonth, setFromCalendarMonth] = useState(new Date());
   const [toCalendarMonth, setToCalendarMonth] = useState(new Date());
+  const [fromDateInput, setFromDateInput] = useState('');
+  const [toDateInput, setToDateInput] = useState('');
 
   useEffect(() => {
     const loadLeads = async () => {
@@ -2253,6 +2257,8 @@ const CRMLeadsPage = () => {
     { value: '11', label: 'November' },
     { value: '12', label: 'December' }
   ];
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 31 }, (_, idx) => currentYear - 15 + idx);
 
   const formatDate = (dateValue) => {
     if (!dateValue) return 'N/A';
@@ -2261,7 +2267,39 @@ const CRMLeadsPage = () => {
 
   const formatFilterDate = (dateValue) => {
     if (!dateValue) return '';
-    return new Date(`${dateValue}T00:00:00`).toLocaleDateString();
+    const [year, month, day] = dateValue.split('-');
+    if (!year || !month || !day) return '';
+    return `${month}/${day}/${year}`;
+  };
+
+  const parseDateInputToISO = (inputValue) => {
+    const value = (inputValue || '').trim();
+    if (!value) return '';
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const parsed = new Date(`${value}T00:00:00`);
+      if (!Number.isNaN(parsed.getTime()) && toDateInputString(parsed) === value) return value;
+      return null;
+    }
+
+    const slashMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (slashMatch) {
+      const month = Number(slashMatch[1]);
+      const day = Number(slashMatch[2]);
+      const year = Number(slashMatch[3]);
+      if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+      const candidate = new Date(year, month - 1, day);
+      if (
+        candidate.getFullYear() !== year ||
+        candidate.getMonth() !== month - 1 ||
+        candidate.getDate() !== day
+      ) {
+        return null;
+      }
+      return toDateInputString(candidate);
+    }
+
+    return null;
   };
 
   const toDateInputString = (dateObj) => {
@@ -2283,6 +2321,14 @@ const CRMLeadsPage = () => {
     while (cells.length % 7 !== 0) cells.push(null);
     return cells;
   };
+
+  useEffect(() => {
+    setFromDateInput(formatFilterDate(fromDate));
+  }, [fromDate]);
+
+  useEffect(() => {
+    setToDateInput(formatFilterDate(toDate));
+  }, [toDate]);
 
   const filteredLeads = displayLeads.filter((lead) => {
     const submittedAtValue = lead.submittedAt || lead.createdAt;
@@ -2359,9 +2405,27 @@ const CRMLeadsPage = () => {
                 <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 42px', gap: '8px' }}>
                   <input
                     type="text"
-                    value={formatFilterDate(fromDate)}
-                    placeholder="Select date"
-                    readOnly
+                    value={fromDateInput}
+                    placeholder="MM/DD/YYYY"
+                    onChange={(e) => setFromDateInput(e.target.value)}
+                    onBlur={() => {
+                      const parsed = parseDateInputToISO(fromDateInput);
+                      if (parsed === null) {
+                        setFromDateInput(formatFilterDate(fromDate));
+                        return;
+                      }
+                      setFromDate(parsed);
+                      setTempFromDate(parsed);
+                      if (parsed) {
+                        setFromCalendarMonth(new Date(`${parsed}T00:00:00`));
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        e.currentTarget.blur();
+                      }
+                    }}
                     onDoubleClick={(e) => e.target.select?.()}
                     style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
                   />
@@ -2371,8 +2435,10 @@ const CRMLeadsPage = () => {
                     onClick={() => {
                       setTempFromDate(fromDate);
                       setFromCalendarMonth(fromDate ? new Date(`${fromDate}T00:00:00`) : new Date());
+                      setShowFromMonthYearPicker(false);
                       setShowFromCalendar((prev) => !prev);
                       setShowToCalendar(false);
+                      setShowToMonthYearPicker(false);
                     }}
                     title="Open calendar"
                     style={{ padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -2384,11 +2450,42 @@ const CRMLeadsPage = () => {
                       <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '6px' }}>Choose From Date</label>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => setFromCalendarMonth(new Date(fromCalendarMonth.getFullYear(), fromCalendarMonth.getMonth() - 1, 1))}>{'<'}</button>
-                        <div style={{ fontSize: '12px', color: '#ffffff', fontWeight: '600' }}>
+                        <button
+                          type="button"
+                          className="btn-ghost"
+                          onClick={() => setShowFromMonthYearPicker((prev) => !prev)}
+                          style={{ fontSize: '12px', color: '#ffffff', fontWeight: '600' }}
+                        >
                           {fromCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                        </div>
+                        </button>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => setFromCalendarMonth(new Date(fromCalendarMonth.getFullYear(), fromCalendarMonth.getMonth() + 1, 1))}>{'>'}</button>
                       </div>
+                      {showFromMonthYearPicker && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                          <select
+                            value={fromCalendarMonth.getMonth()}
+                            onChange={(e) => setFromCalendarMonth(new Date(fromCalendarMonth.getFullYear(), Number(e.target.value), 1))}
+                            style={{ width: '100%', padding: '8px 10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+                          >
+                            {monthOptions.map((monthOption) => (
+                              <option key={`from-${monthOption.value}`} value={Number(monthOption.value) - 1}>
+                                {monthOption.label}
+                              </option>
+                            ))}
+                          </select>
+                          <select
+                            value={fromCalendarMonth.getFullYear()}
+                            onChange={(e) => setFromCalendarMonth(new Date(Number(e.target.value), fromCalendarMonth.getMonth(), 1))}
+                            style={{ width: '100%', padding: '8px 10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+                          >
+                            {yearOptions.map((yearOption) => (
+                              <option key={`from-year-${yearOption}`} value={yearOption}>
+                                {yearOption}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '6px' }}>
                         {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
                           <div key={day} style={{ fontSize: '10px', color: '#888888', textAlign: 'center' }}>{day}</div>
@@ -2421,7 +2518,17 @@ const CRMLeadsPage = () => {
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => setShowFromCalendar(false)}>Cancel</button>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => { setFromDate(''); setTempFromDate(''); setShowFromCalendar(false); }}>Clear</button>
-                        <button type="button" className="btn-primary btn-sm" onClick={() => { setFromDate(tempFromDate); setShowFromCalendar(false); }}>Apply</button>
+                        <button
+                          type="button"
+                          className="btn-primary btn-sm"
+                          onClick={() => {
+                            setFromDate(tempFromDate);
+                            setFromDateInput(formatFilterDate(tempFromDate));
+                            setShowFromCalendar(false);
+                          }}
+                        >
+                          Apply
+                        </button>
                       </div>
                     </div>
                   )}
@@ -2432,9 +2539,27 @@ const CRMLeadsPage = () => {
                 <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 42px', gap: '8px' }}>
                   <input
                     type="text"
-                    value={formatFilterDate(toDate)}
-                    placeholder="Select date"
-                    readOnly
+                    value={toDateInput}
+                    placeholder="MM/DD/YYYY"
+                    onChange={(e) => setToDateInput(e.target.value)}
+                    onBlur={() => {
+                      const parsed = parseDateInputToISO(toDateInput);
+                      if (parsed === null) {
+                        setToDateInput(formatFilterDate(toDate));
+                        return;
+                      }
+                      setToDate(parsed);
+                      setTempToDate(parsed);
+                      if (parsed) {
+                        setToCalendarMonth(new Date(`${parsed}T00:00:00`));
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        e.currentTarget.blur();
+                      }
+                    }}
                     onDoubleClick={(e) => e.target.select?.()}
                     style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
                   />
@@ -2444,8 +2569,10 @@ const CRMLeadsPage = () => {
                     onClick={() => {
                       setTempToDate(toDate);
                       setToCalendarMonth(toDate ? new Date(`${toDate}T00:00:00`) : new Date());
+                      setShowToMonthYearPicker(false);
                       setShowToCalendar((prev) => !prev);
                       setShowFromCalendar(false);
+                      setShowFromMonthYearPicker(false);
                     }}
                     title="Open calendar"
                     style={{ padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -2457,11 +2584,42 @@ const CRMLeadsPage = () => {
                       <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '6px' }}>Choose To Date</label>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => setToCalendarMonth(new Date(toCalendarMonth.getFullYear(), toCalendarMonth.getMonth() - 1, 1))}>{'<'}</button>
-                        <div style={{ fontSize: '12px', color: '#ffffff', fontWeight: '600' }}>
+                        <button
+                          type="button"
+                          className="btn-ghost"
+                          onClick={() => setShowToMonthYearPicker((prev) => !prev)}
+                          style={{ fontSize: '12px', color: '#ffffff', fontWeight: '600' }}
+                        >
                           {toCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                        </div>
+                        </button>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => setToCalendarMonth(new Date(toCalendarMonth.getFullYear(), toCalendarMonth.getMonth() + 1, 1))}>{'>'}</button>
                       </div>
+                      {showToMonthYearPicker && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                          <select
+                            value={toCalendarMonth.getMonth()}
+                            onChange={(e) => setToCalendarMonth(new Date(toCalendarMonth.getFullYear(), Number(e.target.value), 1))}
+                            style={{ width: '100%', padding: '8px 10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+                          >
+                            {monthOptions.map((monthOption) => (
+                              <option key={`to-${monthOption.value}`} value={Number(monthOption.value) - 1}>
+                                {monthOption.label}
+                              </option>
+                            ))}
+                          </select>
+                          <select
+                            value={toCalendarMonth.getFullYear()}
+                            onChange={(e) => setToCalendarMonth(new Date(Number(e.target.value), toCalendarMonth.getMonth(), 1))}
+                            style={{ width: '100%', padding: '8px 10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+                          >
+                            {yearOptions.map((yearOption) => (
+                              <option key={`to-year-${yearOption}`} value={yearOption}>
+                                {yearOption}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '6px' }}>
                         {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
                           <div key={day} style={{ fontSize: '10px', color: '#888888', textAlign: 'center' }}>{day}</div>
@@ -2494,7 +2652,17 @@ const CRMLeadsPage = () => {
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => setShowToCalendar(false)}>Cancel</button>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => { setToDate(''); setTempToDate(''); setShowToCalendar(false); }}>Clear</button>
-                        <button type="button" className="btn-primary btn-sm" onClick={() => { setToDate(tempToDate); setShowToCalendar(false); }}>Apply</button>
+                        <button
+                          type="button"
+                          className="btn-primary btn-sm"
+                          onClick={() => {
+                            setToDate(tempToDate);
+                            setToDateInput(formatFilterDate(tempToDate));
+                            setShowToCalendar(false);
+                          }}
+                        >
+                          Apply
+                        </button>
                       </div>
                     </div>
                   )}
