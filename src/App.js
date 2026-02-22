@@ -2160,6 +2160,158 @@ const CRMPlaceholderPage = ({ title, description }) => (
   </div>
 );
 
+const CRMLeadsPage = () => {
+  const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadLeads = async () => {
+      try {
+        const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+        const leadsQuery = isAdmin
+          ? query(collection(db, 'leads'), orderBy('submittedAt', 'desc'))
+          : query(
+              collection(db, 'leads'),
+              where('userId', '==', auth.currentUser.uid),
+              orderBy('submittedAt', 'desc')
+            );
+
+        const leadsSnapshot = await getDocs(leadsQuery);
+        const leadsData = [];
+        leadsSnapshot.forEach((leadDoc) => {
+          leadsData.push({ id: leadDoc.id, ...leadDoc.data() });
+        });
+        setLeads(leadsData);
+      } catch (error) {
+        console.error('Error loading leads:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadLeads();
+  }, []);
+
+  const sampleLead = {
+    id: 'sample-lead-1',
+    submittedAt: '2026-02-20T14:30:00.000Z',
+    name: 'Sunrise Property Group LLC',
+    phone: '(305) 555-0189',
+    email: 'acquisitions@sunrisepg.com',
+    serviceType: 'Buying a property',
+    street: '1280 Biscayne Blvd',
+    city: 'Miami',
+    state: 'FL',
+    zipCode: '33132',
+    warmth: 'Closed',
+    source: 'Zillow',
+    isSample: true
+  };
+
+  const displayLeads = leads.length > 0 ? leads : [sampleLead];
+
+  const formatDate = (dateValue) => {
+    if (!dateValue) return 'N/A';
+    return new Date(dateValue).toLocaleString();
+  };
+
+  if (loading) {
+    return (
+      <div className="page-content">
+        <div className="loading-container">
+          <div className="loading-spinner" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-content">
+      <div className="section">
+        <div className="section-title">Leads</div>
+        <div style={{ fontSize: '12px', color: '#888888', marginBottom: '14px' }}>
+          Ordered by lead submission date (newest first)
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <div style={{ minWidth: '1550px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '180px 220px 150px 230px 180px 220px 130px 80px 100px 120px 140px',
+                gap: '10px',
+                padding: '10px 12px',
+                fontSize: '11px',
+                color: '#888888',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
+            >
+              <div>Date In</div>
+              <div>Name / Entity</div>
+              <div>Phone</div>
+              <div>Email</div>
+              <div>Service</div>
+              <div>Street</div>
+              <div>City</div>
+              <div>State</div>
+              <div>Zip</div>
+              <div>Warmth</div>
+              <div>Source</div>
+            </div>
+
+            {displayLeads.map((lead) => {
+              const serviceType = lead.serviceType || lead.service || lead.serviceRequested || 'N/A';
+              const leadWarmth = lead.warmth || lead.classification || 'Cold';
+              const leadSource = lead.source || lead.leadSource || 'N/A';
+              const street = lead.street || lead.address?.street || lead.address || 'N/A';
+              const city = lead.city || lead.address?.city || 'N/A';
+              const state = lead.state || lead.address?.state || 'N/A';
+              const zipCode = lead.zipCode || lead.zip || lead.address?.zipCode || 'N/A';
+              const displayName = lead.name || lead.fullName || lead.entityName || 'N/A';
+
+              return (
+                <div
+                  key={lead.id}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '180px 220px 150px 230px 180px 220px 130px 80px 100px 120px 140px',
+                    gap: '10px',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    background: '#0a0a0a',
+                    marginBottom: '8px',
+                    fontSize: '12px',
+                    color: '#ffffff'
+                  }}
+                >
+                  <div>{formatDate(lead.submittedAt || lead.createdAt)}</div>
+                  <div style={{ fontWeight: '600' }}>
+                    {displayName}
+                    {lead.isSample && (
+                      <span style={{ marginLeft: '8px', fontSize: '10px', color: '#00ff88' }}>
+                        Sample
+                      </span>
+                    )}
+                  </div>
+                  <div>{lead.phone || 'N/A'}</div>
+                  <div>{lead.email || 'N/A'}</div>
+                  <div>{serviceType}</div>
+                  <div>{street}</div>
+                  <div>{city}</div>
+                  <div>{state}</div>
+                  <div>{zipCode}</div>
+                  <div style={{ color: '#00ff88' }}>{leadWarmth}</div>
+                  <div>{leadSource}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const CRMPage = ({ subTab, setSubTab }) => {
   const crmItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart },
@@ -2190,7 +2342,7 @@ const CRMPage = ({ subTab, setSubTab }) => {
       </div>
       <div className="subnav-content">
         {subTab === 'dashboard' && <CRMDashboard />}
-        {subTab === 'leads' && <CRMPlaceholderPage title="Leads" description="Lead management workflows will live here." />}
+        {subTab === 'leads' && <CRMLeadsPage />}
         {subTab === 'campaigns' && <CRMPlaceholderPage title="Campaigns" description="Build and track outbound campaigns from this view." />}
         {subTab === 'messages' && <CRMPlaceholderPage title="Messages" description="Centralized message inbox and history will appear here." />}
         {subTab === 'email' && <CRMPlaceholderPage title="Email" description="Email templates, sends, and tracking will be managed here." />}
