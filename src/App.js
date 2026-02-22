@@ -206,6 +206,15 @@ const LinkIcon = ({ size = 24, color = "currentColor" }) => (
   </svg>
 );
 
+const CalendarIcon = ({ size = 24, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2"/>
+    <line x1="16" y1="2" x2="16" y2="6"/>
+    <line x1="8" y1="2" x2="8" y2="6"/>
+    <line x1="3" y1="10" x2="21" y2="10"/>
+  </svg>
+);
+
 const BuyerIcon = ({ size = 80, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
@@ -2171,6 +2180,8 @@ const CRMLeadsPage = () => {
   const [serviceFilter, setServiceFilter] = useState('all');
   const [cityFilter, setCityFilter] = useState('');
   const [zipFilter, setZipFilter] = useState('');
+  const fromDateInputRef = useRef(null);
+  const toDateInputRef = useRef(null);
 
   useEffect(() => {
     const loadLeads = async () => {
@@ -2316,23 +2327,53 @@ const CRMLeadsPage = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>From Date</label>
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  onDoubleClick={() => setFromDate('')}
-                  style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
-                />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 42px', gap: '8px' }}>
+                  <input
+                    ref={fromDateInputRef}
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    onDoubleClick={(e) => e.target.select?.()}
+                    style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+                  />
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => {
+                      fromDateInputRef.current?.showPicker?.();
+                      fromDateInputRef.current?.focus();
+                    }}
+                    title="Open calendar"
+                    style={{ padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <CalendarIcon size={16} color="#ffffff" />
+                  </button>
+                </div>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>To Date</label>
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  onDoubleClick={() => setToDate('')}
-                  style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
-                />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 42px', gap: '8px' }}>
+                  <input
+                    ref={toDateInputRef}
+                    type="date"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    onDoubleClick={(e) => e.target.select?.()}
+                    style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+                  />
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => {
+                      toDateInputRef.current?.showPicker?.();
+                      toDateInputRef.current?.focus();
+                    }}
+                    title="Open calendar"
+                    style={{ padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <CalendarIcon size={16} color="#ffffff" />
+                  </button>
+                </div>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>Month</label>
