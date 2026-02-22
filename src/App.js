@@ -2281,72 +2281,111 @@ const CRMLeadsPage = () => {
         <div style={{ fontSize: '12px', color: '#888888', marginBottom: '14px' }}>
           Ordered by lead submission date (newest first)
         </div>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, minmax(180px, 1fr))',
-            gap: '10px',
-            marginBottom: '14px'
-          }}
-        >
+        <div style={{ marginBottom: '14px' }}>
+          <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Search Lead
+          </label>
           <input
             type="text"
-            placeholder="Search name, email, or phone..."
+            placeholder="Search by name, email, or phone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+            style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
           />
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
-          />
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
-          />
-          <select
-            value={serviceFilter}
-            onChange={(e) => setServiceFilter(e.target.value)}
-            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
-          >
-            <option value="all">All Services</option>
-            {serviceOptions.map((service) => (
-              <option key={service} value={service}>{service}</option>
-            ))}
-          </select>
-          <input
-            type="month"
-            value={monthFilter}
-            onChange={(e) => setMonthFilter(e.target.value)}
-            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
-          />
-          <input
-            type="number"
-            min="2000"
-            max="2100"
-            placeholder="Year"
-            value={yearFilter}
-            onChange={(e) => setYearFilter(e.target.value)}
-            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
-          />
-          <input
-            type="text"
-            placeholder="City"
-            value={cityFilter}
-            onChange={(e) => setCityFilter(e.target.value)}
-            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
-          />
-          <input
-            type="text"
-            placeholder="Zipcode"
-            value={zipFilter}
-            onChange={(e) => setZipFilter(e.target.value)}
-            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
-          />
+        </div>
+
+        <div className="grid-three" style={{ marginBottom: '16px' }}>
+          <div className="card-surface">
+            <div style={{ fontSize: '11px', color: '#00ff88', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Date Filtering
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>From Date</label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>To Date</label>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>Month</label>
+                <input
+                  type="month"
+                  value={monthFilter}
+                  onChange={(e) => setMonthFilter(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>Year</label>
+                <input
+                  type="number"
+                  min="2000"
+                  max="2100"
+                  placeholder="Year"
+                  value={yearFilter}
+                  onChange={(e) => setYearFilter(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="card-surface">
+            <div style={{ fontSize: '11px', color: '#00ff88', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Service Filtering
+            </div>
+            <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>Service Type</label>
+            <select
+              value={serviceFilter}
+              onChange={(e) => setServiceFilter(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+            >
+              <option value="all">All Services</option>
+              {serviceOptions.map((service) => (
+                <option key={service} value={service}>{service}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="card-surface">
+            <div style={{ fontSize: '11px', color: '#00ff88', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Location Filtering
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>City</label>
+                <input
+                  type="text"
+                  placeholder="City"
+                  value={cityFilter}
+                  onChange={(e) => setCityFilter(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>Zipcode</label>
+                <input
+                  type="text"
+                  placeholder="Zipcode"
+                  value={zipFilter}
+                  onChange={(e) => setZipFilter(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
         <div style={{ overflowX: 'auto' }}>
           <div style={{ minWidth: '1550px' }}>
