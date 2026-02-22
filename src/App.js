@@ -2180,8 +2180,10 @@ const CRMLeadsPage = () => {
   const [serviceFilter, setServiceFilter] = useState('all');
   const [cityFilter, setCityFilter] = useState('');
   const [zipFilter, setZipFilter] = useState('');
-  const fromDateInputRef = useRef(null);
-  const toDateInputRef = useRef(null);
+  const [showFromCalendar, setShowFromCalendar] = useState(false);
+  const [showToCalendar, setShowToCalendar] = useState(false);
+  const [tempFromDate, setTempFromDate] = useState('');
+  const [tempToDate, setTempToDate] = useState('');
 
   useEffect(() => {
     const loadLeads = async () => {
@@ -2253,6 +2255,11 @@ const CRMLeadsPage = () => {
   const formatDate = (dateValue) => {
     if (!dateValue) return 'N/A';
     return new Date(dateValue).toLocaleString();
+  };
+
+  const formatFilterDate = (dateValue) => {
+    if (!dateValue) return '';
+    return new Date(`${dateValue}T00:00:00`).toLocaleDateString();
   };
 
   const filteredLeads = displayLeads.filter((lead) => {
@@ -2327,12 +2334,12 @@ const CRMLeadsPage = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>From Date</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 42px', gap: '8px' }}>
+                <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 42px', gap: '8px' }}>
                   <input
-                    ref={fromDateInputRef}
-                    type="date"
-                    value={fromDate}
-                    onChange={(e) => setFromDate(e.target.value)}
+                    type="text"
+                    value={formatFilterDate(fromDate)}
+                    placeholder="Select date"
+                    readOnly
                     onDoubleClick={(e) => e.target.select?.()}
                     style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
                   />
@@ -2340,24 +2347,41 @@ const CRMLeadsPage = () => {
                     type="button"
                     className="btn-secondary"
                     onClick={() => {
-                      fromDateInputRef.current?.showPicker?.();
-                      fromDateInputRef.current?.focus();
+                      setTempFromDate(fromDate);
+                      setShowFromCalendar((prev) => !prev);
+                      setShowToCalendar(false);
                     }}
                     title="Open calendar"
                     style={{ padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
                     <CalendarIcon size={16} color="#ffffff" />
                   </button>
+                  {showFromCalendar && (
+                    <div className="card-surface" style={{ position: 'absolute', top: '46px', right: 0, zIndex: 30, width: '260px' }}>
+                      <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '6px' }}>Choose From Date</label>
+                      <input
+                        type="date"
+                        value={tempFromDate}
+                        onChange={(e) => setTempFromDate(e.target.value)}
+                        style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', marginBottom: '10px' }}
+                      />
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button type="button" className="btn-secondary btn-sm" onClick={() => setShowFromCalendar(false)}>Cancel</button>
+                        <button type="button" className="btn-secondary btn-sm" onClick={() => { setFromDate(''); setTempFromDate(''); setShowFromCalendar(false); }}>Clear</button>
+                        <button type="button" className="btn-primary btn-sm" onClick={() => { setFromDate(tempFromDate); setShowFromCalendar(false); }}>Apply</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>To Date</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 42px', gap: '8px' }}>
+                <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 42px', gap: '8px' }}>
                   <input
-                    ref={toDateInputRef}
-                    type="date"
-                    value={toDate}
-                    onChange={(e) => setToDate(e.target.value)}
+                    type="text"
+                    value={formatFilterDate(toDate)}
+                    placeholder="Select date"
+                    readOnly
                     onDoubleClick={(e) => e.target.select?.()}
                     style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
                   />
@@ -2365,14 +2389,31 @@ const CRMLeadsPage = () => {
                     type="button"
                     className="btn-secondary"
                     onClick={() => {
-                      toDateInputRef.current?.showPicker?.();
-                      toDateInputRef.current?.focus();
+                      setTempToDate(toDate);
+                      setShowToCalendar((prev) => !prev);
+                      setShowFromCalendar(false);
                     }}
                     title="Open calendar"
                     style={{ padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
                     <CalendarIcon size={16} color="#ffffff" />
                   </button>
+                  {showToCalendar && (
+                    <div className="card-surface" style={{ position: 'absolute', top: '46px', right: 0, zIndex: 30, width: '260px' }}>
+                      <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '6px' }}>Choose To Date</label>
+                      <input
+                        type="date"
+                        value={tempToDate}
+                        onChange={(e) => setTempToDate(e.target.value)}
+                        style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', marginBottom: '10px' }}
+                      />
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button type="button" className="btn-secondary btn-sm" onClick={() => setShowToCalendar(false)}>Cancel</button>
+                        <button type="button" className="btn-secondary btn-sm" onClick={() => { setToDate(''); setTempToDate(''); setShowToCalendar(false); }}>Clear</button>
+                        <button type="button" className="btn-primary btn-sm" onClick={() => { setToDate(tempToDate); setShowToCalendar(false); }}>Apply</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <div>
