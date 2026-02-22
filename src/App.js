@@ -2163,6 +2163,14 @@ const CRMPlaceholderPage = ({ title, description }) => (
 const CRMLeadsPage = () => {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [monthFilter, setMonthFilter] = useState('');
+  const [yearFilter, setYearFilter] = useState('');
+  const [serviceFilter, setServiceFilter] = useState('all');
+  const [cityFilter, setCityFilter] = useState('');
+  const [zipFilter, setZipFilter] = useState('');
 
   useEffect(() => {
     const loadLeads = async () => {
@@ -2209,11 +2217,52 @@ const CRMLeadsPage = () => {
   };
 
   const displayLeads = leads.length > 0 ? leads : [sampleLead];
+  const serviceOptions = Array.from(
+    new Set(
+      displayLeads
+        .map((lead) => lead.serviceType || lead.service || lead.serviceRequested)
+        .filter(Boolean)
+    )
+  );
 
   const formatDate = (dateValue) => {
     if (!dateValue) return 'N/A';
     return new Date(dateValue).toLocaleString();
   };
+
+  const filteredLeads = displayLeads.filter((lead) => {
+    const submittedAtValue = lead.submittedAt || lead.createdAt;
+    const submittedDate = submittedAtValue ? new Date(submittedAtValue) : null;
+    const serviceType = lead.serviceType || lead.service || lead.serviceRequested || '';
+    const displayName = lead.name || lead.fullName || lead.entityName || '';
+    const email = lead.email || '';
+    const phone = lead.phone || '';
+    const city = lead.city || lead.address?.city || '';
+    const zipCode = lead.zipCode || lead.zip || lead.address?.zipCode || '';
+
+    const matchesSearch = !searchTerm || [displayName, email, phone].some((field) =>
+      String(field).toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const matchesFromDate = !fromDate || (submittedDate && submittedDate >= new Date(`${fromDate}T00:00:00`));
+    const matchesToDate = !toDate || (submittedDate && submittedDate <= new Date(`${toDate}T23:59:59`));
+    const matchesMonth = !monthFilter || (submittedDate && submittedDate.toISOString().slice(0, 7) === monthFilter);
+    const matchesYear = !yearFilter || (submittedDate && submittedDate.getFullYear().toString() === yearFilter);
+    const matchesService = serviceFilter === 'all' || serviceType === serviceFilter;
+    const matchesCity = !cityFilter || city.toLowerCase().includes(cityFilter.toLowerCase());
+    const matchesZip = !zipFilter || String(zipCode).toLowerCase().includes(zipFilter.toLowerCase());
+
+    return (
+      matchesSearch &&
+      matchesFromDate &&
+      matchesToDate &&
+      matchesMonth &&
+      matchesYear &&
+      matchesService &&
+      matchesCity &&
+      matchesZip
+    );
+  });
 
   if (loading) {
     return (
@@ -2231,6 +2280,73 @@ const CRMLeadsPage = () => {
         <div className="section-title">Leads</div>
         <div style={{ fontSize: '12px', color: '#888888', marginBottom: '14px' }}>
           Ordered by lead submission date (newest first)
+        </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, minmax(180px, 1fr))',
+            gap: '10px',
+            marginBottom: '14px'
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Search name, email, or phone..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+          />
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+          />
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+          />
+          <select
+            value={serviceFilter}
+            onChange={(e) => setServiceFilter(e.target.value)}
+            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+          >
+            <option value="all">All Services</option>
+            {serviceOptions.map((service) => (
+              <option key={service} value={service}>{service}</option>
+            ))}
+          </select>
+          <input
+            type="month"
+            value={monthFilter}
+            onChange={(e) => setMonthFilter(e.target.value)}
+            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+          />
+          <input
+            type="number"
+            min="2000"
+            max="2100"
+            placeholder="Year"
+            value={yearFilter}
+            onChange={(e) => setYearFilter(e.target.value)}
+            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+          />
+          <input
+            type="text"
+            placeholder="City"
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
+            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+          />
+          <input
+            type="text"
+            placeholder="Zipcode"
+            value={zipFilter}
+            onChange={(e) => setZipFilter(e.target.value)}
+            style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+          />
         </div>
         <div style={{ overflowX: 'auto' }}>
           <div style={{ minWidth: '1550px' }}>
@@ -2259,7 +2375,7 @@ const CRMLeadsPage = () => {
               <div>Source</div>
             </div>
 
-            {displayLeads.map((lead) => {
+            {filteredLeads.map((lead) => {
               const serviceType = lead.serviceType || lead.service || lead.serviceRequested || 'N/A';
               const leadWarmth = lead.warmth || lead.classification || 'Cold';
               const leadSource = lead.source || lead.leadSource || 'N/A';
@@ -2305,6 +2421,12 @@ const CRMLeadsPage = () => {
                 </div>
               );
             })}
+            {filteredLeads.length === 0 && (
+              <div className="empty-state-card">
+                <div className="empty-state-title">No leads match these filters</div>
+                <div className="empty-state-subtitle">Adjust filters to see results.</div>
+              </div>
+            )}
           </div>
         </div>
       </div>
