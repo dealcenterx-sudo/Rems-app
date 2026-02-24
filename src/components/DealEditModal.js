@@ -219,7 +219,20 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
             <div className="lead-panel-card">
               <div className="lead-engagement-actions">
                 {quickActions.map((label) => (
-                  <button key={label} type="button" className="lead-engagement-btn">
+                  <button
+                    key={label}
+                    type="button"
+                    className="lead-engagement-btn"
+                    onClick={() => {
+                      const stamp = new Date().toLocaleString();
+                      setFormData((prev) => ({
+                        ...prev,
+                        notes: prev.notes
+                          ? `${prev.notes}\n[${stamp}] ${label}`
+                          : `[${stamp}] ${label}`
+                      }));
+                    }}
+                  >
                     {label}
                   </button>
                 ))}
