@@ -2867,7 +2867,42 @@ const getLeadWarmthLabel = (value) => {
   return LEAD_PIPELINE_STAGES.find((stage) => stage.value === normalized)?.label || 'Cold';
 };
 
-const CRMLeadDetailPage = ({ leadId, onStartDeal }) => {
+const formatPropertyTypeLabel = (value) => {
+  if (!value) return 'N/A';
+  const normalized = value.toString().trim().toLowerCase();
+  if (['sfr', 'single-family', 'single family'].includes(normalized)) return 'SFR';
+  if (['multi-family', 'multifamily', 'multi family'].includes(normalized)) return 'Multifamily';
+  if (normalized === 'commercial') return 'Commercial';
+  return normalized
+    .split(/[\s-]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+const formatTimestamp = (value) => {
+  if (!value) return 'N/A';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return 'N/A';
+  return parsed.toLocaleString();
+};
+
+const createLeadFormState = (leadData = {}) => ({
+  name: leadData.name || leadData.fullName || leadData.entityName || '',
+  phone: leadData.phone || '',
+  email: leadData.email || '',
+  serviceType: leadData.serviceType || leadData.service || leadData.serviceRequested || '',
+  source: leadData.source || leadData.leadSource || '',
+  contactMethod: leadData.contactMethod || '',
+  notes: leadData.notes || '',
+  street: leadData.street || leadData.address?.street || (typeof leadData.address === 'string' ? leadData.address : '') || '',
+  city: leadData.city || leadData.address?.city || '',
+  state: leadData.state || leadData.address?.state || '',
+  zipCode: leadData.zipCode || leadData.zip || leadData.address?.zipCode || '',
+  propertyType: leadData.propertyType || ''
+});
+
+const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const toast = useToast();
   const [lead, setLead] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -2875,21 +2910,32 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal }) => {
   const [pendingFiles, setPendingFiles] = useState([]);
   const [saving, setSaving] = useState(false);
   const [warmth, setWarmth] = useState('cold');
+  const [workspaceTab, setWorkspaceTab] = useState('lead');
+  const [activityTab, setActivityTab] = useState('all');
+  const [activitySearch, setActivitySearch] = useState('');
+  const [leadForm, setLeadForm] = useState(createLeadFormState());
+  const [formDirty, setFormDirty] = useState(false);
+  const [customActivities, setCustomActivities] = useState([]);
 
   const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned';
   const CLOUDINARY_CLOUD_NAME = 'djaq0av66';
 
   useEffect(() => {
     const loadLead = async () => {
+      setLoading(true);
       if (!leadId) {
         setLead(null);
         setLoading(false);
         return;
       }
+
       if (leadId === 'sample-lead-1') {
         setLead(SAMPLE_CRM_LEAD);
         setAttachments(SAMPLE_CRM_LEAD.attachments || []);
         setWarmth(normalizeLeadWarmth(SAMPLE_CRM_LEAD.warmth));
+        setLeadForm(createLeadFormState(SAMPLE_CRM_LEAD));
+        setCustomActivities(Array.isArray(SAMPLE_CRM_LEAD.activityLog) ? SAMPLE_CRM_LEAD.activityLog : []);
+        setFormDirty(false);
         setLoading(false);
         return;
       }
@@ -2897,14 +2943,19 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal }) => {
       try {
         const leadRef = doc(db, 'leads', leadId);
         const leadSnapshot = await getDoc(leadRef);
+
         if (!leadSnapshot.exists()) {
           setLead(null);
           return;
         }
+
         const leadData = { id: leadSnapshot.id, ...leadSnapshot.data() };
         setLead(leadData);
         setAttachments(leadData.attachments || []);
         setWarmth(normalizeLeadWarmth(leadData.warmth || leadData.classification));
+        setLeadForm(createLeadFormState(leadData));
+        setCustomActivities(Array.isArray(leadData.activityLog) ? leadData.activityLog : []);
+        setFormDirty(false);
       } catch (error) {
         console.error('Error loading lead detail:', error);
       } finally {
@@ -2950,16 +3001,170 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal }) => {
   const handleWarmthChange = async (nextWarmth) => {
     setWarmth(nextWarmth);
     if (!lead) return;
+
     try {
       await persistLeadUpdate({ warmth: nextWarmth });
       setLead({ ...lead, warmth: nextWarmth });
+      await appendActivityEntry({
+        type: 'status',
+        title: 'Pipeline stage changed',
+        summary: `Lead moved to ${getLeadWarmthLabel(nextWarmth)}.`,
+        detail: 'Stage updated from lead detail workspace.'
+      });
     } catch (error) {
       console.error('Error updating lead warmth:', error);
     }
   };
 
+  const handleLeadFormChange = (field, value) => {
+    setLeadForm((prev) => ({ ...prev, [field]: value }));
+    setFormDirty(true);
+  };
+
+  const buildLeadUpdatesFromForm = () => {
+    const normalizedState = (leadForm.state || '').toUpperCase();
+    const normalizedPropertyType = (leadForm.propertyType || '').trim().toLowerCase().replace(/\s+/g, '-');
+    return {
+      name: leadForm.name || '',
+      phone: leadForm.phone || '',
+      email: leadForm.email || '',
+      serviceType: leadForm.serviceType || '',
+      source: leadForm.source || '',
+      contactMethod: leadForm.contactMethod || '',
+      notes: leadForm.notes || '',
+      street: leadForm.street || '',
+      city: leadForm.city || '',
+      state: normalizedState,
+      zipCode: leadForm.zipCode || '',
+      propertyType: normalizedPropertyType || null,
+      address: {
+        street: leadForm.street || '',
+        city: leadForm.city || '',
+        state: normalizedState,
+        zipCode: leadForm.zipCode || ''
+      }
+    };
+  };
+
+  const appendActivityEntry = async (entry) => {
+    const nextEntry = {
+      id: `evt-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      createdAt: new Date().toISOString(),
+      ...entry
+    };
+    const nextActivities = [nextEntry, ...customActivities];
+    setCustomActivities(nextActivities);
+    if (!isSampleLead) {
+      await persistLeadUpdate({ activityLog: nextActivities });
+    }
+  };
+
+  const handleSaveLeadDetails = async ({ showToast = true, closeAfterSave = false } = {}) => {
+    if (!lead) return false;
+
+    setSaving(true);
+    try {
+      const updates = buildLeadUpdatesFromForm();
+      if (!isSampleLead) {
+        await persistLeadUpdate(updates);
+      }
+      setLead((prev) => ({ ...prev, ...updates }));
+      setLeadForm(createLeadFormState({ ...lead, ...updates }));
+      setFormDirty(false);
+
+      if (showToast) {
+        toast.success('Lead details saved');
+      }
+
+      if (closeAfterSave) {
+        onBackToLeads?.();
+      }
+      return true;
+    } catch (error) {
+      console.error('Error saving lead details:', error);
+      toast.error('Failed to save lead details');
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCheckIn = async () => {
+    if (formDirty) {
+      const saved = await handleSaveLeadDetails({ showToast: false });
+      if (!saved) return;
+    }
+    try {
+      setSaving(true);
+      await appendActivityEntry({
+        type: 'contact',
+        title: 'Lead checked in',
+        summary: 'Quick check-in action was completed.',
+        detail: `Handled by ${auth.currentUser?.email || 'current user'}.`
+      });
+      toast.success('Check-In recorded');
+    } catch (error) {
+      console.error('Error recording check-in:', error);
+      toast.error('Failed to record check-in');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleStartDesk = async () => {
+    if (formDirty) {
+      const saved = await handleSaveLeadDetails({ showToast: false });
+      if (!saved) return;
+    }
+    try {
+      setSaving(true);
+      await appendActivityEntry({
+        type: 'deal',
+        title: 'Desk flow started',
+        summary: 'Lead moved into desk prep workflow.',
+        detail: 'Desk stage opened from lead detail page.'
+      });
+      if (warmth === 'cold') {
+        await handleWarmthChange('worked');
+      }
+      toast.success('Desk workflow started');
+    } catch (error) {
+      console.error('Error starting desk workflow:', error);
+      toast.error('Failed to start desk workflow');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveAndClose = async () => {
+    await handleSaveLeadDetails({ showToast: true, closeAfterSave: true });
+  };
+
+  const handleEngagementAction = async (label) => {
+    if (formDirty) {
+      const saved = await handleSaveLeadDetails({ showToast: false });
+      if (!saved) return;
+    }
+    try {
+      setSaving(true);
+      await appendActivityEntry({
+        type: 'contact',
+        title: label,
+        summary: `${label} action created from workspace toolbar.`,
+        detail: 'Wire this action to downstream automations if needed.'
+      });
+      toast.success(`${label} added to activity`);
+    } catch (error) {
+      console.error(`Error handling ${label}:`, error);
+      toast.error(`Failed to run ${label}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleUploadFiles = async () => {
     if (pendingFiles.length === 0) return;
+
     setSaving(true);
     try {
       const uploadedFiles = [];
@@ -2967,10 +3172,17 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal }) => {
         const uploaded = await uploadFileToCloudinary(file);
         uploadedFiles.push(uploaded);
       }
+
       const updatedAttachments = [...attachments, ...uploadedFiles];
       setAttachments(updatedAttachments);
       setPendingFiles([]);
       await persistLeadUpdate({ attachments: updatedAttachments });
+      await appendActivityEntry({
+        type: 'files',
+        title: 'Files uploaded',
+        summary: `${uploadedFiles.length} file(s) uploaded.`,
+        detail: 'Files were added from the lead detail workspace.'
+      });
       toast.success('Files uploaded');
     } catch (error) {
       console.error('Error uploading lead files:', error);
@@ -2984,6 +3196,12 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal }) => {
     setSaving(true);
     try {
       await persistLeadUpdate({ attachments });
+      await appendActivityEntry({
+        type: 'files',
+        title: 'File names updated',
+        summary: `${attachments.length} file name(s) saved.`,
+        detail: 'File metadata was updated for this lead.'
+      });
       toast.success('File names updated');
     } catch (error) {
       console.error('Error saving attachment names:', error);
@@ -2995,6 +3213,12 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal }) => {
 
   const handleStartDeal = async () => {
     if (!lead) return;
+
+    if (formDirty) {
+      const saved = await handleSaveLeadDetails({ showToast: false });
+      if (!saved) return;
+    }
+
     setSaving(true);
     try {
       const existingDeals = await getDocs(query(collection(db, 'deals'), where('leadId', '==', lead.id)));
@@ -3004,18 +3228,20 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal }) => {
         return;
       }
 
-      const serviceText = (lead.serviceType || lead.service || lead.serviceRequested || '').toLowerCase();
-      const leadName = lead.name || lead.fullName || lead.entityName || 'Lead';
-      const address = [lead.street, `${lead.city || ''}, ${lead.state || ''} ${lead.zipCode || ''}`].filter(Boolean).join(', ');
+      const serviceText = (leadForm.serviceType || '').toLowerCase();
+      const leadName = leadForm.name || lead.name || lead.fullName || lead.entityName || 'Lead';
+      const address = [leadForm.street, `${leadForm.city || ''}, ${leadForm.state || ''} ${leadForm.zipCode || ''}`]
+        .filter(Boolean)
+        .join(', ');
 
       const dealPayload = {
         leadId: lead.id,
         buyerName: serviceText.includes('buy') ? leadName : '',
         sellerName: serviceText.includes('sell') ? leadName : '',
         propertyAddress: address || 'No property address provided',
-        propertyType: lead.propertyType || null,
+        propertyType: leadForm.propertyType || null,
         status: 'new',
-        source: lead.source || lead.leadSource || 'CRM Lead',
+        source: leadForm.source || lead.source || lead.leadSource || 'CRM Lead',
         userId: auth.currentUser.uid,
         createdAt: new Date().toISOString()
       };
@@ -3026,6 +3252,12 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal }) => {
 
       await addDoc(collection(db, 'deals'), dealPayload);
       await handleWarmthChange('active-deal');
+      await appendActivityEntry({
+        type: 'deal',
+        title: 'Deal started',
+        summary: 'Lead was converted to a deal.',
+        detail: 'A new record was created in Deals with a leadId reference.'
+      });
       toast.success('Lead converted to deal');
       onStartDeal?.('new');
     } catch (error) {
@@ -3057,123 +3289,478 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal }) => {
     );
   }
 
-  const leadName = lead.name || lead.fullName || lead.entityName || 'N/A';
-  const serviceType = lead.serviceType || lead.service || lead.serviceRequested || 'N/A';
-  const source = lead.source || lead.leadSource || 'N/A';
-  const propertyType = lead.propertyType || 'N/A';
+  const leadName = leadForm.name || lead.name || lead.fullName || lead.entityName || 'N/A';
+  const serviceType = leadForm.serviceType || lead.serviceType || lead.service || lead.serviceRequested || 'N/A';
+  const source = leadForm.source || lead.source || lead.leadSource || 'N/A';
+  const propertyType = formatPropertyTypeLabel(leadForm.propertyType || lead.propertyType);
   const submittedAt = lead.submittedAt || lead.createdAt;
+  const submittedLabel = formatTimestamp(submittedAt);
+  const lastUpdatedLabel = formatTimestamp(lead.updatedAt || submittedAt);
   const pipelineStageIndex = Math.max(0, LEAD_PIPELINE_STAGES.findIndex((stage) => stage.value === warmth));
   const pipelineProgressPct = LEAD_PIPELINE_STAGES.length > 1
     ? (pipelineStageIndex / (LEAD_PIPELINE_STAGES.length - 1)) * 100
     : 0;
 
+  const workspaceTabs = [
+    { id: 'lead', label: 'Lead' },
+    { id: 'credit', label: 'Credit' },
+    { id: 'prequal', label: 'Pre-Qual' },
+    { id: 'property', label: 'Property' },
+    { id: 'deals', label: 'Deals' },
+    { id: 'files', label: 'Files' },
+    { id: 'activity', label: 'Activity' }
+  ];
+
+  const activityTabs = [
+    { id: 'all', label: 'All' },
+    { id: 'status', label: 'Status' },
+    { id: 'contact', label: 'Contact' },
+    { id: 'deal', label: 'Deal' },
+    { id: 'files', label: 'Files' }
+  ];
+
+  const baseActivityEntries = [
+    {
+      id: 'lead-submitted',
+      type: 'status',
+      title: 'Lead submitted',
+      summary: `${leadName} entered the CRM pipeline.`,
+      detail: `Source: ${source} • Service: ${serviceType}`,
+      createdAt: submittedAt
+    },
+    {
+      id: 'lead-stage',
+      type: 'status',
+      title: 'Pipeline stage updated',
+      summary: `Lead is currently in "${getLeadWarmthLabel(warmth)}".`,
+      detail: 'Use the stage tracker above to move the lead through the workflow.',
+      createdAt: lead.updatedAt || submittedAt
+    },
+    {
+      id: 'lead-contact',
+      type: 'contact',
+      title: 'Contact profile captured',
+      summary: `${leadForm.phone || lead.phone || 'No phone on file'} • ${leadForm.email || lead.email || 'No email on file'}`,
+      detail: 'Keep contact details complete for assignment and outreach automation.',
+      createdAt: submittedAt
+    },
+    {
+      id: 'lead-deal',
+      type: 'deal',
+      title: 'Deal conversion available',
+      summary: 'Start Deal creates a linked record in the Deals page.',
+      detail: 'Converted deals remain connected to this lead by leadId.',
+      createdAt: lead.updatedAt || submittedAt
+    },
+    {
+      id: 'lead-files',
+      type: 'files',
+      title: attachments.length > 0 ? 'Files attached' : 'No files attached yet',
+      summary: attachments.length > 0 ? `${attachments.length} file(s) currently linked.` : 'Upload files from the right panel.',
+      detail: 'Rename files after upload for cleaner organization.',
+      createdAt: lead.updatedAt || submittedAt
+    }
+  ];
+
+  const activityEntries = [...customActivities, ...baseActivityEntries]
+    .slice()
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+
+  const filteredActivityEntries = activityEntries.filter((entry) => {
+    const matchesTab = activityTab === 'all' || entry.type === activityTab;
+    const queryText = `${entry.title} ${entry.summary} ${entry.detail}`.toLowerCase();
+    const matchesSearch = !activitySearch || queryText.includes(activitySearch.toLowerCase());
+    return matchesTab && matchesSearch;
+  });
+
+  const primaryActions = [
+    { id: 'checkin', label: 'Check-In' },
+    { id: 'desk', label: 'Start Desk' },
+    { id: 'save', label: 'Save' }
+  ];
+
+  const engagementActions = [
+    'Phone Call',
+    'Send SMS',
+    'Send Email',
+    'Schedule Appt',
+    'Add Task',
+    'Add Note',
+    'Disposition'
+  ];
+
+  const handlePrimaryAction = (actionId) => {
+    if (actionId === 'checkin') {
+      handleCheckIn();
+      return;
+    }
+    if (actionId === 'desk') {
+      handleStartDesk();
+      return;
+    }
+    if (actionId === 'save') {
+      handleSaveLeadDetails();
+    }
+  };
+
   return (
-    <div className="page-content">
-      <div className="section">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
-          <div style={{ fontSize: '18px', color: '#ffffff', fontWeight: '700' }}>Lead Pipeline</div>
-          <button className="btn-primary" onClick={handleStartDeal} disabled={saving}>
-            Start Deal
-          </button>
+    <div className="lead-workspace">
+      <div className="lead-workspace-topbar">
+        <div className="lead-top-meta">
+          <div className="lead-workspace-title">Lead Workspace</div>
+          <div className="lead-top-pills">
+            <span className="lead-pill lead-pill-primary">{leadName}</span>
+            <span className="lead-pill">{serviceType}</span>
+            <span className="lead-pill lead-pill-status">{getLeadWarmthLabel(warmth)}</span>
+          </div>
         </div>
 
-        <div className="card-surface" style={{ marginBottom: '18px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '10px', flexWrap: 'wrap' }}>
-            <div style={{ fontSize: '11px', color: '#888888', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Pipeline Progress</div>
-            <div style={{ fontSize: '12px', color: '#00ff88', fontWeight: '600' }}>{getLeadWarmthLabel(warmth)}</div>
-          </div>
-          <div style={{ position: 'relative', height: '8px', borderRadius: '999px', background: '#121212', border: '1px solid #1a1a1a', overflow: 'hidden', marginBottom: '12px' }}>
-            <div style={{ width: `${pipelineProgressPct}%`, height: '100%', background: 'linear-gradient(90deg, #00ff88 0%, #00cc6a 100%)' }} />
-          </div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {LEAD_PIPELINE_STAGES.map((stage) => (
+        <div className="lead-top-actions">
+          {primaryActions.map((action) => (
+            <button
+              key={action.id}
+              type="button"
+              className="lead-action-btn"
+              onClick={() => handlePrimaryAction(action.id)}
+              disabled={saving}
+            >
+              {action.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="lead-action-btn lead-action-btn-primary"
+            onClick={handleStartDeal}
+            disabled={saving}
+          >
+            Start Deal
+          </button>
+          <button
+            type="button"
+            className="lead-action-btn"
+            onClick={handleSaveAndClose}
+            disabled={saving}
+          >
+            Save & Close
+          </button>
+        </div>
+      </div>
+
+      <div className="lead-stage-card">
+        <div className="lead-stage-track">
+          {LEAD_PIPELINE_STAGES.map((stage, index) => {
+            const isActive = warmth === stage.value;
+            const isComplete = index <= pipelineStageIndex;
+            return (
               <button
                 key={stage.value}
                 type="button"
                 onClick={() => handleWarmthChange(stage.value)}
-                className={warmth === stage.value ? 'btn-primary btn-sm' : 'btn-secondary btn-sm'}
+                className={`lead-stage-step ${isActive ? 'active' : ''} ${isComplete ? 'complete' : ''}`}
               >
                 {stage.label}
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
-        <div className="card-surface" style={{ marginBottom: '12px' }}>
-          <div className="section-title">Lead Details</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
-            <div><span style={{ color: '#888888' }}>Date In:</span> {submittedAt ? new Date(submittedAt).toLocaleString() : 'N/A'}</div>
-            <div><span style={{ color: '#888888' }}>Warmth:</span> {getLeadWarmthLabel(warmth)}</div>
-            <div><span style={{ color: '#888888' }}>Service:</span> {serviceType}</div>
-            <div><span style={{ color: '#888888' }}>Source:</span> {source}</div>
-          </div>
+        <div className="lead-stage-progress">
+          <div className="lead-stage-progress-fill" style={{ width: `${pipelineProgressPct}%` }} />
         </div>
 
-        <div className="card-surface" style={{ marginBottom: '12px' }}>
-          <div className="section-title">Contact Information</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
-            <div><span style={{ color: '#888888' }}>Name / Entity:</span> {leadName}</div>
-            <div><span style={{ color: '#888888' }}>Phone:</span> {lead.phone || 'N/A'}</div>
-            <div><span style={{ color: '#888888' }}>Email:</span> {lead.email || 'N/A'}</div>
+        <div className="lead-metrics-grid">
+          <div className="lead-metric">
+            <span className="lead-metric-label">Date In</span>
+            <span className="lead-metric-value">{submittedLabel}</span>
+          </div>
+          <div className="lead-metric">
+            <span className="lead-metric-label">Last Updated</span>
+            <span className="lead-metric-value">{lastUpdatedLabel}</span>
+          </div>
+          <div className="lead-metric">
+            <span className="lead-metric-label">Lead Source</span>
+            <span className="lead-metric-value">{source}</span>
+          </div>
+          <div className="lead-metric">
+            <span className="lead-metric-label">Files</span>
+            <span className="lead-metric-value">{attachments.length}</span>
           </div>
         </div>
+      </div>
 
-        <div className="card-surface" style={{ marginBottom: '12px' }}>
-          <div className="section-title">Property Information</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
-            <div><span style={{ color: '#888888' }}>Street:</span> {lead.street || 'N/A'}</div>
-            <div><span style={{ color: '#888888' }}>City:</span> {lead.city || 'N/A'}</div>
-            <div><span style={{ color: '#888888' }}>State:</span> {lead.state || 'N/A'}</div>
-            <div><span style={{ color: '#888888' }}>Zip:</span> {lead.zipCode || lead.zip || 'N/A'}</div>
-            <div><span style={{ color: '#888888' }}>Property Type:</span> {propertyType}</div>
+      <div className="lead-workspace-body">
+        <aside className="lead-left-panel">
+          <div className="lead-panel-card">
+            <div className="lead-panel-title">Contact Information</div>
+            <div className="lead-field-stack">
+              <div className="lead-field">
+                <label>Name / Entity</label>
+                <input
+                  type="text"
+                  value={leadForm.name}
+                  onChange={(e) => handleLeadFormChange('name', e.target.value)}
+                />
+              </div>
+              <div className="lead-field">
+                <label>Cell Phone</label>
+                <input
+                  type="text"
+                  value={leadForm.phone}
+                  onChange={(e) => handleLeadFormChange('phone', e.target.value)}
+                  placeholder="Phone number"
+                />
+              </div>
+              <div className="lead-field">
+                <label>Email</label>
+                <input
+                  type="text"
+                  value={leadForm.email}
+                  onChange={(e) => handleLeadFormChange('email', e.target.value)}
+                  placeholder="Email address"
+                />
+              </div>
+              <div className="lead-field">
+                <label>Lead Source</label>
+                <input
+                  type="text"
+                  value={leadForm.source}
+                  onChange={(e) => handleLeadFormChange('source', e.target.value)}
+                  placeholder="Lead source"
+                />
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div className="card-surface">
-          <div className="section-title">Files</div>
-          <div style={{ marginBottom: '10px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <input
-              type="file"
-              multiple
-              onChange={(e) => setPendingFiles(Array.from(e.target.files || []))}
-              style={{ padding: '8px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
-            />
-            <button className="btn-secondary btn-sm" onClick={handleUploadFiles} disabled={saving || pendingFiles.length === 0}>
-              Upload
-            </button>
-            <button className="btn-secondary btn-sm" onClick={handleSaveAttachmentNames} disabled={saving || attachments.length === 0}>
-              Save File Names
-            </button>
+          <div className="lead-panel-card">
+            <div className="lead-panel-title">Lead Details</div>
+            <div className="lead-field-stack">
+              <div className="lead-field">
+                <label>Service Requested</label>
+                <input
+                  type="text"
+                  value={leadForm.serviceType}
+                  onChange={(e) => handleLeadFormChange('serviceType', e.target.value)}
+                  placeholder="Buying / Selling / Lending"
+                />
+              </div>
+              <div className="lead-field">
+                <label>Pipeline Stage</label>
+                <input type="text" value={getLeadWarmthLabel(warmth)} readOnly />
+              </div>
+              <div className="lead-field">
+                <label>Preferred Contact</label>
+                <input
+                  type="text"
+                  value={leadForm.contactMethod}
+                  onChange={(e) => handleLeadFormChange('contactMethod', e.target.value)}
+                  placeholder="Phone / Email / SMS"
+                />
+              </div>
+              <div className="lead-field">
+                <label>Notes</label>
+                <textarea
+                  value={leadForm.notes}
+                  onChange={(e) => handleLeadFormChange('notes', e.target.value)}
+                  rows={4}
+                  placeholder="Lead notes"
+                />
+              </div>
+            </div>
           </div>
-          {attachments.length === 0 ? (
-            <div className="empty-state-subtitle">No files uploaded yet.</div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {attachments.map((attachment, idx) => (
-                <div key={`${attachment.publicId || attachment.fileUrl || idx}-${idx}`} style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 1fr) 120px 160px', gap: '8px', alignItems: 'center' }}>
-                  <input
-                    type="text"
-                    value={attachment.fileName || ''}
-                    onChange={(e) => {
-                      const next = [...attachments];
-                      next[idx] = { ...next[idx], fileName: e.target.value };
-                      setAttachments(next);
-                    }}
-                    style={{ padding: '8px 10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
-                  />
-                  <div style={{ color: '#888888', fontSize: '12px' }}>{attachment.fileType || 'unknown'}</div>
-                  {attachment.fileUrl ? (
-                    <a href={attachment.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm" style={{ textAlign: 'center' }}>
-                      Open File
-                    </a>
-                  ) : (
-                    <div style={{ color: '#666666', fontSize: '12px' }}>Pending</div>
-                  )}
+        </aside>
+
+        <section className="lead-center-panel">
+          <div className="lead-panel-card">
+            <div className="lead-inline-tabs">
+              {workspaceTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={`lead-inline-tab ${workspaceTab === tab.id ? 'active' : ''}`}
+                  onClick={() => setWorkspaceTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="lead-engagement-actions">
+              {engagementActions.map((label) => (
+                <button
+                  key={label}
+                  type="button"
+                  className={`lead-engagement-btn ${label === 'Add Note' ? 'primary' : ''}`}
+                  onClick={() => handleEngagementAction(label)}
+                  disabled={saving}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="lead-workflow-row">
+              <span>Workflow</span>
+              <strong>Not Assigned</strong>
+              <button type="button" className="lead-plus-btn" onClick={() => handleEngagementAction('Assign Workflow')} disabled={saving}>+</button>
+            </div>
+          </div>
+
+          <div className="lead-panel-card lead-activity-panel">
+            <div className="lead-activity-header">
+              <div className="lead-panel-title" style={{ marginBottom: 0 }}>Activity ({filteredActivityEntries.length})</div>
+              <input
+                type="text"
+                value={activitySearch}
+                onChange={(e) => setActivitySearch(e.target.value)}
+                className="lead-activity-search"
+                placeholder="Search activity..."
+              />
+            </div>
+
+            <div className="lead-activity-tabs">
+              {activityTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={`lead-activity-tab ${activityTab === tab.id ? 'active' : ''}`}
+                  onClick={() => setActivityTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="lead-activity-list">
+              {filteredActivityEntries.length === 0 && (
+                <div className="lead-empty-inline">No activity entries match your filter.</div>
+              )}
+
+              {filteredActivityEntries.map((entry) => (
+                <div key={entry.id} className="lead-activity-entry">
+                  <div className="lead-activity-entry-top">
+                    <span className={`lead-activity-badge ${entry.type}`}>{entry.type}</span>
+                    <span className="lead-activity-time">{formatTimestamp(entry.createdAt)}</span>
+                  </div>
+                  <div className="lead-activity-entry-title">{entry.title}</div>
+                  <div className="lead-activity-entry-summary">{entry.summary}</div>
+                  <div className="lead-activity-entry-detail">{entry.detail}</div>
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        </section>
+
+        <aside className="lead-right-panel">
+          <div className="lead-panel-card">
+            <div className="lead-panel-title">Property Information</div>
+            <div className="lead-field-stack">
+              <div className="lead-field">
+                <label>Street</label>
+                <input
+                  type="text"
+                  value={leadForm.street}
+                  onChange={(e) => handleLeadFormChange('street', e.target.value)}
+                  placeholder="Street address"
+                />
+              </div>
+              <div className="lead-field">
+                <label>City</label>
+                <input
+                  type="text"
+                  value={leadForm.city}
+                  onChange={(e) => handleLeadFormChange('city', e.target.value)}
+                  placeholder="City"
+                />
+              </div>
+              <div className="lead-field">
+                <label>State</label>
+                <input
+                  type="text"
+                  maxLength={2}
+                  value={leadForm.state}
+                  onChange={(e) => handleLeadFormChange('state', e.target.value.toUpperCase())}
+                  placeholder="ST"
+                />
+              </div>
+              <div className="lead-field">
+                <label>Zip Code</label>
+                <input
+                  type="text"
+                  value={leadForm.zipCode}
+                  onChange={(e) => handleLeadFormChange('zipCode', e.target.value)}
+                  placeholder="Zip"
+                />
+              </div>
+              <div className="lead-field">
+                <label>Property Type</label>
+                <select
+                  value={leadForm.propertyType || ''}
+                  onChange={(e) => handleLeadFormChange('propertyType', e.target.value)}
+                >
+                  <option value="">Select type</option>
+                  <option value="sfr">SFR</option>
+                  <option value="multi-family">Multifamily</option>
+                  <option value="commercial">Commercial</option>
+                  <option value="condo">Condo</option>
+                  <option value="townhouse">Townhouse</option>
+                  <option value="land">Land</option>
+                </select>
+              </div>
+            </div>
+            <div className="lead-property-meta">
+              <span className="lead-property-chip">{propertyType}</span>
+              <span className="lead-property-chip">{serviceType}</span>
+            </div>
+          </div>
+
+          <div className="lead-panel-card">
+            <div className="lead-panel-title">Files</div>
+            <div className="lead-files-toolbar">
+              <input
+                type="file"
+                multiple
+                onChange={(e) => setPendingFiles(Array.from(e.target.files || []))}
+              />
+              <button className="lead-action-btn" onClick={handleUploadFiles} disabled={saving || pendingFiles.length === 0}>
+                Upload
+              </button>
+              <button className="lead-action-btn" onClick={handleSaveAttachmentNames} disabled={saving || attachments.length === 0}>
+                Save Names
+              </button>
+            </div>
+
+            {attachments.length === 0 ? (
+              <div className="lead-empty-inline">No files uploaded yet.</div>
+            ) : (
+              <div className="lead-file-list">
+                {attachments.map((attachment, idx) => (
+                  <div key={`${attachment.publicId || attachment.fileUrl || idx}-${idx}`} className="lead-file-row">
+                    <div className="lead-field">
+                      <label>File Name</label>
+                      <input
+                        type="text"
+                        value={attachment.fileName || ''}
+                        onChange={(e) => {
+                          const next = [...attachments];
+                          next[idx] = { ...next[idx], fileName: e.target.value };
+                          setAttachments(next);
+                        }}
+                      />
+                    </div>
+                    <div className="lead-file-type">{attachment.fileType || 'unknown'}</div>
+                    {attachment.fileUrl ? (
+                      <a href={attachment.fileUrl} target="_blank" rel="noopener noreferrer" className="lead-file-link">
+                        Open
+                      </a>
+                    ) : (
+                      <div className="lead-file-link muted">Pending</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </aside>
       </div>
     </div>
   );
@@ -3219,7 +3806,16 @@ const CRMPage = ({ subTab, setSubTab, leadId, setLeadId, onOpenLead, onStartDeal
       <div className="subnav-content">
         {subTab === 'dashboard' && <CRMDashboard />}
         {subTab === 'leads' && <CRMLeadsPage onOpenLead={onOpenLead} />}
-        {subTab === 'lead-detail' && <CRMLeadDetailPage leadId={leadId} onStartDeal={onStartDeal} />}
+        {subTab === 'lead-detail' && (
+          <CRMLeadDetailPage
+            leadId={leadId}
+            onStartDeal={onStartDeal}
+            onBackToLeads={() => {
+              setLeadId?.(null);
+              setSubTab('leads');
+            }}
+          />
+        )}
         {subTab === 'campaigns' && <CRMPlaceholderPage title="Campaigns" description="Build and track outbound campaigns from this view." />}
         {subTab === 'messages' && <CRMPlaceholderPage title="Messages" description="Centralized message inbox and history will appear here." />}
         {subTab === 'email' && <CRMPlaceholderPage title="Email" description="Email templates, sends, and tracking will be managed here." />}

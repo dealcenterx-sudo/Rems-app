@@ -125,194 +125,186 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
   };
 
   const commission = calculateCommission();
+  const currentStatusIndex = Math.max(0, DEAL_STATUSES.findIndex((status) => status.value === formData.status));
+  const statusProgressPct = DEAL_STATUSES.length > 1
+    ? (currentStatusIndex / (DEAL_STATUSES.length - 1)) * 100
+    : 0;
+  const quickActions = ['Call Buyer', 'Call Seller', 'Schedule Showing', 'Add Note'];
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content" style={{ border: '2px solid #00ff88', padding: '30px', maxWidth: '700px' }}>
-        {/* Header */}
-        <div className="modal-header" style={{ marginBottom: '25px' }}>
-          <h2 style={{
-            fontSize: '20px',
-            color: '#00ff88',
-            margin: 0,
-            fontWeight: '700'
-          }}>
-            Edit Deal
-          </h2>
-          <button
-            onClick={onClose}
-            className="icon-button"
-          >
-            <XIcon size={24} />
-          </button>
+      <div className="modal-content detail-modal-content">
+        <div className="detail-layout-topbar">
+          <div className="detail-layout-title-wrap">
+            <h2 className="detail-layout-title">Edit Deal</h2>
+            <div className="detail-layout-pills">
+              <span className="detail-layout-pill">Buyer: {deal?.buyerName || 'N/A'}</span>
+              <span className="detail-layout-pill">Seller: {deal?.sellerName || 'N/A'}</span>
+            </div>
+          </div>
+          <div className="detail-layout-actions">
+            <button type="button" className="lead-action-btn" onClick={onClose}>Cancel</button>
+            <button type="button" className="lead-action-btn lead-action-btn-primary" onClick={handleSave} disabled={saving}>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button type="button" className="icon-button" onClick={onClose}>
+              <XIcon size={22} />
+            </button>
+          </div>
         </div>
 
-        {/* Deal Info */}
-        <div className="card-surface" style={{ background: '#0f0f0f', marginBottom: '20px' }}>
-          <div style={{ fontSize: '12px', color: '#666666', marginBottom: '8px' }}>
-            Deal Parties
+        <div className="detail-layout-stage-card">
+          <div className="detail-layout-stage-row">
+            {DEAL_STATUSES.map((status, index) => {
+              const isActive = status.value === formData.status;
+              const isComplete = index <= currentStatusIndex;
+              return (
+                <button
+                  key={status.value}
+                  type="button"
+                  className={`detail-stage-chip ${isActive ? 'active' : ''} ${isComplete ? 'complete' : ''}`}
+                  onClick={() => setFormData({ ...formData, status: status.value })}
+                >
+                  {status.label}
+                </button>
+              );
+            })}
           </div>
-          <div style={{ fontSize: '13px', color: '#ffffff', marginBottom: '4px' }}>
-            <span style={{ color: '#0088ff' }}>Buyer:</span> {deal?.buyerName || 'N/A'}
-          </div>
-          <div style={{ fontSize: '13px', color: '#ffffff' }}>
-            <span style={{ color: '#00ff88' }}>Seller:</span> {deal?.sellerName || 'N/A'}
+          <div className="detail-stage-progress">
+            <div className="detail-stage-progress-fill" style={{ width: `${statusProgressPct}%` }} />
           </div>
         </div>
 
         {error && (
-          <div style={{
-            background: '#ff333315',
-            border: '1px solid #ff3333',
-            padding: '12px',
-            borderRadius: '4px',
-            marginBottom: '20px',
-            fontSize: '12px',
-            color: '#ff3333'
-          }}>
+          <div className="detail-error-banner">
             {error}
           </div>
         )}
 
-        {/* Form */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          {/* Property Address */}
-          <div className="form-field">
-            <label>Property Address *</label>
-            <input
-              type="text"
-              placeholder="123 Main St, Los Angeles, CA 90001"
-              value={formData.propertyAddress}
-              onChange={(e) => setFormData({...formData, propertyAddress: e.target.value})}
-            />
-          </div>
-
-          {/* Status */}
-          <div className="form-field">
-            <label>Deal Status</label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData({...formData, status: e.target.value})}
-            >
-              {DEAL_STATUSES.map(status => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Prices */}
-          <div className="grid-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-            <div className="form-field">
-              <label>Purchase Price</label>
-              <input
-                type="number"
-                placeholder="750000"
-                value={formData.purchasePrice}
-                onChange={(e) => setFormData({...formData, purchasePrice: e.target.value})}
-              />
-            </div>
-            <div className="form-field">
-              <label>Offer Price</label>
-              <input
-                type="number"
-                placeholder="735000"
-                value={formData.offerPrice}
-                onChange={(e) => setFormData({...formData, offerPrice: e.target.value})}
-              />
-            </div>
-          </div>
-
-          {/* Commission */}
-          <div className="grid-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-            <div className="form-field">
-              <label>Commission %</label>
-              <input
-                type="number"
-                step="0.1"
-                placeholder="3.0"
-                value={formData.commissionPercent}
-                onChange={(e) => setFormData({...formData, commissionPercent: e.target.value})}
-              />
-            </div>
-            <div className="form-field">
-              <label>Your Split %</label>
-              <input
-                type="number"
-                placeholder="50"
-                value={formData.commissionSplit}
-                onChange={(e) => setFormData({...formData, commissionSplit: e.target.value})}
-              />
-            </div>
-          </div>
-
-          {/* Commission Calculation */}
-          {formData.purchasePrice && (
-            <div className="card-surface" style={{ background: '#0f0f0f', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontSize: '11px', color: '#666666' }}>Total Commission</div>
-                <div style={{ fontSize: '16px', color: '#ffaa00', fontWeight: '600' }}>
-                  ${commission.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        <div className="detail-layout-grid">
+          <aside className="detail-layout-sidebar">
+            <div className="lead-panel-card">
+              <div className="lead-panel-title">Core Details</div>
+              <div className="lead-field-stack">
+                <div className="lead-field">
+                  <label>Property Address *</label>
+                  <input
+                    type="text"
+                    placeholder="123 Main St, Los Angeles, CA 90001"
+                    value={formData.propertyAddress}
+                    onChange={(e) => setFormData({ ...formData, propertyAddress: e.target.value })}
+                  />
                 </div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '11px', color: '#666666' }}>Your Earnings</div>
-                <div style={{ fontSize: '16px', color: '#00ff88', fontWeight: '600' }}>
-                  ${commission.earnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <div className="lead-field">
+                  <label>Contract Date</label>
+                  <input
+                    type="date"
+                    value={formData.contractDate}
+                    onChange={(e) => setFormData({ ...formData, contractDate: e.target.value })}
+                  />
+                </div>
+                <div className="lead-field">
+                  <label>Expected Close Date</label>
+                  <input
+                    type="date"
+                    value={formData.expectedCloseDate}
+                    onChange={(e) => setFormData({ ...formData, expectedCloseDate: e.target.value })}
+                  />
                 </div>
               </div>
             </div>
-          )}
+          </aside>
 
-          {/* Dates */}
-          <div className="grid-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-            <div className="form-field">
-              <label>Contract Date</label>
-              <input
-                type="date"
-                value={formData.contractDate}
-                onChange={(e) => setFormData({...formData, contractDate: e.target.value})}
-              />
+          <section className="detail-layout-main">
+            <div className="lead-panel-card">
+              <div className="lead-engagement-actions">
+                {quickActions.map((label) => (
+                  <button key={label} type="button" className="lead-engagement-btn">
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="form-field">
-              <label>Expected Close Date</label>
-              <input
-                type="date"
-                value={formData.expectedCloseDate}
-                onChange={(e) => setFormData({...formData, expectedCloseDate: e.target.value})}
-              />
+
+            <div className="lead-panel-card">
+              <div className="lead-panel-title">Financials</div>
+              <div className="grid-two" style={{ display: 'grid', gap: '12px' }}>
+                <div className="lead-field">
+                  <label>Purchase Price</label>
+                  <input
+                    type="number"
+                    placeholder="750000"
+                    value={formData.purchasePrice}
+                    onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
+                  />
+                </div>
+                <div className="lead-field">
+                  <label>Offer Price</label>
+                  <input
+                    type="number"
+                    placeholder="735000"
+                    value={formData.offerPrice}
+                    onChange={(e) => setFormData({ ...formData, offerPrice: e.target.value })}
+                  />
+                </div>
+                <div className="lead-field">
+                  <label>Commission %</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={formData.commissionPercent}
+                    onChange={(e) => setFormData({ ...formData, commissionPercent: e.target.value })}
+                  />
+                </div>
+                <div className="lead-field">
+                  <label>Your Split %</label>
+                  <input
+                    type="number"
+                    value={formData.commissionSplit}
+                    onChange={(e) => setFormData({ ...formData, commissionSplit: e.target.value })}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Notes */}
-          <div className="form-field">
-            <label>Notes</label>
-            <textarea
-              placeholder="Add notes about this deal..."
-              value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              rows={4}
-              style={{ resize: 'vertical' }}
-            />
-          </div>
-        </div>
+            <div className="lead-panel-card">
+              <div className="lead-panel-title">Notes</div>
+              <div className="lead-field">
+                <textarea
+                  placeholder="Add notes about this deal..."
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  rows={5}
+                />
+              </div>
+            </div>
+          </section>
 
-        {/* Actions */}
-        <div style={{ display: 'flex', gap: '10px', marginTop: '25px', justifyContent: 'flex-end' }}>
-          <button
-            onClick={onClose}
-            className="btn-secondary"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="btn-primary"
-          >
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
+          <aside className="detail-layout-aside">
+            <div className="lead-panel-card">
+              <div className="lead-panel-title">Commission Snapshot</div>
+              <div className="lead-metrics-grid" style={{ gridTemplateColumns: '1fr' }}>
+                <div className="lead-metric">
+                  <span className="lead-metric-label">Total Commission</span>
+                  <span className="lead-metric-value">
+                    ${commission.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="lead-metric">
+                  <span className="lead-metric-label">Your Earnings</span>
+                  <span className="lead-metric-value">
+                    ${commission.earnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="lead-metric">
+                  <span className="lead-metric-label">Current Status</span>
+                  <span className="lead-metric-value">
+                    {DEAL_STATUSES.find((status) => status.value === formData.status)?.label || 'Lead'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
     </div>
