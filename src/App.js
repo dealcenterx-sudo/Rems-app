@@ -12,7 +12,7 @@ import DocumentsPage from './components/DocumentsPage';
 import WebsitesPage from './components/WebsitesPage';
 import { ToastProvider, useToast } from './components/Toast';
 import ConfirmModal from './components/ConfirmModal';
-import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
+import { collection, addDoc, getDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { auth, googleProvider } from './firebase';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import { 
@@ -2169,7 +2169,7 @@ const CRMPlaceholderPage = ({ title, description }) => (
   </div>
 );
 
-const CRMLeadsPage = () => {
+const CRMLeadsPage = ({ onOpenLead }) => {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -2783,6 +2783,7 @@ const CRMLeadsPage = () => {
               return (
                 <div
                   key={lead.id}
+                  onDoubleClick={() => onOpenLead?.(lead.id)}
                   style={{
                     display: 'grid',
                     gridTemplateColumns: '180px 220px 150px 230px 180px 220px 130px 80px 100px 120px 140px',
@@ -2792,7 +2793,8 @@ const CRMLeadsPage = () => {
                     background: '#0a0a0a',
                     marginBottom: '8px',
                     fontSize: '12px',
-                    color: '#ffffff'
+                    color: '#ffffff',
+                    cursor: 'pointer'
                   }}
                 >
                   <div>{formatDate(lead.submittedAt || lead.createdAt)}</div>
@@ -2829,7 +2831,355 @@ const CRMLeadsPage = () => {
   );
 };
 
-const CRMPage = ({ subTab, setSubTab }) => {
+const LEAD_PIPELINE_STAGES = [
+  { value: 'cold', label: 'Cold' },
+  { value: 'worked', label: 'Worked' },
+  { value: 'active-deal', label: 'Active Deal' },
+  { value: 'closed', label: 'Closed' },
+  { value: 'lost', label: 'Lost' }
+];
+
+const SAMPLE_CRM_LEAD = {
+  id: 'sample-lead-1',
+  submittedAt: '2026-02-20T14:30:00.000Z',
+  name: 'Sunrise Property Group LLC',
+  phone: '(305) 555-0189',
+  email: 'acquisitions@sunrisepg.com',
+  serviceType: 'Buying a property',
+  street: '1280 Biscayne Blvd',
+  city: 'Miami',
+  state: 'FL',
+  zipCode: '33132',
+  propertyType: 'commercial',
+  warmth: 'closed',
+  source: 'Zillow',
+  attachments: []
+};
+
+const normalizeLeadWarmth = (value) => {
+  const normalized = (value || '').toLowerCase().replace(/\s+/g, '-');
+  if (normalized === 'active' || normalized === 'active-deals') return 'active-deal';
+  return LEAD_PIPELINE_STAGES.some((stage) => stage.value === normalized) ? normalized : 'cold';
+};
+
+const getLeadWarmthLabel = (value) => {
+  const normalized = normalizeLeadWarmth(value);
+  return LEAD_PIPELINE_STAGES.find((stage) => stage.value === normalized)?.label || 'Cold';
+};
+
+const CRMLeadDetailPage = ({ leadId, onStartDeal }) => {
+  const toast = useToast();
+  const [lead, setLead] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [attachments, setAttachments] = useState([]);
+  const [pendingFiles, setPendingFiles] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [warmth, setWarmth] = useState('cold');
+
+  const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned';
+  const CLOUDINARY_CLOUD_NAME = 'djaq0av66';
+
+  useEffect(() => {
+    const loadLead = async () => {
+      if (!leadId) {
+        setLead(null);
+        setLoading(false);
+        return;
+      }
+      if (leadId === 'sample-lead-1') {
+        setLead(SAMPLE_CRM_LEAD);
+        setAttachments(SAMPLE_CRM_LEAD.attachments || []);
+        setWarmth(normalizeLeadWarmth(SAMPLE_CRM_LEAD.warmth));
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const leadRef = doc(db, 'leads', leadId);
+        const leadSnapshot = await getDoc(leadRef);
+        if (!leadSnapshot.exists()) {
+          setLead(null);
+          return;
+        }
+        const leadData = { id: leadSnapshot.id, ...leadSnapshot.data() };
+        setLead(leadData);
+        setAttachments(leadData.attachments || []);
+        setWarmth(normalizeLeadWarmth(leadData.warmth || leadData.classification));
+      } catch (error) {
+        console.error('Error loading lead detail:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadLead();
+  }, [leadId]);
+
+  const isSampleLead = lead?.id === 'sample-lead-1';
+
+  const uploadFileToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) throw new Error('Upload failed');
+    const data = await response.json();
+
+    return {
+      fileName: file.name,
+      fileType: file.type || data.format || 'unknown',
+      fileUrl: data.secure_url,
+      publicId: data.public_id,
+      uploadedAt: new Date().toISOString()
+    };
+  };
+
+  const persistLeadUpdate = async (updates) => {
+    if (!lead?.id || isSampleLead) return;
+    await updateDoc(doc(db, 'leads', lead.id), {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    });
+  };
+
+  const handleWarmthChange = async (nextWarmth) => {
+    setWarmth(nextWarmth);
+    if (!lead) return;
+    try {
+      await persistLeadUpdate({ warmth: nextWarmth });
+      setLead({ ...lead, warmth: nextWarmth });
+    } catch (error) {
+      console.error('Error updating lead warmth:', error);
+    }
+  };
+
+  const handleUploadFiles = async () => {
+    if (pendingFiles.length === 0) return;
+    setSaving(true);
+    try {
+      const uploadedFiles = [];
+      for (const file of pendingFiles) {
+        const uploaded = await uploadFileToCloudinary(file);
+        uploadedFiles.push(uploaded);
+      }
+      const updatedAttachments = [...attachments, ...uploadedFiles];
+      setAttachments(updatedAttachments);
+      setPendingFiles([]);
+      await persistLeadUpdate({ attachments: updatedAttachments });
+      toast.success('Files uploaded');
+    } catch (error) {
+      console.error('Error uploading lead files:', error);
+      toast.error('Failed to upload files');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveAttachmentNames = async () => {
+    setSaving(true);
+    try {
+      await persistLeadUpdate({ attachments });
+      toast.success('File names updated');
+    } catch (error) {
+      console.error('Error saving attachment names:', error);
+      toast.error('Failed to save file names');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleStartDeal = async () => {
+    if (!lead) return;
+    setSaving(true);
+    try {
+      const existingDeals = await getDocs(query(collection(db, 'deals'), where('leadId', '==', lead.id)));
+      if (!existingDeals.empty) {
+        toast.info('Deal already exists for this lead');
+        onStartDeal?.('active');
+        return;
+      }
+
+      const serviceText = (lead.serviceType || lead.service || lead.serviceRequested || '').toLowerCase();
+      const leadName = lead.name || lead.fullName || lead.entityName || 'Lead';
+      const address = [lead.street, `${lead.city || ''}, ${lead.state || ''} ${lead.zipCode || ''}`].filter(Boolean).join(', ');
+
+      const dealPayload = {
+        leadId: lead.id,
+        buyerName: serviceText.includes('buy') ? leadName : '',
+        sellerName: serviceText.includes('sell') ? leadName : '',
+        propertyAddress: address || 'No property address provided',
+        propertyType: lead.propertyType || null,
+        status: 'new',
+        source: lead.source || lead.leadSource || 'CRM Lead',
+        userId: auth.currentUser.uid,
+        createdAt: new Date().toISOString()
+      };
+
+      if (!dealPayload.buyerName && !dealPayload.sellerName) {
+        dealPayload.buyerName = leadName;
+      }
+
+      await addDoc(collection(db, 'deals'), dealPayload);
+      await handleWarmthChange('active-deal');
+      toast.success('Lead converted to deal');
+      onStartDeal?.('new');
+    } catch (error) {
+      console.error('Error creating deal from lead:', error);
+      toast.error('Failed to start deal');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="page-content">
+        <div className="loading-container">
+          <div className="loading-spinner" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!lead) {
+    return (
+      <div className="page-content">
+        <div className="empty-state-card">
+          <div className="empty-state-title">Lead not found</div>
+          <div className="empty-state-subtitle">This lead may have been removed or is unavailable.</div>
+        </div>
+      </div>
+    );
+  }
+
+  const leadName = lead.name || lead.fullName || lead.entityName || 'N/A';
+  const serviceType = lead.serviceType || lead.service || lead.serviceRequested || 'N/A';
+  const source = lead.source || lead.leadSource || 'N/A';
+  const propertyType = lead.propertyType || 'N/A';
+  const submittedAt = lead.submittedAt || lead.createdAt;
+  const pipelineStageIndex = Math.max(0, LEAD_PIPELINE_STAGES.findIndex((stage) => stage.value === warmth));
+  const pipelineProgressPct = LEAD_PIPELINE_STAGES.length > 1
+    ? (pipelineStageIndex / (LEAD_PIPELINE_STAGES.length - 1)) * 100
+    : 0;
+
+  return (
+    <div className="page-content">
+      <div className="section">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ fontSize: '18px', color: '#ffffff', fontWeight: '700' }}>Lead Pipeline</div>
+          <button className="btn-primary" onClick={handleStartDeal} disabled={saving}>
+            Start Deal
+          </button>
+        </div>
+
+        <div className="card-surface" style={{ marginBottom: '18px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '10px', flexWrap: 'wrap' }}>
+            <div style={{ fontSize: '11px', color: '#888888', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Pipeline Progress</div>
+            <div style={{ fontSize: '12px', color: '#00ff88', fontWeight: '600' }}>{getLeadWarmthLabel(warmth)}</div>
+          </div>
+          <div style={{ position: 'relative', height: '8px', borderRadius: '999px', background: '#121212', border: '1px solid #1a1a1a', overflow: 'hidden', marginBottom: '12px' }}>
+            <div style={{ width: `${pipelineProgressPct}%`, height: '100%', background: 'linear-gradient(90deg, #00ff88 0%, #00cc6a 100%)' }} />
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {LEAD_PIPELINE_STAGES.map((stage) => (
+              <button
+                key={stage.value}
+                type="button"
+                onClick={() => handleWarmthChange(stage.value)}
+                className={warmth === stage.value ? 'btn-primary btn-sm' : 'btn-secondary btn-sm'}
+              >
+                {stage.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="card-surface" style={{ marginBottom: '12px' }}>
+          <div className="section-title">Lead Details</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+            <div><span style={{ color: '#888888' }}>Date In:</span> {submittedAt ? new Date(submittedAt).toLocaleString() : 'N/A'}</div>
+            <div><span style={{ color: '#888888' }}>Warmth:</span> {getLeadWarmthLabel(warmth)}</div>
+            <div><span style={{ color: '#888888' }}>Service:</span> {serviceType}</div>
+            <div><span style={{ color: '#888888' }}>Source:</span> {source}</div>
+          </div>
+        </div>
+
+        <div className="card-surface" style={{ marginBottom: '12px' }}>
+          <div className="section-title">Contact Information</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+            <div><span style={{ color: '#888888' }}>Name / Entity:</span> {leadName}</div>
+            <div><span style={{ color: '#888888' }}>Phone:</span> {lead.phone || 'N/A'}</div>
+            <div><span style={{ color: '#888888' }}>Email:</span> {lead.email || 'N/A'}</div>
+          </div>
+        </div>
+
+        <div className="card-surface" style={{ marginBottom: '12px' }}>
+          <div className="section-title">Property Information</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+            <div><span style={{ color: '#888888' }}>Street:</span> {lead.street || 'N/A'}</div>
+            <div><span style={{ color: '#888888' }}>City:</span> {lead.city || 'N/A'}</div>
+            <div><span style={{ color: '#888888' }}>State:</span> {lead.state || 'N/A'}</div>
+            <div><span style={{ color: '#888888' }}>Zip:</span> {lead.zipCode || lead.zip || 'N/A'}</div>
+            <div><span style={{ color: '#888888' }}>Property Type:</span> {propertyType}</div>
+          </div>
+        </div>
+
+        <div className="card-surface">
+          <div className="section-title">Files</div>
+          <div style={{ marginBottom: '10px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <input
+              type="file"
+              multiple
+              onChange={(e) => setPendingFiles(Array.from(e.target.files || []))}
+              style={{ padding: '8px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+            />
+            <button className="btn-secondary btn-sm" onClick={handleUploadFiles} disabled={saving || pendingFiles.length === 0}>
+              Upload
+            </button>
+            <button className="btn-secondary btn-sm" onClick={handleSaveAttachmentNames} disabled={saving || attachments.length === 0}>
+              Save File Names
+            </button>
+          </div>
+          {attachments.length === 0 ? (
+            <div className="empty-state-subtitle">No files uploaded yet.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {attachments.map((attachment, idx) => (
+                <div key={`${attachment.publicId || attachment.fileUrl || idx}-${idx}`} style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 1fr) 120px 160px', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={attachment.fileName || ''}
+                    onChange={(e) => {
+                      const next = [...attachments];
+                      next[idx] = { ...next[idx], fileName: e.target.value };
+                      setAttachments(next);
+                    }}
+                    style={{ padding: '8px 10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
+                  />
+                  <div style={{ color: '#888888', fontSize: '12px' }}>{attachment.fileType || 'unknown'}</div>
+                  {attachment.fileUrl ? (
+                    <a href={attachment.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm" style={{ textAlign: 'center' }}>
+                      Open File
+                    </a>
+                  ) : (
+                    <div style={{ color: '#666666', fontSize: '12px' }}>Pending</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CRMPage = ({ subTab, setSubTab, leadId, setLeadId, onOpenLead, onStartDeal }) => {
   const crmItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart },
     { id: 'leads', label: 'Leads', icon: Users },
@@ -2840,15 +3190,24 @@ const CRMPage = ({ subTab, setSubTab }) => {
     { id: 'connector', label: 'Connector', icon: LinkIcon }
   ];
 
+  const renderedItems = subTab === 'lead-detail'
+    ? [...crmItems, { id: 'lead-detail', label: 'Lead Detail', icon: FileText }]
+    : crmItems;
+
   return (
     <div className="page-with-subnav">
       <div className="subnav">
         <div className="subnav-title">CRM</div>
         <div className="subnav-items">
-          {crmItems.map((item) => (
+          {renderedItems.map((item) => (
             <div
               key={item.id}
-              onClick={() => setSubTab(item.id)}
+              onClick={() => {
+                setSubTab(item.id);
+                if (item.id !== 'lead-detail') {
+                  setLeadId?.(null);
+                }
+              }}
               className={`subnav-item ${subTab === item.id ? 'active' : ''}`}
             >
               <item.icon size={18} color={subTab === item.id ? '#00ff88' : '#888888'} />
@@ -2859,7 +3218,8 @@ const CRMPage = ({ subTab, setSubTab }) => {
       </div>
       <div className="subnav-content">
         {subTab === 'dashboard' && <CRMDashboard />}
-        {subTab === 'leads' && <CRMLeadsPage />}
+        {subTab === 'leads' && <CRMLeadsPage onOpenLead={onOpenLead} />}
+        {subTab === 'lead-detail' && <CRMLeadDetailPage leadId={leadId} onStartDeal={onStartDeal} />}
         {subTab === 'campaigns' && <CRMPlaceholderPage title="Campaigns" description="Build and track outbound campaigns from this view." />}
         {subTab === 'messages' && <CRMPlaceholderPage title="Messages" description="Centralized message inbox and history will appear here." />}
         {subTab === 'email' && <CRMPlaceholderPage title="Email" description="Email templates, sends, and tracking will be managed here." />}
@@ -2874,6 +3234,7 @@ const CRMPage = ({ subTab, setSubTab }) => {
 function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [crmSubTab, setCrmSubTab] = useState('dashboard');
+  const [crmLeadId, setCrmLeadId] = useState(null);
   const [dealsSubTab, setDealsSubTab] = useState('new');
   const [contactsViewTab, setContactsViewTab] = useState('all');
   const [globalSearch, setGlobalSearch] = useState('');
@@ -2908,6 +3269,25 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    const crmSubTabParam = params.get('crmSubTab');
+    const dealsSubTabParam = params.get('dealsSubTab');
+    const contactsTabParam = params.get('contactsViewTab');
+    const leadIdParam = params.get('leadId');
+
+    if (tabParam) setActiveTab(tabParam);
+    if (crmSubTabParam) setCrmSubTab(crmSubTabParam);
+    if (dealsSubTabParam) setDealsSubTab(dealsSubTabParam);
+    if (contactsTabParam) setContactsViewTab(contactsTabParam);
+    if (leadIdParam) {
+      setCrmLeadId(leadIdParam);
+      setActiveTab('crm');
+      setCrmSubTab('lead-detail');
+    }
+  }, []);
+
   const handleNavigateToContacts = (type) => {
     setContactsViewTab(type || 'all');
     setActiveTab('contacts');
@@ -2920,6 +3300,19 @@ function App() {
 
   const handleNavigateToProperties = () => {
     setActiveTab('properties');
+  };
+
+  const handleOpenLeadInNewTab = (leadId) => {
+    const nextUrl = new URL(window.location.origin + window.location.pathname);
+    nextUrl.searchParams.set('tab', 'crm');
+    nextUrl.searchParams.set('crmSubTab', 'lead-detail');
+    nextUrl.searchParams.set('leadId', leadId);
+    window.open(nextUrl.toString(), '_blank', 'noopener,noreferrer');
+  };
+
+  const handleStartDealFromLead = (dealsTab = 'new') => {
+    setDealsSubTab(dealsTab);
+    setActiveTab('deals');
   };
 
   useEffect(() => {
@@ -2982,7 +3375,16 @@ function App() {
         {activeTab === 'contacts' && <ContactsPage initialTab={contactsViewTab} companyId={companyId} globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'deals' && <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} companyId={companyId} />}
         {activeTab === 'properties' && <PropertiesPage globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
-        {activeTab === 'crm' && <CRMPage subTab={crmSubTab} setSubTab={setCrmSubTab} />}
+        {activeTab === 'crm' && (
+          <CRMPage
+            subTab={crmSubTab}
+            setSubTab={setCrmSubTab}
+            leadId={crmLeadId}
+            setLeadId={setCrmLeadId}
+            onOpenLead={handleOpenLeadInNewTab}
+            onStartDeal={handleStartDealFromLead}
+          />
+        )}
         {activeTab === 'analytics' && <AnalyticsDashboard />}
         {activeTab === 'tasks' && <TasksPage globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'documents' && <DocumentsPage globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
