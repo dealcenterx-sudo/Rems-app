@@ -2905,6 +2905,7 @@ const createLeadFormState = (leadData = {}) => ({
 const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const toast = useToast();
   const workspaceTabsWrapRef = useRef(null);
+  const leadFileInputRef = useRef(null);
   const [lead, setLead] = useState(null);
   const [loading, setLoading] = useState(true);
   const [attachments, setAttachments] = useState([]);
@@ -2919,6 +2920,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const [customActivities, setCustomActivities] = useState([]);
   const [floatingTabId, setFloatingTabId] = useState(null);
   const [floatingTabLeft, setFloatingTabLeft] = useState(12);
+  const [isFileDragOver, setIsFileDragOver] = useState(false);
 
   const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned';
   const CLOUDINARY_CLOUD_NAME = 'djaq0av66';
@@ -2994,7 +2996,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
 
   const isSampleLead = lead?.id === 'sample-lead-1';
 
-  const uploadFileToCloudinary = async (file) => {
+  const uploadFileToCloudinary = async (file, customFileName) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
@@ -3008,12 +3010,38 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     const data = await response.json();
 
     return {
-      fileName: file.name,
+      fileName: customFileName || file.name,
       fileType: file.type || data.format || 'unknown',
+      fileSize: file.size || data.bytes || 0,
       fileUrl: data.secure_url,
       publicId: data.public_id,
       uploadedAt: new Date().toISOString()
     };
+  };
+
+  const enqueuePendingFiles = (files) => {
+    const normalized = Array.from(files || [])
+      .filter((file) => file && file.name)
+      .map((file, idx) => ({
+        id: `pending-${Date.now()}-${idx}-${Math.random().toString(16).slice(2, 7)}`,
+        file,
+        fileName: file.name,
+        fileType: file.type || 'unknown',
+        fileSize: file.size || 0
+      }));
+
+    if (normalized.length === 0) return;
+    setPendingFiles((prev) => [...prev, ...normalized]);
+  };
+
+  const handlePendingFileNameChange = (pendingId, nextName) => {
+    setPendingFiles((prev) =>
+      prev.map((item) => (item.id === pendingId ? { ...item, fileName: nextName } : item))
+    );
+  };
+
+  const removePendingFile = (pendingId) => {
+    setPendingFiles((prev) => prev.filter((item) => item.id !== pendingId));
   };
 
   const persistLeadUpdate = async (updates) => {
@@ -3194,8 +3222,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     setSaving(true);
     try {
       const uploadedFiles = [];
-      for (const file of pendingFiles) {
-        const uploaded = await uploadFileToCloudinary(file);
+      for (const pendingItem of pendingFiles) {
+        const uploaded = await uploadFileToCloudinary(pendingItem.file, pendingItem.fileName);
         uploadedFiles.push(uploaded);
       }
 
@@ -3441,6 +3469,28 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     setFloatingTabId(tabId);
   };
 
+  const handleFileInputChange = (event) => {
+    enqueuePendingFiles(event.target.files);
+    event.target.value = '';
+  };
+
+  const handleFileDragOver = (event) => {
+    event.preventDefault();
+    if (!isFileDragOver) setIsFileDragOver(true);
+  };
+
+  const handleFileDragLeave = (event) => {
+    event.preventDefault();
+    if (event.currentTarget.contains(event.relatedTarget)) return;
+    setIsFileDragOver(false);
+  };
+
+  const handleFileDrop = (event) => {
+    event.preventDefault();
+    setIsFileDragOver(false);
+    enqueuePendingFiles(event.dataTransfer?.files);
+  };
+
   const handlePrimaryAction = (actionId) => {
     if (actionId === 'checkin') {
       handleCheckIn();
@@ -3456,6 +3506,32 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   };
 
   const floatingTabLabel = workspaceTabs.find((tab) => tab.id === floatingTabId)?.label || 'Section';
+  const formatFileSize = (bytes) => {
+    const size = Number(bytes || 0);
+    if (!size) return '—';
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  };
+  const documentRows = [
+    ...pendingFiles.map((pendingItem) => ({
+      id: pendingItem.id,
+      source: 'pending',
+      fileName: pendingItem.fileName,
+      fileType: pendingItem.fileType || 'unknown',
+      fileSize: pendingItem.fileSize || 0,
+      fileUrl: null
+    })),
+    ...attachments.map((attachment, idx) => ({
+      id: attachment.publicId || attachment.fileUrl || `uploaded-${idx}`,
+      source: 'uploaded',
+      index: idx,
+      fileName: attachment.fileName || '',
+      fileType: attachment.fileType || 'unknown',
+      fileSize: attachment.fileSize || 0,
+      fileUrl: attachment.fileUrl || null
+    }))
+  ];
 
   return (
     <div className="lead-workspace">
@@ -3793,11 +3869,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
           <div className="lead-panel-card">
             <div className="lead-panel-title">Files</div>
             <div className="lead-files-toolbar">
-              <input
-                type="file"
-                multiple
-                onChange={(e) => setPendingFiles(Array.from(e.target.files || []))}
-              />
+              <button type="button" className="lead-action-btn" onClick={() => leadFileInputRef.current?.click()} disabled={saving}>
+                Choose Files
+              </button>
               <button className="lead-action-btn" onClick={handleUploadFiles} disabled={saving || pendingFiles.length === 0}>
                 Upload
               </button>
@@ -3805,35 +3879,74 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 Save Names
               </button>
             </div>
+            <input
+              ref={leadFileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileInputChange}
+              style={{ display: 'none' }}
+            />
+            <div
+              className={`lead-file-dropzone ${isFileDragOver ? 'drag-over' : ''}`}
+              onDragOver={handleFileDragOver}
+              onDragEnter={handleFileDragOver}
+              onDragLeave={handleFileDragLeave}
+              onDrop={handleFileDrop}
+            >
+              <div className="lead-file-dropzone-title">Drag and drop files here</div>
+              <div className="lead-file-dropzone-subtitle">or click “Choose Files” above</div>
+            </div>
 
-            {attachments.length === 0 ? (
+            {documentRows.length === 0 ? (
               <div className="lead-empty-inline">No files uploaded yet.</div>
             ) : (
-              <div className="lead-file-list">
-                {attachments.map((attachment, idx) => (
-                  <div key={`${attachment.publicId || attachment.fileUrl || idx}-${idx}`} className="lead-file-row">
-                    <div className="lead-field">
-                      <label>File Name</label>
-                      <input
-                        type="text"
-                        value={attachment.fileName || ''}
-                        onChange={(e) => {
-                          const next = [...attachments];
-                          next[idx] = { ...next[idx], fileName: e.target.value };
-                          setAttachments(next);
-                        }}
-                      />
+              <div className="lead-doc-list">
+                <div className="lead-doc-list-head">
+                  <div>Document Name</div>
+                  <div>Type</div>
+                  <div>Size</div>
+                  <div>Status</div>
+                  <div>Action</div>
+                </div>
+                <div className="lead-doc-list-body">
+                  {documentRows.map((row) => (
+                    <div key={row.id} className="lead-doc-row">
+                      <div className="lead-doc-name-cell">
+                        <input
+                          type="text"
+                          value={row.fileName}
+                          onChange={(e) => {
+                            if (row.source === 'pending') {
+                              handlePendingFileNameChange(row.id, e.target.value);
+                            } else {
+                              const next = [...attachments];
+                              next[row.index] = { ...next[row.index], fileName: e.target.value };
+                              setAttachments(next);
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="lead-doc-meta-cell">{(row.fileType || 'unknown').toString().toUpperCase()}</div>
+                      <div className="lead-doc-meta-cell">{formatFileSize(row.fileSize)}</div>
+                      <div className={`lead-doc-status ${row.source === 'pending' ? 'pending' : 'uploaded'}`}>
+                        {row.source === 'pending' ? 'Pending Upload' : 'Uploaded'}
+                      </div>
+                      <div className="lead-doc-action-cell">
+                        {row.source === 'pending' ? (
+                          <button type="button" className="lead-file-link" onClick={() => removePendingFile(row.id)}>
+                            Remove
+                          </button>
+                        ) : row.fileUrl ? (
+                          <a href={row.fileUrl} target="_blank" rel="noopener noreferrer" className="lead-file-link">
+                            Open
+                          </a>
+                        ) : (
+                          <div className="lead-file-link muted">Pending</div>
+                        )}
+                      </div>
                     </div>
-                    <div className="lead-file-type">{attachment.fileType || 'unknown'}</div>
-                    {attachment.fileUrl ? (
-                      <a href={attachment.fileUrl} target="_blank" rel="noopener noreferrer" className="lead-file-link">
-                        Open
-                      </a>
-                    ) : (
-                      <div className="lead-file-link muted">Pending</div>
-                    )}
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
