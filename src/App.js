@@ -3907,6 +3907,15 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                   placeholder="Lead notes"
                 />
               </div>
+              <button
+                type="button"
+                className="lead-action-btn lead-action-btn-primary"
+                onClick={() => handleSaveLeadDetails()}
+                disabled={saving}
+                style={{ width: '100%', marginTop: '4px' }}
+              >
+                {saving ? 'Saving...' : 'Save Notes'}
+              </button>
             </div>
           </div>
         </aside>
