@@ -1498,6 +1498,33 @@ body {
   overflow: auto;
 }
 
+.crm-email-modal {
+  max-width: 860px;
+  padding: 22px;
+  border: 1px solid #232323;
+  background: #090909;
+}
+
+.crm-email-modal-header {
+  margin-bottom: 16px;
+}
+
+.crm-email-modal-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.crm-email-modal-body-field textarea {
+  min-height: 180px;
+}
+
+.crm-email-modal-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .modal-header {
   display: flex;
   align-items: center;

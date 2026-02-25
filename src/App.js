@@ -2924,6 +2924,17 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const [floatingTabId, setFloatingTabId] = useState(null);
   const [floatingTabLeft, setFloatingTabLeft] = useState(12);
   const [isFileDragOver, setIsFileDragOver] = useState(false);
+  const [showEmailComposer, setShowEmailComposer] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailComposer, setEmailComposer] = useState({
+    to: '',
+    cc: '',
+    bcc: '',
+    subject: '',
+    body: '',
+    signatureKey: 'default',
+    signatureText: ''
+  });
 
   const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned';
   const CLOUDINARY_CLOUD_NAME = 'djaq0av66';
@@ -3242,7 +3253,132 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     await handleSaveLeadDetails({ showToast: true, closeAfterSave: true });
   };
 
+  const getDefaultSignature = () => {
+    const senderName = auth.currentUser?.displayName || auth.currentUser?.email || 'DealCenter Team';
+    return `${senderName}\nDealCenter CRM`;
+  };
+
+  const emailSignatureTemplates = [
+    { key: 'default', label: 'Default Signature', value: getDefaultSignature() },
+    { key: 'acquisitions', label: 'Acquisitions Team', value: 'Acquisitions Team\nDealCenter CRM' },
+    { key: 'dispositions', label: 'Dispositions Team', value: 'Dispositions Team\nDealCenter CRM' },
+    { key: 'none', label: 'No Signature', value: '' },
+    { key: 'custom', label: 'Custom Signature', value: emailComposer.signatureText || '' }
+  ];
+
+  const openEmailComposer = () => {
+    const leadName = leadForm.name || lead?.name || 'there';
+    const serviceLabel = leadForm.serviceType || 'real estate request';
+    setEmailComposer({
+      to: leadForm.email || '',
+      cc: '',
+      bcc: '',
+      subject: `Regarding your ${serviceLabel}`,
+      body: `Hi ${leadName},\n\n`,
+      signatureKey: 'default',
+      signatureText: getDefaultSignature()
+    });
+    setShowEmailComposer(true);
+  };
+
+  const handleEmailComposerChange = (field, value) => {
+    setEmailComposer((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSignatureTemplateChange = (nextKey) => {
+    if (nextKey === 'custom') {
+      setEmailComposer((prev) => ({ ...prev, signatureKey: nextKey }));
+      return;
+    }
+    const selected = emailSignatureTemplates.find((template) => template.key === nextKey);
+    setEmailComposer((prev) => ({
+      ...prev,
+      signatureKey: nextKey,
+      signatureText: selected?.value ?? ''
+    }));
+  };
+
+  const handleSendEmail = async () => {
+    const toValue = (emailComposer.to || '').trim();
+    const subjectValue = (emailComposer.subject || '').trim();
+    const bodyValue = (emailComposer.body || '').trim();
+
+    if (!toValue) {
+      toast.error('Send To email is required');
+      return;
+    }
+    if (!subjectValue) {
+      toast.error('Subject is required');
+      return;
+    }
+    if (!bodyValue) {
+      toast.error('Email contents are required');
+      return;
+    }
+
+    const finalBody = `${bodyValue}${emailComposer.signatureText ? `\n\n${emailComposer.signatureText}` : ''}`;
+    const messagePayload = {
+      to: toValue,
+      cc: (emailComposer.cc || '').trim(),
+      bcc: (emailComposer.bcc || '').trim(),
+      subject: subjectValue,
+      body: finalBody,
+      leadId: lead?.id || null,
+      sentBy: auth.currentUser?.email || 'unknown',
+      sentAt: new Date().toISOString()
+    };
+
+    setSendingEmail(true);
+    try {
+      const webhookUrl = process.env.REACT_APP_CRM_EMAIL_WEBHOOK_URL;
+      if (webhookUrl) {
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(messagePayload)
+        });
+        if (!response.ok) {
+          throw new Error('Webhook email send failed');
+        }
+      } else {
+        const mailtoParams = new URLSearchParams();
+        if (messagePayload.cc) mailtoParams.set('cc', messagePayload.cc);
+        if (messagePayload.bcc) mailtoParams.set('bcc', messagePayload.bcc);
+        mailtoParams.set('subject', messagePayload.subject);
+        mailtoParams.set('body', messagePayload.body);
+        window.open(`mailto:${encodeURIComponent(messagePayload.to)}?${mailtoParams.toString()}`, '_blank', 'noopener');
+      }
+
+      const existingHistory = Array.isArray(lead?.emailHistory) ? lead.emailHistory : [];
+      const nextEmailHistory = [messagePayload, ...existingHistory].slice(0, 100);
+      if (!isSampleLead) {
+        await persistLeadUpdate({ emailHistory: nextEmailHistory });
+      }
+      setLead((prev) => ({ ...prev, emailHistory: nextEmailHistory }));
+
+      await appendActivityEntry({
+        type: 'contact',
+        title: 'Email sent',
+        summary: subjectValue,
+        detail: `To: ${messagePayload.to}${messagePayload.cc ? ` • CC: ${messagePayload.cc}` : ''}${messagePayload.bcc ? ' • BCC added' : ''}`
+      });
+
+      toast.success(webhookUrl ? 'Email sent from CRM' : 'Email composer opened');
+      setShowEmailComposer(false);
+    } catch (error) {
+      console.error('Error sending CRM email:', error);
+      toast.error('Failed to send email');
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const handleEngagementAction = async (label) => {
+    if (label === 'Send Email') {
+      openEmailComposer();
+      return;
+    }
+
     if (formDirty) {
       const saved = await handleSaveLeadDetails({ showToast: false });
       if (!saved) return;
@@ -4075,6 +4211,98 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
           </div>
         </aside>
       </div>
+
+      {showEmailComposer && (
+        <div className="modal-overlay" onClick={() => !sendingEmail && setShowEmailComposer(false)}>
+          <div className="modal-content crm-email-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header crm-email-modal-header">
+              <h2 style={{ margin: 0, fontSize: '20px', color: '#ffffff', fontWeight: '700' }}>Send Email</h2>
+              <button
+                type="button"
+                className="icon-button"
+                onClick={() => setShowEmailComposer(false)}
+                disabled={sendingEmail}
+              >
+                ×
+              </button>
+            </div>
+            <div className="crm-email-modal-grid">
+              <div className="lead-field">
+                <label>Send To</label>
+                <input
+                  type="email"
+                  value={emailComposer.to}
+                  onChange={(event) => handleEmailComposerChange('to', event.target.value)}
+                  placeholder="recipient@email.com"
+                />
+              </div>
+              <div className="lead-field">
+                <label>CC</label>
+                <input
+                  type="text"
+                  value={emailComposer.cc}
+                  onChange={(event) => handleEmailComposerChange('cc', event.target.value)}
+                  placeholder="cc1@email.com, cc2@email.com"
+                />
+              </div>
+              <div className="lead-field">
+                <label>BCC</label>
+                <input
+                  type="text"
+                  value={emailComposer.bcc}
+                  onChange={(event) => handleEmailComposerChange('bcc', event.target.value)}
+                  placeholder="bcc1@email.com, bcc2@email.com"
+                />
+              </div>
+              <div className="lead-field">
+                <label>Subject</label>
+                <input
+                  type="text"
+                  value={emailComposer.subject}
+                  onChange={(event) => handleEmailComposerChange('subject', event.target.value)}
+                  placeholder="Email subject"
+                />
+              </div>
+              <div className="lead-field crm-email-modal-body-field">
+                <label>Email Contents</label>
+                <textarea
+                  rows={8}
+                  value={emailComposer.body}
+                  onChange={(event) => handleEmailComposerChange('body', event.target.value)}
+                  placeholder="Write your email..."
+                />
+              </div>
+              <div className="lead-field">
+                <label>Signatures</label>
+                <select
+                  value={emailComposer.signatureKey}
+                  onChange={(event) => handleSignatureTemplateChange(event.target.value)}
+                >
+                  {emailSignatureTemplates.map((signature) => (
+                    <option key={signature.key} value={signature.key}>
+                      {signature.label}
+                    </option>
+                  ))}
+                </select>
+                <textarea
+                  rows={4}
+                  value={emailComposer.signatureText}
+                  onChange={(event) => handleEmailComposerChange('signatureText', event.target.value)}
+                  placeholder="Signature text"
+                />
+              </div>
+            </div>
+            <div className="crm-email-modal-actions">
+              <button type="button" className="lead-action-btn" onClick={() => setShowEmailComposer(false)} disabled={sendingEmail}>
+                Cancel
+              </button>
+              <button type="button" className="lead-action-btn lead-action-btn-primary" onClick={handleSendEmail} disabled={sendingEmail}>
+                {sendingEmail ? 'Sending...' : 'Send Email'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
