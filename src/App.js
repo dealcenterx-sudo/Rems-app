@@ -3442,6 +3442,17 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     'Add Note',
     'Disposition'
   ];
+  const serviceRequestedOptions = [
+    'Buying a property',
+    'Selling a property',
+    'Lending',
+    'Investing',
+    'Other'
+  ];
+  const selectedServiceValue = leadForm.serviceType || '';
+  const serviceOptions = serviceRequestedOptions.includes(selectedServiceValue) || !selectedServiceValue
+    ? serviceRequestedOptions
+    : [selectedServiceValue, ...serviceRequestedOptions];
 
   const handleWorkspaceTabClick = (tabId, event) => {
     setWorkspaceTab(tabId);
@@ -3666,16 +3677,29 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
             <div className="lead-field-stack">
               <div className="lead-field">
                 <label>Service Requested</label>
-                <input
-                  type="text"
-                  value={leadForm.serviceType}
+                <select
+                  value={selectedServiceValue}
                   onChange={(e) => handleLeadFormChange('serviceType', e.target.value)}
-                  placeholder="Buying / Selling / Lending"
-                />
+                >
+                  <option value="">Select service</option>
+                  {serviceOptions.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
               </div>
               <div className="lead-field">
                 <label>Pipeline Stage</label>
-                <input type="text" value={getLeadWarmthLabel(warmth)} readOnly />
+                <select
+                  value={warmth}
+                  onChange={(e) => handleWarmthChange(e.target.value)}
+                  disabled={saving}
+                >
+                  {LEAD_PIPELINE_STAGES.map((stage) => (
+                    <option key={stage.value} value={stage.value}>
+                      {stage.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="lead-field">
                 <label>Preferred Contact</label>
