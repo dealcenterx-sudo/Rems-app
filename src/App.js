@@ -2918,6 +2918,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const [leadForm, setLeadForm] = useState(createLeadFormState());
   const [formDirty, setFormDirty] = useState(false);
   const [customActivities, setCustomActivities] = useState([]);
+  const [activityOverrides, setActivityOverrides] = useState({});
+  const [editingActivityId, setEditingActivityId] = useState(null);
+  const [editingActivityDraft, setEditingActivityDraft] = useState({ title: '', summary: '', detail: '' });
   const [floatingTabId, setFloatingTabId] = useState(null);
   const [floatingTabLeft, setFloatingTabLeft] = useState(12);
   const [isFileDragOver, setIsFileDragOver] = useState(false);
@@ -2940,6 +2943,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         setWarmth(normalizeLeadWarmth(SAMPLE_CRM_LEAD.warmth));
         setLeadForm(createLeadFormState(SAMPLE_CRM_LEAD));
         setCustomActivities(Array.isArray(SAMPLE_CRM_LEAD.activityLog) ? SAMPLE_CRM_LEAD.activityLog : []);
+        setActivityOverrides(SAMPLE_CRM_LEAD.activityOverrides || {});
+        setEditingActivityId(null);
         setFormDirty(false);
         setLoading(false);
         return;
@@ -2960,6 +2965,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         setWarmth(normalizeLeadWarmth(leadData.warmth || leadData.classification));
         setLeadForm(createLeadFormState(leadData));
         setCustomActivities(Array.isArray(leadData.activityLog) ? leadData.activityLog : []);
+        setActivityOverrides(leadData.activityOverrides || {});
+        setEditingActivityId(null);
         setFormDirty(false);
       } catch (error) {
         console.error('Error loading lead detail:', error);
@@ -3110,6 +3117,47 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     setCustomActivities(nextActivities);
     if (!isSampleLead) {
       await persistLeadUpdate({ activityLog: nextActivities });
+    }
+  };
+
+  const beginActivityEdit = (entry) => {
+    setEditingActivityId(entry.id);
+    setEditingActivityDraft({
+      title: entry.title || '',
+      summary: entry.summary || '',
+      detail: entry.detail || ''
+    });
+  };
+
+  const cancelActivityEdit = () => {
+    setEditingActivityId(null);
+    setEditingActivityDraft({ title: '', summary: '', detail: '' });
+  };
+
+  const saveActivityEdit = async () => {
+    if (!editingActivityId) return;
+    const nextOverrides = {
+      ...activityOverrides,
+      [editingActivityId]: {
+        title: editingActivityDraft.title || '',
+        summary: editingActivityDraft.summary || '',
+        detail: editingActivityDraft.detail || ''
+      }
+    };
+
+    setSaving(true);
+    try {
+      setActivityOverrides(nextOverrides);
+      if (!isSampleLead) {
+        await persistLeadUpdate({ activityOverrides: nextOverrides });
+      }
+      toast.success('Activity entry updated');
+      cancelActivityEdit();
+    } catch (error) {
+      console.error('Error updating activity entry:', error);
+      toast.error('Failed to update activity entry');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -3418,7 +3466,11 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
 
   const activityEntries = [...customActivities, ...baseActivityEntries]
     .slice()
-    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+    .map((entry) => ({
+      ...entry,
+      ...(activityOverrides[entry.id] || {})
+    }));
 
   const filteredActivityEntries = activityEntries.filter((entry) => {
     const matchesTab = activityTab === 'all' || entry.type === activityTab;
@@ -3813,14 +3865,61 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
               )}
 
               {filteredActivityEntries.map((entry) => (
-                <div key={entry.id} className="lead-activity-entry">
+                <div
+                  key={entry.id}
+                  className={`lead-activity-entry ${editingActivityId === entry.id ? 'editing' : ''}`}
+                  onDoubleClick={() => {
+                    if (!saving) {
+                      beginActivityEdit(entry);
+                    }
+                  }}
+                >
                   <div className="lead-activity-entry-top">
                     <span className={`lead-activity-badge ${entry.type}`}>{entry.type}</span>
                     <span className="lead-activity-time">{formatTimestamp(entry.createdAt)}</span>
                   </div>
-                  <div className="lead-activity-entry-title">{entry.title}</div>
-                  <div className="lead-activity-entry-summary">{entry.summary}</div>
-                  <div className="lead-activity-entry-detail">{entry.detail}</div>
+                  {editingActivityId === entry.id ? (
+                    <div className="lead-activity-edit-fields">
+                      <div className="lead-field">
+                        <label>Title</label>
+                        <input
+                          type="text"
+                          value={editingActivityDraft.title}
+                          onChange={(e) => setEditingActivityDraft((prev) => ({ ...prev, title: e.target.value }))}
+                        />
+                      </div>
+                      <div className="lead-field">
+                        <label>Summary</label>
+                        <textarea
+                          rows={2}
+                          value={editingActivityDraft.summary}
+                          onChange={(e) => setEditingActivityDraft((prev) => ({ ...prev, summary: e.target.value }))}
+                        />
+                      </div>
+                      <div className="lead-field">
+                        <label>Detail</label>
+                        <textarea
+                          rows={3}
+                          value={editingActivityDraft.detail}
+                          onChange={(e) => setEditingActivityDraft((prev) => ({ ...prev, detail: e.target.value }))}
+                        />
+                      </div>
+                      <div className="lead-activity-edit-actions">
+                        <button type="button" className="lead-action-btn" onClick={cancelActivityEdit} disabled={saving}>
+                          Cancel
+                        </button>
+                        <button type="button" className="lead-action-btn lead-action-btn-primary" onClick={saveActivityEdit} disabled={saving}>
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="lead-activity-entry-title">{entry.title}</div>
+                      <div className="lead-activity-entry-summary">{entry.summary}</div>
+                      <div className="lead-activity-entry-detail">{entry.detail}</div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

@@ -2144,6 +2144,11 @@ body {
   padding: 12px;
 }
 
+.lead-activity-entry.editing {
+  border-color: #0088ff55;
+  background: #0c1117;
+}
+
 .lead-activity-entry-top {
   display: flex;
   justify-content: space-between;
@@ -2202,6 +2207,18 @@ body {
 .lead-activity-entry-detail {
   color: #909090;
   font-size: 12px;
+}
+
+.lead-activity-edit-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lead-activity-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .lead-property-address {
