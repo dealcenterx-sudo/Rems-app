@@ -1917,6 +1917,10 @@ body {
   gap: 8px;
 }
 
+.lead-inline-tabs-wrap {
+  position: relative;
+}
+
 .lead-inline-tab {
   border: 1px solid #202020;
   background: #121212;
@@ -1934,6 +1938,93 @@ body {
   color: #ffffff;
   border-color: #00ff8840;
   background: #00ff8812;
+}
+
+.lead-tab-popup {
+  position: absolute;
+  top: calc(100% + 10px);
+  width: min(420px, calc(100% - 12px));
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  background: #0c0c0c;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  z-index: 55;
+  animation: leadTabPopupIn 0.2s var(--ease-standard);
+}
+
+.lead-tab-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #1f1f1f;
+}
+
+.lead-tab-popup-title {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.lead-tab-popup-close {
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  background: #111111;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.lead-tab-popup-close:hover {
+  border-color: #00ff88;
+}
+
+.lead-tab-popup-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lead-tab-popup-copy {
+  color: #b8b8b8;
+  font-size: 12px;
+}
+
+.lead-tab-popup-copy strong {
+  color: #ffffff;
+}
+
+.lead-tab-popup-placeholder-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.lead-tab-popup-placeholder-item {
+  border: 1px dashed #2a2a2a;
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  color: #8f8f8f;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+}
+
+@keyframes leadTabPopupIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .lead-engagement-actions {
@@ -2290,6 +2381,15 @@ body {
 
   .lead-file-type {
     padding-bottom: 0;
+  }
+
+  .lead-tab-popup {
+    left: 0 !important;
+    width: 100%;
+  }
+
+  .lead-tab-popup-placeholder-grid {
+    grid-template-columns: 1fr;
   }
 }
 

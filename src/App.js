@@ -2904,6 +2904,7 @@ const createLeadFormState = (leadData = {}) => ({
 
 const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const toast = useToast();
+  const workspaceTabsWrapRef = useRef(null);
   const [lead, setLead] = useState(null);
   const [loading, setLoading] = useState(true);
   const [attachments, setAttachments] = useState([]);
@@ -2916,6 +2917,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const [leadForm, setLeadForm] = useState(createLeadFormState());
   const [formDirty, setFormDirty] = useState(false);
   const [customActivities, setCustomActivities] = useState([]);
+  const [floatingTabId, setFloatingTabId] = useState(null);
+  const [floatingTabLeft, setFloatingTabLeft] = useState(12);
 
   const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned';
   const CLOUDINARY_CLOUD_NAME = 'djaq0av66';
@@ -2965,6 +2968,29 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
 
     loadLead();
   }, [leadId]);
+
+  useEffect(() => {
+    if (!floatingTabId) return undefined;
+
+    const handleOutsideClick = (event) => {
+      if (!workspaceTabsWrapRef.current?.contains(event.target)) {
+        setFloatingTabId(null);
+      }
+    };
+
+    const handleEsc = (event) => {
+      if (event.key === 'Escape') {
+        setFloatingTabId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleEsc);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [floatingTabId]);
 
   const isSampleLead = lead?.id === 'sample-lead-1';
 
@@ -3389,6 +3415,32 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     'Disposition'
   ];
 
+  const handleWorkspaceTabClick = (tabId, event) => {
+    setWorkspaceTab(tabId);
+
+    if (floatingTabId === tabId) {
+      setFloatingTabId(null);
+      return;
+    }
+
+    const wrapEl = workspaceTabsWrapRef.current;
+    if (!wrapEl) {
+      setFloatingTabLeft(12);
+      setFloatingTabId(tabId);
+      return;
+    }
+
+    const wrapRect = wrapEl.getBoundingClientRect();
+    const btnRect = event.currentTarget.getBoundingClientRect();
+    const estimatedPopupWidth = Math.min(420, Math.max(280, wrapRect.width - 24));
+    let nextLeft = btnRect.left - wrapRect.left;
+    const maxLeft = Math.max(12, wrapRect.width - estimatedPopupWidth - 12);
+    nextLeft = Math.max(12, Math.min(nextLeft, maxLeft));
+
+    setFloatingTabLeft(nextLeft);
+    setFloatingTabId(tabId);
+  };
+
   const handlePrimaryAction = (actionId) => {
     if (actionId === 'checkin') {
       handleCheckIn();
@@ -3402,6 +3454,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       handleSaveLeadDetails();
     }
   };
+
+  const floatingTabLabel = workspaceTabs.find((tab) => tab.id === floatingTabId)?.label || 'Section';
 
   return (
     <div className="lead-workspace">
@@ -3571,17 +3625,40 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
 
         <section className="lead-center-panel">
           <div className="lead-panel-card">
-            <div className="lead-inline-tabs">
-              {workspaceTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  className={`lead-inline-tab ${workspaceTab === tab.id ? 'active' : ''}`}
-                  onClick={() => setWorkspaceTab(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div className="lead-inline-tabs-wrap" ref={workspaceTabsWrapRef}>
+              <div className="lead-inline-tabs">
+                {workspaceTabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    className={`lead-inline-tab ${workspaceTab === tab.id ? 'active' : ''}`}
+                    onClick={(event) => handleWorkspaceTabClick(tab.id, event)}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              {floatingTabId && (
+                <div className="lead-tab-popup" style={{ left: `${floatingTabLeft}px` }}>
+                  <div className="lead-tab-popup-header">
+                    <div className="lead-tab-popup-title">{floatingTabLabel}</div>
+                    <button type="button" className="lead-tab-popup-close" onClick={() => setFloatingTabId(null)}>×</button>
+                  </div>
+                  <div className="lead-tab-popup-body">
+                    <div className="lead-tab-popup-copy">
+                      Floating popup is active for <strong>{floatingTabLabel}</strong>.
+                    </div>
+                    <div className="lead-tab-popup-copy">
+                      We will wire the full content panel next.
+                    </div>
+                    <div className="lead-tab-popup-placeholder-grid">
+                      <div className="lead-tab-popup-placeholder-item">Panel Header</div>
+                      <div className="lead-tab-popup-placeholder-item">Primary Block</div>
+                      <div className="lead-tab-popup-placeholder-item">Secondary Block</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="lead-engagement-actions">
