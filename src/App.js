@@ -4649,70 +4649,6 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
               ))}
             </div>
           </div>
-        </section>
-
-        <aside className="lead-right-panel">
-          <div className="lead-panel-card">
-            <div className="lead-panel-title">Property Information</div>
-            <div className="lead-field-stack">
-              <div className="lead-field">
-                <label>Street</label>
-                <input
-                  type="text"
-                  value={leadForm.street}
-                  onChange={(e) => handleLeadFormChange('street', e.target.value)}
-                  placeholder="Street address"
-                />
-              </div>
-              <div className="lead-field">
-                <label>City</label>
-                <input
-                  type="text"
-                  value={leadForm.city}
-                  onChange={(e) => handleLeadFormChange('city', e.target.value)}
-                  placeholder="City"
-                />
-              </div>
-              <div className="lead-field">
-                <label>State</label>
-                <input
-                  type="text"
-                  maxLength={2}
-                  value={leadForm.state}
-                  onChange={(e) => handleLeadFormChange('state', e.target.value.toUpperCase())}
-                  placeholder="ST"
-                />
-              </div>
-              <div className="lead-field">
-                <label>Zip Code</label>
-                <input
-                  type="text"
-                  value={leadForm.zipCode}
-                  onChange={(e) => handleLeadFormChange('zipCode', e.target.value)}
-                  placeholder="Zip"
-                />
-              </div>
-              <div className="lead-field">
-                <label>Property Type</label>
-                <select
-                  value={leadForm.propertyType || ''}
-                  onChange={(e) => handleLeadFormChange('propertyType', e.target.value)}
-                >
-                  <option value="">Select type</option>
-                  <option value="sfr">SFR</option>
-                  <option value="multi-family">Multifamily</option>
-                  <option value="commercial">Commercial</option>
-                  <option value="condo">Condo</option>
-                  <option value="townhouse">Townhouse</option>
-                  <option value="land">Land</option>
-                </select>
-              </div>
-            </div>
-            <div className="lead-property-meta">
-              <span className="lead-property-chip">{propertyType}</span>
-              <span className="lead-property-chip">{serviceType}</span>
-            </div>
-          </div>
 
           <div className="lead-panel-card">
             <div className="lead-panel-title">Files</div>
@@ -4797,6 +4733,70 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 </div>
               </div>
             )}
+          </div>
+        </section>
+
+        <aside className="lead-right-panel">
+          <div className="lead-panel-card">
+            <div className="lead-panel-title">Property Information</div>
+            <div className="lead-field-stack">
+              <div className="lead-field">
+                <label>Street</label>
+                <input
+                  type="text"
+                  value={leadForm.street}
+                  onChange={(e) => handleLeadFormChange('street', e.target.value)}
+                  placeholder="Street address"
+                />
+              </div>
+              <div className="lead-field">
+                <label>City</label>
+                <input
+                  type="text"
+                  value={leadForm.city}
+                  onChange={(e) => handleLeadFormChange('city', e.target.value)}
+                  placeholder="City"
+                />
+              </div>
+              <div className="lead-field">
+                <label>State</label>
+                <input
+                  type="text"
+                  maxLength={2}
+                  value={leadForm.state}
+                  onChange={(e) => handleLeadFormChange('state', e.target.value.toUpperCase())}
+                  placeholder="ST"
+                />
+              </div>
+              <div className="lead-field">
+                <label>Zip Code</label>
+                <input
+                  type="text"
+                  value={leadForm.zipCode}
+                  onChange={(e) => handleLeadFormChange('zipCode', e.target.value)}
+                  placeholder="Zip"
+                />
+              </div>
+              <div className="lead-field">
+                <label>Property Type</label>
+                <select
+                  value={leadForm.propertyType || ''}
+                  onChange={(e) => handleLeadFormChange('propertyType', e.target.value)}
+                >
+                  <option value="">Select type</option>
+                  <option value="sfr">SFR</option>
+                  <option value="multi-family">Multifamily</option>
+                  <option value="commercial">Commercial</option>
+                  <option value="condo">Condo</option>
+                  <option value="townhouse">Townhouse</option>
+                  <option value="land">Land</option>
+                </select>
+              </div>
+            </div>
+            <div className="lead-property-meta">
+              <span className="lead-property-chip">{propertyType}</span>
+              <span className="lead-property-chip">{serviceType}</span>
+            </div>
           </div>
         </aside>
       </div>
