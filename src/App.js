@@ -3348,6 +3348,10 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const [isFileDragOver, setIsFileDragOver] = useState(false);
   const [showEmailComposer, setShowEmailComposer] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [leadDetailViewTab, setLeadDetailViewTab] = useState('workspace');
+  const [documentTemplate, setDocumentTemplate] = useState('lead-summary');
+  const [documentTitle, setDocumentTitle] = useState('');
+  const [generatedLeadDocuments, setGeneratedLeadDocuments] = useState([]);
   const [emailComposer, setEmailComposer] = useState({
     to: '',
     cc: '',
@@ -3374,6 +3378,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       if (!leadId) {
         setLead(null);
         setLinkedDealCount(0);
+        setGeneratedLeadDocuments([]);
         setLoading(false);
         return;
       }
@@ -3385,6 +3390,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         setLeadForm(createLeadFormState(SAMPLE_CRM_LEAD));
         setCustomActivities(Array.isArray(SAMPLE_CRM_LEAD.activityLog) ? SAMPLE_CRM_LEAD.activityLog : []);
         setActivityOverrides(SAMPLE_CRM_LEAD.activityOverrides || {});
+        setGeneratedLeadDocuments(Array.isArray(SAMPLE_CRM_LEAD.generatedDocuments) ? SAMPLE_CRM_LEAD.generatedDocuments : []);
         setEditingActivityId(null);
         setFormDirty(false);
         setLinkedDealCount(0);
@@ -3399,6 +3405,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         if (!leadSnapshot.exists()) {
           setLead(null);
           setLinkedDealCount(0);
+          setGeneratedLeadDocuments([]);
           return;
         }
 
@@ -3433,12 +3440,14 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         setLeadForm(createLeadFormState(leadData));
         setCustomActivities(Array.isArray(leadData.activityLog) ? leadData.activityLog : []);
         setActivityOverrides(leadData.activityOverrides || {});
+        setGeneratedLeadDocuments(Array.isArray(leadData.generatedDocuments) ? leadData.generatedDocuments : []);
         setEditingActivityId(null);
         setFormDirty(false);
         setLinkedDealCount(existingLinkedDeals);
       } catch (error) {
         console.error('Error loading lead detail:', error);
         setLinkedDealCount(0);
+        setGeneratedLeadDocuments([]);
       } finally {
         setLoading(false);
       }
@@ -4288,11 +4297,241 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     }))
   ];
 
+  const leadDetailTabs = [
+    { id: 'workspace', label: 'Lead Workspace' },
+    { id: 'documents', label: 'Documents Page' },
+    { id: 'files', label: 'Files Hub' }
+  ];
+
+  const leadDocumentTemplateOptions = [
+    { value: 'lead-summary', label: 'Lead Summary' },
+    { value: 'property-intake', label: 'Property Intake Sheet' },
+    { value: 'deal-brief', label: 'Deal Brief' }
+  ];
+
+  const getTemplateLabel = (value) => (
+    leadDocumentTemplateOptions.find((option) => option.value === value)?.label || 'Lead Document'
+  );
+
+  const buildGeneratedDocumentBody = (templateValue) => {
+    const selectedTemplate = templateValue || documentTemplate;
+    const linesByTemplate = {
+      'lead-summary': [
+        `Lead Name: ${leadName}`,
+        `Service Requested: ${serviceType}`,
+        `Pipeline Stage: ${getLeadWarmthLabel(warmth)}`,
+        `Lead Source: ${source}`,
+        `Phone: ${leadForm.phone || 'N/A'}`,
+        `Email: ${leadForm.email || 'N/A'}`,
+        `Preferred Contact: ${leadForm.contactMethod || 'N/A'}`,
+        `Submitted At: ${submittedLabel}`,
+        `Last Updated: ${lastUpdatedLabel}`,
+        '',
+        'Notes:',
+        leadForm.notes || 'No notes provided.'
+      ],
+      'property-intake': [
+        `Lead Name: ${leadName}`,
+        `Property Type: ${propertyType}`,
+        `Street: ${leadForm.street || 'N/A'}`,
+        `City: ${leadForm.city || 'N/A'}`,
+        `State: ${leadForm.state || 'N/A'}`,
+        `Zip Code: ${leadForm.zipCode || 'N/A'}`,
+        `Service Requested: ${serviceType}`,
+        '',
+        'Property Intake Notes:',
+        leadForm.notes || 'No notes provided.'
+      ],
+      'deal-brief': [
+        `Lead Name: ${leadName}`,
+        `Current Pipeline Stage: ${getLeadWarmthLabel(warmth)}`,
+        `Linked Deal Count: ${linkedDealCount}`,
+        `Lead Source: ${source}`,
+        `Contact: ${leadForm.phone || 'N/A'} • ${leadForm.email || 'N/A'}`,
+        `Property: ${leadForm.street || 'N/A'}, ${leadForm.city || 'N/A'}, ${leadForm.state || 'N/A'} ${leadForm.zipCode || ''}`,
+        '',
+        'Deal Brief Notes:',
+        leadForm.notes || 'No notes provided.'
+      ]
+    };
+
+    return (linesByTemplate[selectedTemplate] || linesByTemplate['lead-summary']).join('\n');
+  };
+
+  const documentDraftPreview = buildGeneratedDocumentBody(documentTemplate);
+
+  const handleCreateGeneratedDocument = async () => {
+    const templateLabel = getTemplateLabel(documentTemplate);
+    const nowIso = new Date().toISOString();
+    const defaultTitle = `${templateLabel} - ${leadName}`;
+    const nextDocument = {
+      id: `lead-doc-${Date.now()}-${Math.random().toString(16).slice(2, 7)}`,
+      template: documentTemplate,
+      title: (documentTitle || '').trim() || defaultTitle,
+      content: documentDraftPreview,
+      createdAt: nowIso
+    };
+    const nextDocuments = [nextDocument, ...generatedLeadDocuments];
+
+    setSaving(true);
+    try {
+      if (!isSampleLead) {
+        await persistLeadUpdate({ generatedDocuments: nextDocuments });
+      }
+      setGeneratedLeadDocuments(nextDocuments);
+      setDocumentTitle('');
+      toast.success('Lead document created');
+    } catch (error) {
+      console.error('Error creating lead document:', error);
+      toast.error('Failed to create document');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCopyGeneratedDocument = async (documentItem) => {
+    try {
+      await navigator.clipboard.writeText(documentItem.content || '');
+      toast.success('Document copied');
+    } catch (error) {
+      console.error('Error copying document:', error);
+      toast.error('Failed to copy document');
+    }
+  };
+
+  const handleDownloadGeneratedDocument = (documentItem) => {
+    const fileName = `${(documentItem.title || 'lead-document').replace(/[^a-z0-9-_]/gi, '_')}.txt`;
+    const blob = new Blob([documentItem.content || ''], { type: 'text/plain;charset=utf-8' });
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = objectUrl;
+    anchor.download = fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(objectUrl);
+  };
+
+  const handleDeleteGeneratedDocument = async (documentId) => {
+    const nextDocuments = generatedLeadDocuments.filter((item) => item.id !== documentId);
+    setSaving(true);
+    try {
+      if (!isSampleLead) {
+        await persistLeadUpdate({ generatedDocuments: nextDocuments });
+      }
+      setGeneratedLeadDocuments(nextDocuments);
+      toast.success('Document removed');
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast.error('Failed to delete document');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const renderFilesPanel = () => (
+    <div className="lead-panel-card">
+      <div className="lead-panel-title">Files</div>
+      <div className="lead-files-toolbar">
+        <button type="button" className="lead-action-btn" onClick={() => leadFileInputRef.current?.click()} disabled={saving}>
+          Choose Files
+        </button>
+        <button className="lead-action-btn" onClick={handleUploadFiles} disabled={saving || pendingFiles.length === 0}>
+          Upload
+        </button>
+        <button className="lead-action-btn" onClick={handleSaveAttachmentNames} disabled={saving || attachments.length === 0}>
+          Save Names
+        </button>
+      </div>
+      <input
+        ref={leadFileInputRef}
+        type="file"
+        multiple
+        onChange={handleFileInputChange}
+        style={{ display: 'none' }}
+      />
+      <div
+        className={`lead-file-dropzone ${isFileDragOver ? 'drag-over' : ''}`}
+        onDragOver={handleFileDragOver}
+        onDragEnter={handleFileDragOver}
+        onDragLeave={handleFileDragLeave}
+        onDrop={handleFileDrop}
+      >
+        <div className="lead-file-dropzone-title">Drag and drop files here</div>
+        <div className="lead-file-dropzone-subtitle">or click “Choose Files” above</div>
+      </div>
+
+      {documentRows.length === 0 ? (
+        <div className="lead-empty-inline">No files uploaded yet.</div>
+      ) : (
+        <div className="lead-doc-list">
+          <div className="lead-doc-list-head">
+            <div>Document Name</div>
+            <div>Type</div>
+            <div>Size</div>
+            <div>Status</div>
+            <div>Action</div>
+          </div>
+          <div className="lead-doc-list-body">
+            {documentRows.map((row) => (
+              <div key={row.id} className="lead-doc-row">
+                <div className="lead-doc-name-cell">
+                  <input
+                    type="text"
+                    value={row.fileName}
+                    onChange={(e) => {
+                      if (row.source === 'pending') {
+                        handlePendingFileNameChange(row.id, e.target.value);
+                      } else {
+                        const next = [...attachments];
+                        next[row.index] = { ...next[row.index], fileName: e.target.value };
+                        setAttachments(next);
+                      }
+                    }}
+                  />
+                </div>
+                <div className="lead-doc-meta-cell">{(row.fileType || 'unknown').toString().toUpperCase()}</div>
+                <div className="lead-doc-meta-cell">{formatFileSize(row.fileSize)}</div>
+                <div className={`lead-doc-status ${row.source === 'pending' ? 'pending' : 'uploaded'}`}>
+                  {row.source === 'pending' ? 'Pending Upload' : 'Uploaded'}
+                </div>
+                <div className="lead-doc-action-cell">
+                  {row.source === 'pending' ? (
+                    <button type="button" className="lead-file-link" onClick={() => removePendingFile(row.id)}>
+                      Remove
+                    </button>
+                  ) : row.fileUrl ? (
+                    <a href={row.fileUrl} target="_blank" rel="noopener noreferrer" className="lead-file-link">
+                      Open
+                    </a>
+                  ) : (
+                    <div className="lead-file-link muted">Pending</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="lead-workspace">
       <div className="lead-workspace-topbar">
         <div className="lead-top-meta">
-          <div className="lead-workspace-title">Lead Workspace</div>
+          <div className="lead-workspace-top-tabs">
+            {leadDetailTabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`lead-workspace-top-tab ${leadDetailViewTab === tab.id ? 'active' : ''}`}
+                onClick={() => setLeadDetailViewTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
           <div className="lead-top-pills">
             <span className="lead-pill lead-pill-primary">{leadName}</span>
             <span className="lead-pill">{serviceType}</span>
@@ -4380,6 +4619,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         </div>
       </div>
 
+      {leadDetailViewTab === 'workspace' && (
       <div className="lead-workspace-body">
         <aside className="lead-left-panel">
           <div className="lead-panel-card">
@@ -4650,90 +4890,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
             </div>
           </div>
 
-          <div className="lead-panel-card">
-            <div className="lead-panel-title">Files</div>
-            <div className="lead-files-toolbar">
-              <button type="button" className="lead-action-btn" onClick={() => leadFileInputRef.current?.click()} disabled={saving}>
-                Choose Files
-              </button>
-              <button className="lead-action-btn" onClick={handleUploadFiles} disabled={saving || pendingFiles.length === 0}>
-                Upload
-              </button>
-              <button className="lead-action-btn" onClick={handleSaveAttachmentNames} disabled={saving || attachments.length === 0}>
-                Save Names
-              </button>
-            </div>
-            <input
-              ref={leadFileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileInputChange}
-              style={{ display: 'none' }}
-            />
-            <div
-              className={`lead-file-dropzone ${isFileDragOver ? 'drag-over' : ''}`}
-              onDragOver={handleFileDragOver}
-              onDragEnter={handleFileDragOver}
-              onDragLeave={handleFileDragLeave}
-              onDrop={handleFileDrop}
-            >
-              <div className="lead-file-dropzone-title">Drag and drop files here</div>
-              <div className="lead-file-dropzone-subtitle">or click “Choose Files” above</div>
-            </div>
-
-            {documentRows.length === 0 ? (
-              <div className="lead-empty-inline">No files uploaded yet.</div>
-            ) : (
-              <div className="lead-doc-list">
-                <div className="lead-doc-list-head">
-                  <div>Document Name</div>
-                  <div>Type</div>
-                  <div>Size</div>
-                  <div>Status</div>
-                  <div>Action</div>
-                </div>
-                <div className="lead-doc-list-body">
-                  {documentRows.map((row) => (
-                    <div key={row.id} className="lead-doc-row">
-                      <div className="lead-doc-name-cell">
-                        <input
-                          type="text"
-                          value={row.fileName}
-                          onChange={(e) => {
-                            if (row.source === 'pending') {
-                              handlePendingFileNameChange(row.id, e.target.value);
-                            } else {
-                              const next = [...attachments];
-                              next[row.index] = { ...next[row.index], fileName: e.target.value };
-                              setAttachments(next);
-                            }
-                          }}
-                        />
-                      </div>
-                      <div className="lead-doc-meta-cell">{(row.fileType || 'unknown').toString().toUpperCase()}</div>
-                      <div className="lead-doc-meta-cell">{formatFileSize(row.fileSize)}</div>
-                      <div className={`lead-doc-status ${row.source === 'pending' ? 'pending' : 'uploaded'}`}>
-                        {row.source === 'pending' ? 'Pending Upload' : 'Uploaded'}
-                      </div>
-                      <div className="lead-doc-action-cell">
-                        {row.source === 'pending' ? (
-                          <button type="button" className="lead-file-link" onClick={() => removePendingFile(row.id)}>
-                            Remove
-                          </button>
-                        ) : row.fileUrl ? (
-                          <a href={row.fileUrl} target="_blank" rel="noopener noreferrer" className="lead-file-link">
-                            Open
-                          </a>
-                        ) : (
-                          <div className="lead-file-link muted">Pending</div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          {renderFilesPanel()}
         </section>
 
         <aside className="lead-right-panel">
@@ -4800,6 +4957,98 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
           </div>
         </aside>
       </div>
+      )}
+
+      {leadDetailViewTab === 'documents' && (
+        <div className="lead-documents-page">
+          <div className="lead-documents-grid">
+            <div className="lead-panel-card">
+              <div className="lead-panel-title">Document Builder</div>
+              <div className="lead-field-stack">
+                <div className="lead-field">
+                  <label>Document Type</label>
+                  <select
+                    value={documentTemplate}
+                    onChange={(event) => setDocumentTemplate(event.target.value)}
+                    disabled={saving}
+                  >
+                    {leadDocumentTemplateOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="lead-field">
+                  <label>Document Name</label>
+                  <input
+                    type="text"
+                    value={documentTitle}
+                    onChange={(event) => setDocumentTitle(event.target.value)}
+                    placeholder={`${getTemplateLabel(documentTemplate)} - ${leadName}`}
+                    disabled={saving}
+                  />
+                </div>
+                <div className="lead-field">
+                  <label>Preview</label>
+                  <textarea rows={14} value={documentDraftPreview} readOnly className="lead-doc-preview" />
+                </div>
+                <button
+                  type="button"
+                  className="lead-action-btn lead-action-btn-primary"
+                  onClick={handleCreateGeneratedDocument}
+                  disabled={saving}
+                >
+                  {saving ? 'Creating...' : 'Create Document'}
+                </button>
+              </div>
+            </div>
+
+            <div className="lead-panel-card">
+              <div className="lead-panel-title">Generated Documents ({generatedLeadDocuments.length})</div>
+              {generatedLeadDocuments.length === 0 ? (
+                <div className="lead-empty-inline">No generated documents yet.</div>
+              ) : (
+                <div className="lead-generated-doc-list">
+                  {generatedLeadDocuments.map((documentItem) => (
+                    <div key={documentItem.id} className="lead-generated-doc-item">
+                      <div className="lead-generated-doc-main">
+                        <div className="lead-generated-doc-title">{documentItem.title}</div>
+                        <div className="lead-generated-doc-meta">
+                          <span>{getTemplateLabel(documentItem.template)}</span>
+                          <span>{formatTimestamp(documentItem.createdAt)}</span>
+                        </div>
+                      </div>
+                      <div className="lead-generated-doc-actions">
+                        <button type="button" className="lead-file-link" onClick={() => handleCopyGeneratedDocument(documentItem)}>
+                          Copy
+                        </button>
+                        <button type="button" className="lead-file-link" onClick={() => handleDownloadGeneratedDocument(documentItem)}>
+                          Download
+                        </button>
+                        <button
+                          type="button"
+                          className="lead-file-link"
+                          onClick={() => handleDeleteGeneratedDocument(documentItem.id)}
+                          disabled={saving}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {leadDetailViewTab === 'files' && (
+        <div className="lead-files-page">
+          {renderFilesPanel()}
+        </div>
+      )}
 
       {showEmailComposer && (
         <div className="modal-overlay" onClick={() => !sendingEmail && setShowEmailComposer(false)}>
