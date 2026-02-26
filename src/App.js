@@ -3333,6 +3333,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const [pendingFiles, setPendingFiles] = useState([]);
   const [saving, setSaving] = useState(false);
   const [warmth, setWarmth] = useState('cold');
+  const [linkedDealCount, setLinkedDealCount] = useState(0);
   const [workspaceTab, setWorkspaceTab] = useState('lead');
   const [activityTab, setActivityTab] = useState('all');
   const [activitySearch, setActivitySearch] = useState('');
@@ -3359,12 +3360,20 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
 
   const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned';
   const CLOUDINARY_CLOUD_NAME = 'djaq0av66';
+  const hasLinkedDeal = linkedDealCount > 0;
+
+  const fetchLinkedDealCount = useCallback(async (targetLeadId) => {
+    if (!targetLeadId) return 0;
+    const dealsSnapshot = await getDocs(query(collection(db, 'deals'), where('leadId', '==', targetLeadId)));
+    return dealsSnapshot.size;
+  }, []);
 
   useEffect(() => {
     const loadLead = async () => {
       setLoading(true);
       if (!leadId) {
         setLead(null);
+        setLinkedDealCount(0);
         setLoading(false);
         return;
       }
@@ -3378,6 +3387,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         setActivityOverrides(SAMPLE_CRM_LEAD.activityOverrides || {});
         setEditingActivityId(null);
         setFormDirty(false);
+        setLinkedDealCount(0);
         setLoading(false);
         return;
       }
@@ -3388,27 +3398,54 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
 
         if (!leadSnapshot.exists()) {
           setLead(null);
+          setLinkedDealCount(0);
           return;
         }
 
         const leadData = { id: leadSnapshot.id, ...leadSnapshot.data() };
+        let existingLinkedDeals = 0;
+        try {
+          existingLinkedDeals = await fetchLinkedDealCount(leadData.id);
+        } catch (dealsError) {
+          console.error('Error loading linked deals for lead:', dealsError);
+        }
+
+        const normalizedWarmth = normalizeLeadWarmth(leadData.warmth || leadData.classification);
+        const correctedWarmth = normalizedWarmth === 'active-deal' && existingLinkedDeals === 0
+          ? 'worked'
+          : normalizedWarmth;
+
+        if (normalizedWarmth === 'active-deal' && correctedWarmth !== normalizedWarmth) {
+          try {
+            await updateDoc(doc(db, 'leads', leadData.id), {
+              warmth: correctedWarmth,
+              updatedAt: new Date().toISOString()
+            });
+          } catch (syncError) {
+            console.error('Error syncing lead stage with linked deals:', syncError);
+          }
+        }
+
+        leadData.warmth = correctedWarmth;
         setLead(leadData);
         setAttachments(leadData.attachments || []);
-        setWarmth(normalizeLeadWarmth(leadData.warmth || leadData.classification));
+        setWarmth(correctedWarmth);
         setLeadForm(createLeadFormState(leadData));
         setCustomActivities(Array.isArray(leadData.activityLog) ? leadData.activityLog : []);
         setActivityOverrides(leadData.activityOverrides || {});
         setEditingActivityId(null);
         setFormDirty(false);
+        setLinkedDealCount(existingLinkedDeals);
       } catch (error) {
         console.error('Error loading lead detail:', error);
+        setLinkedDealCount(0);
       } finally {
         setLoading(false);
       }
     };
 
     loadLead();
-  }, [leadId]);
+  }, [fetchLinkedDealCount, leadId]);
 
   useEffect(() => {
     if (!floatingTabId) return undefined;
@@ -3491,9 +3528,29 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     });
   };
 
-  const handleWarmthChange = async (nextWarmth) => {
-    setWarmth(nextWarmth);
+  const handleWarmthChange = async (nextWarmth, { bypassDealGuard = false } = {}) => {
     if (!lead) return;
+    const previousWarmth = warmth;
+
+    if (nextWarmth === 'active-deal' && !bypassDealGuard) {
+      let nextLinkedDealCount = linkedDealCount;
+      if (nextLinkedDealCount === 0) {
+        try {
+          nextLinkedDealCount = await fetchLinkedDealCount(lead.id);
+          setLinkedDealCount(nextLinkedDealCount);
+        } catch (error) {
+          console.error('Error validating linked deal before stage change:', error);
+        }
+      }
+
+      if (nextLinkedDealCount === 0) {
+        toast.info('Active Deal requires a linked deal. Creating one now.');
+        await handleStartDeal({ initiatedFromStageChange: true, navigateToDeals: false });
+        return;
+      }
+    }
+
+    setWarmth(nextWarmth);
 
     try {
       await persistLeadUpdate({ warmth: nextWarmth });
@@ -3506,6 +3563,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       });
     } catch (error) {
       console.error('Error updating lead warmth:', error);
+      setWarmth(previousWarmth);
+      setLead({ ...lead, warmth: previousWarmth });
     }
   };
 
@@ -3870,7 +3929,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     }
   };
 
-  const handleStartDeal = async () => {
+  const handleStartDeal = async ({ initiatedFromStageChange = false, navigateToDeals = true } = {}) => {
     if (!lead) return;
 
     if (formDirty) {
@@ -3882,8 +3941,18 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     try {
       const existingDeals = await getDocs(query(collection(db, 'deals'), where('leadId', '==', lead.id)));
       if (!existingDeals.empty) {
-        toast.info('Deal already exists for this lead');
-        onStartDeal?.('active');
+        setLinkedDealCount(existingDeals.size);
+        if (warmth !== 'active-deal') {
+          await handleWarmthChange('active-deal', { bypassDealGuard: true });
+        }
+        if (initiatedFromStageChange) {
+          toast.success('Linked deal found. Lead moved to Active Deal.');
+        } else {
+          toast.info('Deal already exists for this lead');
+        }
+        if (navigateToDeals) {
+          onStartDeal?.('active');
+        }
         return;
       }
 
@@ -3910,15 +3979,18 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       }
 
       await addDoc(collection(db, 'deals'), dealPayload);
-      await handleWarmthChange('active-deal');
+      setLinkedDealCount(existingDeals.size + 1);
+      await handleWarmthChange('active-deal', { bypassDealGuard: true });
       await appendActivityEntry({
         type: 'deal',
         title: 'Deal started',
         summary: 'Lead was converted to a deal.',
         detail: 'A new record was created in Deals with a leadId reference.'
       });
-      toast.success('Lead converted to deal');
-      onStartDeal?.('new');
+      toast.success(initiatedFromStageChange ? 'Deal created and lead moved to Active Deal' : 'Lead converted to deal');
+      if (navigateToDeals) {
+        onStartDeal?.('new');
+      }
     } catch (error) {
       console.error('Error creating deal from lead:', error);
       toast.error('Failed to start deal');
@@ -4201,18 +4273,25 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
           {LEAD_PIPELINE_STAGES.map((stage, index) => {
             const isActive = warmth === stage.value;
             const isComplete = index <= pipelineStageIndex;
+            const isLockedActiveStage = stage.value === 'active-deal' && !hasLinkedDeal;
             return (
               <button
                 key={stage.value}
                 type="button"
                 onClick={() => handleWarmthChange(stage.value)}
-                className={`lead-stage-step ${isActive ? 'active' : ''} ${isComplete ? 'complete' : ''}`}
+                className={`lead-stage-step ${isActive ? 'active' : ''} ${isComplete ? 'complete' : ''} ${isLockedActiveStage ? 'locked' : ''}`}
+                title={isLockedActiveStage ? 'Create a deal to unlock Active Deal stage' : stage.label}
               >
                 {stage.label}
               </button>
             );
           })}
         </div>
+        {!hasLinkedDeal && (
+          <div className="lead-stage-guard-note">
+            Active Deal is locked until a deal is created for this lead.
+          </div>
+        )}
 
         <div className="lead-stage-progress">
           <div className="lead-stage-progress-fill" style={{ width: `${pipelineProgressPct}%` }} />
@@ -4305,7 +4384,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 >
                   {LEAD_PIPELINE_STAGES.map((stage) => (
                     <option key={stage.value} value={stage.value}>
-                      {stage.label}
+                      {stage.value === 'active-deal' && !hasLinkedDeal
+                        ? `${stage.label} (create deal first)`
+                        : stage.label}
                     </option>
                   ))}
                 </select>
