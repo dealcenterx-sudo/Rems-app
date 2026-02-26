@@ -3559,7 +3559,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         type: 'status',
         title: 'Pipeline stage changed',
         summary: `Lead moved to ${getLeadWarmthLabel(nextWarmth)}.`,
-        detail: 'Stage updated from lead detail workspace.'
+        detail: 'Stage updated from lead detail workspace.',
+        isPermanent: true,
+        source: 'workflow'
       });
     } catch (error) {
       console.error('Error updating lead warmth:', error);
@@ -3602,6 +3604,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     const nextEntry = {
       id: `evt-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
       createdAt: new Date().toISOString(),
+      isPermanent: false,
+      source: 'user',
       ...entry
     };
     const nextActivities = [nextEntry, ...customActivities];
@@ -3647,6 +3651,49 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     } catch (error) {
       console.error('Error updating activity entry:', error);
       toast.error('Failed to update activity entry');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const isPermanentActivityEntry = (entry) => {
+    const combinedText = `${entry?.title || ''} ${entry?.summary || ''} ${entry?.detail || ''}`.toLowerCase();
+    return Boolean(entry?.isPermanent) || combinedText.includes('email') || combinedText.includes('workflow');
+  };
+
+  const canDeleteActivityEntry = (entry) => Boolean(entry?.isCustom) && !isPermanentActivityEntry(entry);
+
+  const handleDeleteActivityEntry = async (entry) => {
+    if (!entry?.id || !entry?.isCustom) return;
+    if (isPermanentActivityEntry(entry)) {
+      toast.info('Email and workflow activity entries are permanent');
+      return;
+    }
+
+    const confirmed = window.confirm('Delete this activity entry?');
+    if (!confirmed) return;
+
+    const nextActivities = customActivities.filter((activity) => activity.id !== entry.id);
+    const nextOverrides = { ...activityOverrides };
+    delete nextOverrides[entry.id];
+
+    setSaving(true);
+    try {
+      if (!isSampleLead) {
+        await persistLeadUpdate({
+          activityLog: nextActivities,
+          activityOverrides: nextOverrides
+        });
+      }
+      setCustomActivities(nextActivities);
+      setActivityOverrides(nextOverrides);
+      if (editingActivityId === entry.id) {
+        cancelActivityEdit();
+      }
+      toast.success('Activity deleted');
+    } catch (error) {
+      console.error('Error deleting activity entry:', error);
+      toast.error('Failed to delete activity');
     } finally {
       setSaving(false);
     }
@@ -3715,7 +3762,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         type: 'deal',
         title: 'Desk flow started',
         summary: 'Lead moved into desk prep workflow.',
-        detail: 'Desk stage opened from lead detail page.'
+        detail: 'Desk stage opened from lead detail page.',
+        isPermanent: true,
+        source: 'workflow'
       });
       if (warmth === 'cold') {
         await handleWarmthChange('worked');
@@ -3840,7 +3889,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         type: 'contact',
         title: 'Email sent',
         summary: subjectValue,
-        detail: `To: ${messagePayload.to}${messagePayload.cc ? ` • CC: ${messagePayload.cc}` : ''}${messagePayload.bcc ? ' • BCC added' : ''}`
+        detail: `To: ${messagePayload.to}${messagePayload.cc ? ` • CC: ${messagePayload.cc}` : ''}${messagePayload.bcc ? ' • BCC added' : ''}`,
+        isPermanent: true,
+        source: 'email'
       });
 
       toast.success(webhookUrl ? 'Email sent from CRM' : 'Email composer opened');
@@ -3869,7 +3920,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         type: 'contact',
         title: label,
         summary: `${label} action created from workspace toolbar.`,
-        detail: 'Wire this action to downstream automations if needed.'
+        detail: 'Wire this action to downstream automations if needed.',
+        isPermanent: label.toLowerCase().includes('workflow'),
+        source: label.toLowerCase().includes('workflow') ? 'workflow' : 'user'
       });
       toast.success(`${label} added to activity`);
     } catch (error) {
@@ -3985,7 +4038,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         type: 'deal',
         title: 'Deal started',
         summary: 'Lead was converted to a deal.',
-        detail: 'A new record was created in Deals with a leadId reference.'
+        detail: 'A new record was created in Deals with a leadId reference.',
+        isPermanent: true,
+        source: 'workflow'
       });
       toast.success(initiatedFromStageChange ? 'Deal created and lead moved to Active Deal' : 'Lead converted to deal');
       if (navigateToDeals) {
@@ -4093,7 +4148,15 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     }
   ];
 
-  const activityEntries = [...customActivities, ...baseActivityEntries]
+  const customActivityEntries = customActivities.map((entry) => ({ ...entry, isCustom: true }));
+  const baseSystemActivityEntries = baseActivityEntries.map((entry) => ({
+    ...entry,
+    isCustom: false,
+    isPermanent: true,
+    source: 'system'
+  }));
+
+  const activityEntries = [...customActivityEntries, ...baseSystemActivityEntries]
     .slice()
     .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
     .map((entry) => ({
@@ -4523,7 +4586,22 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 >
                   <div className="lead-activity-entry-top">
                     <span className={`lead-activity-badge ${entry.type}`}>{entry.type}</span>
-                    <span className="lead-activity-time">{formatTimestamp(entry.createdAt)}</span>
+                    <div className="lead-activity-entry-meta">
+                      <span className="lead-activity-time">{formatTimestamp(entry.createdAt)}</span>
+                      {canDeleteActivityEntry(entry) && editingActivityId !== entry.id && (
+                        <button
+                          type="button"
+                          className="lead-activity-delete-btn"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleDeleteActivityEntry(entry);
+                          }}
+                          disabled={saving}
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {editingActivityId === entry.id ? (
                     <div className="lead-activity-edit-fields">

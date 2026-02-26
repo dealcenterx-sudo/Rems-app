@@ -2434,6 +2434,12 @@ body {
   margin-bottom: 8px;
 }
 
+.lead-activity-entry-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .lead-activity-badge {
   text-transform: uppercase;
   font-size: 10px;
@@ -2466,6 +2472,29 @@ body {
 .lead-activity-time {
   color: #8a8a8a;
   font-size: 11px;
+}
+
+.lead-activity-delete-btn {
+  border: 1px solid #3b1f1f;
+  border-radius: 6px;
+  background: #1a1010;
+  color: #ff9f9f;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lead-activity-delete-btn:hover {
+  border-color: #ff4f4f;
+  color: #ffd6d6;
+  background: #2a1313;
+}
+
+.lead-activity-delete-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .lead-activity-entry-title {
