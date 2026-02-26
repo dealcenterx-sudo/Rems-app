@@ -1525,6 +1525,210 @@ body {
   gap: 8px;
 }
 
+.crm-email-view {
+  height: 100%;
+}
+
+.crm-email-shell {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 14px;
+  min-height: calc(100vh - 180px);
+}
+
+.crm-email-sidebar {
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+  background: #0b0b0b;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.crm-email-compose-btn {
+  border: 1px solid #00ff8840;
+  border-radius: 10px;
+  background: #00ff8815;
+  color: #00ff88;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.crm-email-folder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.crm-email-folder-btn {
+  border: 1px solid #1f1f1f;
+  border-radius: 8px;
+  background: #101010;
+  color: #cfcfcf;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.crm-email-folder-btn.active {
+  border-color: #00ff8840;
+  background: #00ff8812;
+  color: #ffffff;
+}
+
+.crm-email-main {
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+  background: #0b0b0b;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.crm-email-main-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.crm-email-search {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #1f1f1f;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #101010;
+}
+
+.crm-email-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.crm-email-search input::placeholder {
+  color: #7f7f7f;
+}
+
+.crm-email-list-surface {
+  border: 1px solid #1f1f1f;
+  border-radius: 10px;
+  background: #090909;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.crm-email-list-head {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) 90px;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #1a1a1a;
+  background: #111111;
+}
+
+.crm-email-list-head > div {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+  color: #8a8a8a;
+  font-weight: 700;
+}
+
+.crm-email-list-body {
+  overflow-y: auto;
+  max-height: calc(100vh - 310px);
+}
+
+.crm-email-row {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) 90px;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #151515;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.crm-email-row:hover {
+  background: #101010;
+}
+
+.crm-email-row.active {
+  background: #0f151b;
+}
+
+.crm-email-row.unread .crm-email-row-from,
+.crm-email-row.unread .crm-email-row-subject > span {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.crm-email-row:last-child {
+  border-bottom: none;
+}
+
+.crm-email-row-from {
+  color: #c7c7c7;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crm-email-row-subject {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.crm-email-row-subject > span {
+  color: #dcdcdc;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crm-email-row-subject > small {
+  color: #828282;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crm-email-row-date {
+  color: #8c8c8c;
+  font-size: 12px;
+  text-align: right;
+}
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -1599,6 +1803,34 @@ body {
 
   .grid-four {
     grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .crm-email-shell {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .crm-email-sidebar {
+    order: 2;
+  }
+
+  .crm-email-main {
+    order: 1;
+  }
+
+  .crm-email-folder-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crm-email-list-head,
+  .crm-email-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .crm-email-row-date {
+    text-align: left;
   }
 }
 
