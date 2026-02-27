@@ -3355,6 +3355,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const [selectedDocumentIds, setSelectedDocumentIds] = useState([]);
   const [focusedDocumentId, setFocusedDocumentId] = useState(null);
   const [generatedLeadDocuments, setGeneratedLeadDocuments] = useState([]);
+  const [pdfPreviewDocument, setPdfPreviewDocument] = useState(null);
   const [emailComposer, setEmailComposer] = useState({
     to: '',
     cc: '',
@@ -3474,6 +3475,10 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
 
     loadLead();
   }, [fetchLinkedDealCount, leadId]);
+
+  useEffect(() => {
+    setPdfPreviewDocument(null);
+  }, [leadId]);
 
   useEffect(() => {
     if (!floatingTabId) return undefined;
@@ -4455,6 +4460,55 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     setSelectedDocumentIds([]);
   };
 
+  const isPdfDocumentRow = (row) => {
+    const normalizedType = (row?.fileType || '').toLowerCase();
+    const normalizedName = (row?.fileName || '').toLowerCase();
+    return normalizedType.includes('pdf') || normalizedName.endsWith('.pdf');
+  };
+
+  const openPdfPreview = (row) => {
+    if (!row?.fileUrl || !isPdfDocumentRow(row)) return;
+    setPdfPreviewDocument({
+      id: row.id,
+      fileName: row.fileName || 'Document.pdf',
+      fileUrl: row.fileUrl
+    });
+  };
+
+  const handleDocumentRowDoubleClick = (event, row) => {
+    const target = event.target;
+    if (target instanceof HTMLElement && target.closest('input, button, a, select, textarea')) {
+      return;
+    }
+
+    openPdfPreview(row);
+  };
+
+  const handleDownloadDocument = async (row) => {
+    if (!row?.fileUrl) return;
+
+    try {
+      const response = await fetch(row.fileUrl);
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = row.fileName || 'document';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      window.open(row.fileUrl, '_blank', 'noopener,noreferrer');
+      toast.info('Opened file in a new tab because download was unavailable.');
+    }
+  };
+
   const escapeHtml = (value) => String(value || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -4734,7 +4788,12 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
           </div>
           <div className="lead-doc-list-body">
             {documentRows.map((row) => (
-              <div key={row.id} className="lead-doc-row">
+              <div
+                key={row.id}
+                className={`lead-doc-row ${row.source === 'uploaded' && isPdfDocumentRow(row) && row.fileUrl ? 'previewable' : ''}`}
+                onDoubleClick={(event) => handleDocumentRowDoubleClick(event, row)}
+                title={row.source === 'uploaded' && isPdfDocumentRow(row) && row.fileUrl ? 'Double-click to preview PDF' : undefined}
+              >
                 <div className="lead-doc-name-cell">
                   <input
                     type="text"
@@ -4751,7 +4810,20 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                   />
                 </div>
                 <div className="lead-doc-meta-cell">{(row.fileType || 'unknown').toString().toUpperCase()}</div>
-                <div className="lead-doc-meta-cell">{formatFileSize(row.fileSize)}</div>
+                <div className="lead-doc-meta-cell">
+                  <div className="lead-doc-size-actions">
+                    <span>{formatFileSize(row.fileSize)}</span>
+                    {row.source === 'uploaded' && row.fileUrl && (
+                      <button
+                        type="button"
+                        className="lead-doc-download-btn"
+                        onClick={() => handleDownloadDocument(row)}
+                      >
+                        Download
+                      </button>
+                    )}
+                  </div>
+                </div>
                 <div className={`lead-doc-status ${row.source === 'pending' ? 'pending' : 'uploaded'}`}>
                   {row.source === 'pending' ? 'Pending Upload' : 'Uploaded'}
                 </div>
@@ -4761,9 +4833,15 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                       Remove
                     </button>
                   ) : row.fileUrl ? (
-                    <a href={row.fileUrl} target="_blank" rel="noopener noreferrer" className="lead-file-link">
-                      Open
-                    </a>
+                    isPdfDocumentRow(row) ? (
+                      <button type="button" className="lead-file-link" onClick={() => openPdfPreview(row)}>
+                        Preview
+                      </button>
+                    ) : (
+                      <a href={row.fileUrl} target="_blank" rel="noopener noreferrer" className="lead-file-link">
+                        Open
+                      </a>
+                    )
                   ) : (
                     <div className="lead-file-link muted">Pending</div>
                   )}
@@ -5474,6 +5552,42 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
               <button type="button" className="lead-action-btn lead-action-btn-primary" onClick={handleSendEmail} disabled={sendingEmail}>
                 {sendingEmail ? 'Sending...' : 'Send Email'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pdfPreviewDocument && (
+        <div className="modal-overlay" onClick={() => setPdfPreviewDocument(null)}>
+          <div className="modal-content lead-pdf-preview-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header lead-pdf-preview-header">
+              <div className="lead-pdf-preview-heading">
+                <h2>{pdfPreviewDocument.fileName}</h2>
+                <div>Double-clicking uploaded PDFs opens them here for reading.</div>
+              </div>
+              <div className="lead-pdf-preview-actions">
+                <button
+                  type="button"
+                  className="lead-action-btn"
+                  onClick={() => handleDownloadDocument(pdfPreviewDocument)}
+                >
+                  Download
+                </button>
+                <button
+                  type="button"
+                  className="icon-button"
+                  onClick={() => setPdfPreviewDocument(null)}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            <div className="lead-pdf-preview-frame-shell">
+              <iframe
+                title={pdfPreviewDocument.fileName}
+                src={`${pdfPreviewDocument.fileUrl}#toolbar=1&navpanes=0`}
+                className="lead-pdf-preview-frame"
+              />
             </div>
           </div>
         </div>
