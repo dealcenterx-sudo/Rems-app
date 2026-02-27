@@ -4520,6 +4520,11 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     <div className="lead-workspace">
       <div className="lead-workspace-topbar">
         <div className="lead-top-meta">
+          <div className="lead-top-pills">
+            <span className="lead-pill lead-pill-primary">{leadName}</span>
+            <span className="lead-pill">{serviceType}</span>
+            <span className="lead-pill lead-pill-status">{getLeadWarmthLabel(warmth)}</span>
+          </div>
           <div className="lead-workspace-top-tabs">
             {leadDetailTabs.map((tab) => (
               <button
@@ -4531,11 +4536,6 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 {tab.label}
               </button>
             ))}
-          </div>
-          <div className="lead-top-pills">
-            <span className="lead-pill lead-pill-primary">{leadName}</span>
-            <span className="lead-pill">{serviceType}</span>
-            <span className="lead-pill lead-pill-status">{getLeadWarmthLabel(warmth)}</span>
           </div>
         </div>
 
