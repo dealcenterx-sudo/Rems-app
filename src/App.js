@@ -3349,8 +3349,13 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const [showEmailComposer, setShowEmailComposer] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [leadDetailViewTab, setLeadDetailViewTab] = useState('workspace');
+  const [documentsViewTab, setDocumentsViewTab] = useState('library');
   const [documentTemplate, setDocumentTemplate] = useState('lead-summary');
   const [documentTitle, setDocumentTitle] = useState('');
+  const [documentStateInput, setDocumentStateInput] = useState('draft');
+  const [documentsSearch, setDocumentsSearch] = useState('');
+  const [documentsStateFilter, setDocumentsStateFilter] = useState('all');
+  const [selectedDocumentId, setSelectedDocumentId] = useState(null);
   const [generatedLeadDocuments, setGeneratedLeadDocuments] = useState([]);
   const [emailComposer, setEmailComposer] = useState({
     to: '',
@@ -3379,6 +3384,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         setLead(null);
         setLinkedDealCount(0);
         setGeneratedLeadDocuments([]);
+        setSelectedDocumentId(null);
+        setDocumentsSearch('');
+        setDocumentsStateFilter('all');
         setLoading(false);
         return;
       }
@@ -3391,6 +3399,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         setCustomActivities(Array.isArray(SAMPLE_CRM_LEAD.activityLog) ? SAMPLE_CRM_LEAD.activityLog : []);
         setActivityOverrides(SAMPLE_CRM_LEAD.activityOverrides || {});
         setGeneratedLeadDocuments(Array.isArray(SAMPLE_CRM_LEAD.generatedDocuments) ? SAMPLE_CRM_LEAD.generatedDocuments : []);
+        setSelectedDocumentId(null);
+        setDocumentsSearch('');
+        setDocumentsStateFilter('all');
         setEditingActivityId(null);
         setFormDirty(false);
         setLinkedDealCount(0);
@@ -3406,6 +3417,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
           setLead(null);
           setLinkedDealCount(0);
           setGeneratedLeadDocuments([]);
+          setSelectedDocumentId(null);
           return;
         }
 
@@ -3441,6 +3453,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         setCustomActivities(Array.isArray(leadData.activityLog) ? leadData.activityLog : []);
         setActivityOverrides(leadData.activityOverrides || {});
         setGeneratedLeadDocuments(Array.isArray(leadData.generatedDocuments) ? leadData.generatedDocuments : []);
+        setSelectedDocumentId(null);
+        setDocumentsSearch('');
+        setDocumentsStateFilter('all');
         setEditingActivityId(null);
         setFormDirty(false);
         setLinkedDealCount(existingLinkedDeals);
@@ -3448,6 +3463,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         console.error('Error loading lead detail:', error);
         setLinkedDealCount(0);
         setGeneratedLeadDocuments([]);
+        setSelectedDocumentId(null);
       } finally {
         setLoading(false);
       }
@@ -4304,11 +4320,30 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const leadDocumentTemplateOptions = [
     { value: 'lead-summary', label: 'Lead Summary' },
     { value: 'property-intake', label: 'Property Intake Sheet' },
-    { value: 'deal-brief', label: 'Deal Brief' }
+    { value: 'deal-brief', label: 'Deal Brief' },
+    { value: 'purchase-agreement', label: 'Purchase Agreement Draft' }
+  ];
+
+  const leadDocumentStateOptions = [
+    { value: 'all', label: 'All States' },
+    { value: 'draft', label: 'Draft' },
+    { value: 'review', label: 'Under Review' },
+    { value: 'ready', label: 'Ready to Sign' },
+    { value: 'signed', label: 'Signed' }
+  ];
+
+  const leadDocumentsTabs = [
+    { id: 'library', label: 'Document Library' },
+    { id: 'builder', label: 'Doc Builder' },
+    { id: 'saved', label: 'Saved Packets' }
   ];
 
   const getTemplateLabel = (value) => (
     leadDocumentTemplateOptions.find((option) => option.value === value)?.label || 'Lead Document'
+  );
+
+  const getDocumentStateLabel = (value) => (
+    leadDocumentStateOptions.find((option) => option.value === value)?.label || 'Draft'
   );
 
   const buildGeneratedDocumentBody = (templateValue) => {
@@ -4350,6 +4385,18 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         '',
         'Deal Brief Notes:',
         leadForm.notes || 'No notes provided.'
+      ],
+      'purchase-agreement': [
+        'Residential Purchase Agreement (Sample)',
+        '',
+        `Buyer: ${leadName}`,
+        `Property Address: ${leadForm.street || 'N/A'}, ${leadForm.city || 'N/A'}, ${leadForm.state || 'N/A'} ${leadForm.zipCode || ''}`,
+        'Purchase Price: $250,000 (sample)',
+        'Earnest Money: $5,000 (sample)',
+        'Inspection Period: 10 days (sample)',
+        '',
+        'Terms are placeholders for layout/testing only.',
+        'This sample document is not legal advice.'
       ]
     };
 
@@ -4365,9 +4412,12 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     const nextDocument = {
       id: `lead-doc-${Date.now()}-${Math.random().toString(16).slice(2, 7)}`,
       template: documentTemplate,
+      docType: getTemplateLabel(documentTemplate),
       title: (documentTitle || '').trim() || defaultTitle,
       content: documentDraftPreview,
-      createdAt: nowIso
+      state: documentStateInput,
+      createdAt: nowIso,
+      updatedAt: nowIso
     };
     const nextDocuments = [nextDocument, ...generatedLeadDocuments];
 
@@ -4378,6 +4428,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       }
       setGeneratedLeadDocuments(nextDocuments);
       setDocumentTitle('');
+      setSelectedDocumentId(nextDocument.id);
       toast.success('Lead document created');
     } catch (error) {
       console.error('Error creating lead document:', error);
@@ -4418,12 +4469,75 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         await persistLeadUpdate({ generatedDocuments: nextDocuments });
       }
       setGeneratedLeadDocuments(nextDocuments);
+      if (selectedDocumentId === documentId) {
+        setSelectedDocumentId(nextDocuments[0]?.id || 'sample-purchase-agreement');
+      }
       toast.success('Document removed');
     } catch (error) {
       console.error('Error deleting document:', error);
       toast.error('Failed to delete document');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const samplePurchaseAgreementDoc = {
+    id: 'sample-purchase-agreement',
+    template: 'purchase-agreement',
+    docType: 'Purchase Agreement',
+    title: 'Sample Real Estate Purchase Agreement',
+    state: 'ready',
+    createdAt: '2026-02-24T15:20:00.000Z',
+    updatedAt: '2026-02-26T09:35:00.000Z',
+    content: [
+      'Real Estate Purchase Agreement (Sample)',
+      '',
+      `Buyer: ${leadName}`,
+      `Property: ${leadForm.street || 'N/A'}, ${leadForm.city || 'N/A'}, ${leadForm.state || 'N/A'} ${leadForm.zipCode || ''}`,
+      'Purchase Price: $250,000',
+      'Deposit: $5,000',
+      'Closing Date: March 15, 2026',
+      '',
+      'This sample is for UI demonstration only and is not a legal document.'
+    ].join('\n')
+  };
+
+  const normalizedGeneratedDocuments = generatedLeadDocuments.map((docItem, index) => ({
+    ...docItem,
+    id: docItem.id || `lead-doc-fallback-${index}`,
+    title: docItem.title || `Lead Document ${index + 1}`,
+    state: docItem.state || 'draft',
+    template: docItem.template || 'lead-summary',
+    docType: docItem.docType || getTemplateLabel(docItem.template || 'lead-summary'),
+    createdAt: docItem.createdAt || new Date().toISOString(),
+    updatedAt: docItem.updatedAt || docItem.createdAt || new Date().toISOString()
+  }));
+
+  const libraryDocuments = [samplePurchaseAgreementDoc, ...normalizedGeneratedDocuments];
+
+  const filteredLibraryDocuments = libraryDocuments.filter((docItem) => {
+    const matchesSearch = !documentsSearch
+      || `${docItem.title} ${docItem.docType} ${docItem.template} ${docItem.id}`.toLowerCase().includes(documentsSearch.toLowerCase());
+    const matchesState = documentsStateFilter === 'all' || docItem.state === documentsStateFilter;
+    return matchesSearch && matchesState;
+  });
+
+  const activeSelectedDocumentId = filteredLibraryDocuments.some((docItem) => docItem.id === selectedDocumentId)
+    ? selectedDocumentId
+    : filteredLibraryDocuments[0]?.id || null;
+
+  const selectedLibraryDocument = filteredLibraryDocuments.find((docItem) => docItem.id === activeSelectedDocumentId)
+    || null;
+
+  const handleLoadLibraryDocument = (documentItem, { openBuilder = false } = {}) => {
+    if (!documentItem) return;
+    setSelectedDocumentId(documentItem.id);
+    setDocumentTemplate(documentItem.template || 'lead-summary');
+    setDocumentTitle(documentItem.title || '');
+    setDocumentStateInput(documentItem.state || 'draft');
+    if (openBuilder) {
+      setDocumentsViewTab('builder');
+      toast.success('Document loaded into builder');
     }
   };
 
@@ -4959,85 +5073,223 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
 
       {leadDetailViewTab === 'documents' && (
         <div className="lead-documents-page">
-          <div className="lead-documents-grid">
-            <div className="lead-panel-card">
-              <div className="lead-panel-title">Document Builder</div>
-              <div className="lead-field-stack">
-                <div className="lead-field">
-                  <label>Document Type</label>
+          <div className="lead-panel-card lead-doc-library-shell">
+            <div className="lead-doc-library-tabs">
+              {leadDocumentsTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={`lead-doc-library-tab ${documentsViewTab === tab.id ? 'active' : ''}`}
+                  onClick={() => setDocumentsViewTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {documentsViewTab === 'library' && (
+              <>
+                <div className="lead-doc-library-filters">
+                  <div className="lead-doc-library-search">
+                    <Search size={16} color="#8a8a8a" />
+                    <input
+                      type="text"
+                      value={documentsSearch}
+                      onChange={(event) => setDocumentsSearch(event.target.value)}
+                      placeholder="Search documents by name, type, or id..."
+                    />
+                  </div>
                   <select
-                    value={documentTemplate}
-                    onChange={(event) => setDocumentTemplate(event.target.value)}
-                    disabled={saving}
+                    value={documentsStateFilter}
+                    onChange={(event) => setDocumentsStateFilter(event.target.value)}
+                    className="lead-doc-library-state"
                   >
-                    {leadDocumentTemplateOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
+                    {leadDocumentStateOptions.map((stateOption) => (
+                      <option key={stateOption.value} value={stateOption.value}>
+                        {stateOption.label}
                       </option>
                     ))}
                   </select>
+                  <button
+                    type="button"
+                    className="lead-action-btn"
+                    onClick={() => {
+                      setDocumentsSearch('');
+                      setDocumentsStateFilter('all');
+                    }}
+                  >
+                    Clear Filters
+                  </button>
                 </div>
-                <div className="lead-field">
-                  <label>Document Name</label>
-                  <input
-                    type="text"
-                    value={documentTitle}
-                    onChange={(event) => setDocumentTitle(event.target.value)}
-                    placeholder={`${getTemplateLabel(documentTemplate)} - ${leadName}`}
-                    disabled={saving}
-                  />
-                </div>
-                <div className="lead-field">
-                  <label>Preview</label>
-                  <textarea rows={14} value={documentDraftPreview} readOnly className="lead-doc-preview" />
-                </div>
-                <button
-                  type="button"
-                  className="lead-action-btn lead-action-btn-primary"
-                  onClick={handleCreateGeneratedDocument}
-                  disabled={saving}
-                >
-                  {saving ? 'Creating...' : 'Create Document'}
-                </button>
-              </div>
-            </div>
 
-            <div className="lead-panel-card">
-              <div className="lead-panel-title">Generated Documents ({generatedLeadDocuments.length})</div>
-              {generatedLeadDocuments.length === 0 ? (
-                <div className="lead-empty-inline">No generated documents yet.</div>
-              ) : (
-                <div className="lead-generated-doc-list">
-                  {generatedLeadDocuments.map((documentItem) => (
-                    <div key={documentItem.id} className="lead-generated-doc-item">
-                      <div className="lead-generated-doc-main">
-                        <div className="lead-generated-doc-title">{documentItem.title}</div>
-                        <div className="lead-generated-doc-meta">
-                          <span>{getTemplateLabel(documentItem.template)}</span>
-                          <span>{formatTimestamp(documentItem.createdAt)}</span>
+                <div className="lead-doc-library-table">
+                  <div className="lead-doc-library-head">
+                    <div>Document</div>
+                    <div>Doc ID</div>
+                    <div>State</div>
+                    <div>Type</div>
+                    <div>Updated</div>
+                    <div>Action</div>
+                  </div>
+                  <div className="lead-doc-library-body">
+                    {filteredLibraryDocuments.length === 0 ? (
+                      <div className="lead-empty-inline">No documents match the current filter.</div>
+                    ) : (
+                      filteredLibraryDocuments.map((documentItem) => (
+                        <div
+                          key={documentItem.id}
+                          className={`lead-doc-library-row ${activeSelectedDocumentId === documentItem.id ? 'active' : ''}`}
+                          onClick={() => setSelectedDocumentId(documentItem.id)}
+                        >
+                          <div className="lead-doc-library-title-cell">
+                            <div className="lead-doc-library-title">{documentItem.title}</div>
+                            <div className="lead-doc-library-subtitle">{documentItem.id}</div>
+                          </div>
+                          <div className="lead-doc-library-meta">{documentItem.id}</div>
+                          <div className={`lead-doc-library-state-pill state-${documentItem.state || 'draft'}`}>
+                            {getDocumentStateLabel(documentItem.state)}
+                          </div>
+                          <div className="lead-doc-library-meta">{documentItem.docType || getTemplateLabel(documentItem.template)}</div>
+                          <div className="lead-doc-library-meta">{formatTimestamp(documentItem.updatedAt || documentItem.createdAt)}</div>
+                          <div className="lead-doc-library-actions">
+                            <button
+                              type="button"
+                              className="lead-file-link"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleLoadLibraryDocument(documentItem, { openBuilder: true });
+                              }}
+                            >
+                              Load
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="lead-doc-library-preview">
+                  <div className="lead-panel-title" style={{ marginBottom: '10px' }}>
+                    {selectedLibraryDocument ? `Document Preview: ${selectedLibraryDocument.title}` : 'Document Preview'}
+                  </div>
+                  {selectedLibraryDocument ? (
+                    <textarea
+                      className="lead-doc-preview"
+                      rows={11}
+                      value={selectedLibraryDocument.content || ''}
+                      readOnly
+                    />
+                  ) : (
+                    <div className="lead-empty-inline">Select a document from the library to preview.</div>
+                  )}
+                </div>
+              </>
+            )}
+
+            {documentsViewTab === 'builder' && (
+              <div className="lead-documents-grid lead-documents-grid-single">
+                <div className="lead-field-stack">
+                  <div className="lead-field">
+                    <label>Document Type</label>
+                    <select
+                      value={documentTemplate}
+                      onChange={(event) => setDocumentTemplate(event.target.value)}
+                      disabled={saving}
+                    >
+                      {leadDocumentTemplateOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="lead-field">
+                    <label>Document State</label>
+                    <select
+                      value={documentStateInput}
+                      onChange={(event) => setDocumentStateInput(event.target.value)}
+                      disabled={saving}
+                    >
+                      {leadDocumentStateOptions.filter((option) => option.value !== 'all').map((stateOption) => (
+                        <option key={stateOption.value} value={stateOption.value}>
+                          {stateOption.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="lead-field">
+                    <label>Document Name</label>
+                    <input
+                      type="text"
+                      value={documentTitle}
+                      onChange={(event) => setDocumentTitle(event.target.value)}
+                      placeholder={`${getTemplateLabel(documentTemplate)} - ${leadName}`}
+                      disabled={saving}
+                    />
+                  </div>
+                  <div className="lead-field">
+                    <label>Preview</label>
+                    <textarea rows={14} value={documentDraftPreview} readOnly className="lead-doc-preview" />
+                  </div>
+                  <button
+                    type="button"
+                    className="lead-action-btn lead-action-btn-primary"
+                    onClick={handleCreateGeneratedDocument}
+                    disabled={saving}
+                  >
+                    {saving ? 'Creating...' : 'Create Document'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {documentsViewTab === 'saved' && (
+              <>
+                <div className="lead-panel-title">Inserted Documents ({generatedLeadDocuments.length})</div>
+                {generatedLeadDocuments.length === 0 ? (
+                  <div className="lead-empty-inline">No generated documents yet.</div>
+                ) : (
+                  <div className="lead-generated-doc-list">
+                    {generatedLeadDocuments.map((documentItem) => (
+                      <div key={documentItem.id} className="lead-generated-doc-item">
+                        <div className="lead-generated-doc-main">
+                          <div className="lead-generated-doc-title">{documentItem.title}</div>
+                          <div className="lead-generated-doc-meta">
+                            <span>{documentItem.docType || getTemplateLabel(documentItem.template)}</span>
+                            <span>{getDocumentStateLabel(documentItem.state || 'draft')}</span>
+                            <span>{formatTimestamp(documentItem.updatedAt || documentItem.createdAt)}</span>
+                          </div>
+                        </div>
+                        <div className="lead-generated-doc-actions">
+                          <button
+                            type="button"
+                            className="lead-file-link"
+                            onClick={() => handleLoadLibraryDocument(documentItem, { openBuilder: true })}
+                          >
+                            Load
+                          </button>
+                          <button type="button" className="lead-file-link" onClick={() => handleCopyGeneratedDocument(documentItem)}>
+                            Copy
+                          </button>
+                          <button type="button" className="lead-file-link" onClick={() => handleDownloadGeneratedDocument(documentItem)}>
+                            Download
+                          </button>
+                          <button
+                            type="button"
+                            className="lead-file-link"
+                            onClick={() => handleDeleteGeneratedDocument(documentItem.id)}
+                            disabled={saving}
+                          >
+                            Delete
+                          </button>
                         </div>
                       </div>
-                      <div className="lead-generated-doc-actions">
-                        <button type="button" className="lead-file-link" onClick={() => handleCopyGeneratedDocument(documentItem)}>
-                          Copy
-                        </button>
-                        <button type="button" className="lead-file-link" onClick={() => handleDownloadGeneratedDocument(documentItem)}>
-                          Download
-                        </button>
-                        <button
-                          type="button"
-                          className="lead-file-link"
-                          onClick={() => handleDeleteGeneratedDocument(documentItem.id)}
-                          disabled={saving}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       )}
