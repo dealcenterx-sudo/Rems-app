@@ -4181,8 +4181,6 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   });
 
   const primaryActions = [
-    { id: 'checkin', label: 'Check-In' },
-    { id: 'desk', label: 'Start Desk' },
     { id: 'save', label: 'Save' }
   ];
 
