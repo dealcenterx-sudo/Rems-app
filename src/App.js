@@ -3350,12 +3350,10 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [leadDetailViewTab, setLeadDetailViewTab] = useState('workspace');
   const [documentsViewTab, setDocumentsViewTab] = useState('library');
-  const [documentTemplate, setDocumentTemplate] = useState('lead-summary');
-  const [documentTitle, setDocumentTitle] = useState('');
-  const [documentStateInput, setDocumentStateInput] = useState('draft');
   const [documentsSearch, setDocumentsSearch] = useState('');
   const [documentsStateFilter, setDocumentsStateFilter] = useState('all');
-  const [selectedDocumentId, setSelectedDocumentId] = useState(null);
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState([]);
+  const [focusedDocumentId, setFocusedDocumentId] = useState(null);
   const [generatedLeadDocuments, setGeneratedLeadDocuments] = useState([]);
   const [emailComposer, setEmailComposer] = useState({
     to: '',
@@ -3384,7 +3382,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         setLead(null);
         setLinkedDealCount(0);
         setGeneratedLeadDocuments([]);
-        setSelectedDocumentId(null);
+        setSelectedDocumentIds([]);
+        setFocusedDocumentId(null);
         setDocumentsSearch('');
         setDocumentsStateFilter('all');
         setLoading(false);
@@ -3399,7 +3398,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         setCustomActivities(Array.isArray(SAMPLE_CRM_LEAD.activityLog) ? SAMPLE_CRM_LEAD.activityLog : []);
         setActivityOverrides(SAMPLE_CRM_LEAD.activityOverrides || {});
         setGeneratedLeadDocuments(Array.isArray(SAMPLE_CRM_LEAD.generatedDocuments) ? SAMPLE_CRM_LEAD.generatedDocuments : []);
-        setSelectedDocumentId(null);
+        setSelectedDocumentIds([]);
+        setFocusedDocumentId(null);
         setDocumentsSearch('');
         setDocumentsStateFilter('all');
         setEditingActivityId(null);
@@ -3417,7 +3417,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
           setLead(null);
           setLinkedDealCount(0);
           setGeneratedLeadDocuments([]);
-          setSelectedDocumentId(null);
+          setSelectedDocumentIds([]);
+          setFocusedDocumentId(null);
           return;
         }
 
@@ -3453,7 +3454,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         setCustomActivities(Array.isArray(leadData.activityLog) ? leadData.activityLog : []);
         setActivityOverrides(leadData.activityOverrides || {});
         setGeneratedLeadDocuments(Array.isArray(leadData.generatedDocuments) ? leadData.generatedDocuments : []);
-        setSelectedDocumentId(null);
+        setSelectedDocumentIds([]);
+        setFocusedDocumentId(null);
         setDocumentsSearch('');
         setDocumentsStateFilter('all');
         setEditingActivityId(null);
@@ -3463,7 +3465,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         console.error('Error loading lead detail:', error);
         setLinkedDealCount(0);
         setGeneratedLeadDocuments([]);
-        setSelectedDocumentId(null);
+        setSelectedDocumentIds([]);
+        setFocusedDocumentId(null);
       } finally {
         setLoading(false);
       }
@@ -4317,13 +4320,6 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     { id: 'files', label: 'Files Hub' }
   ];
 
-  const leadDocumentTemplateOptions = [
-    { value: 'lead-summary', label: 'Lead Summary' },
-    { value: 'property-intake', label: 'Property Intake Sheet' },
-    { value: 'deal-brief', label: 'Deal Brief' },
-    { value: 'purchase-agreement', label: 'Purchase Agreement Draft' }
-  ];
-
   const leadDocumentStateOptions = [
     { value: 'all', label: 'All States' },
     { value: 'draft', label: 'Draft' },
@@ -4333,212 +4329,364 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   ];
 
   const leadDocumentsTabs = [
-    { id: 'library', label: 'Document Library' },
-    { id: 'builder', label: 'Doc Builder' },
-    { id: 'saved', label: 'Saved Packets' }
+    { id: 'library', label: 'Forms Library' },
+    { id: 'sign-bundles', label: 'Sign Bundles' },
+    { id: 'print-bundles', label: 'Print Bundles' }
   ];
-
-  const getTemplateLabel = (value) => (
-    leadDocumentTemplateOptions.find((option) => option.value === value)?.label || 'Lead Document'
-  );
 
   const getDocumentStateLabel = (value) => (
     leadDocumentStateOptions.find((option) => option.value === value)?.label || 'Draft'
   );
 
-  const buildGeneratedDocumentBody = (templateValue) => {
-    const selectedTemplate = templateValue || documentTemplate;
-    const linesByTemplate = {
-      'lead-summary': [
-        `Lead Name: ${leadName}`,
-        `Service Requested: ${serviceType}`,
-        `Pipeline Stage: ${getLeadWarmthLabel(warmth)}`,
-        `Lead Source: ${source}`,
-        `Phone: ${leadForm.phone || 'N/A'}`,
-        `Email: ${leadForm.email || 'N/A'}`,
-        `Preferred Contact: ${leadForm.contactMethod || 'N/A'}`,
-        `Submitted At: ${submittedLabel}`,
-        `Last Updated: ${lastUpdatedLabel}`,
-        '',
-        'Notes:',
-        leadForm.notes || 'No notes provided.'
-      ],
-      'property-intake': [
-        `Lead Name: ${leadName}`,
-        `Property Type: ${propertyType}`,
-        `Street: ${leadForm.street || 'N/A'}`,
-        `City: ${leadForm.city || 'N/A'}`,
-        `State: ${leadForm.state || 'N/A'}`,
-        `Zip Code: ${leadForm.zipCode || 'N/A'}`,
-        `Service Requested: ${serviceType}`,
-        '',
-        'Property Intake Notes:',
-        leadForm.notes || 'No notes provided.'
-      ],
-      'deal-brief': [
-        `Lead Name: ${leadName}`,
-        `Current Pipeline Stage: ${getLeadWarmthLabel(warmth)}`,
-        `Linked Deal Count: ${linkedDealCount}`,
-        `Lead Source: ${source}`,
-        `Contact: ${leadForm.phone || 'N/A'} • ${leadForm.email || 'N/A'}`,
-        `Property: ${leadForm.street || 'N/A'}, ${leadForm.city || 'N/A'}, ${leadForm.state || 'N/A'} ${leadForm.zipCode || ''}`,
-        '',
-        'Deal Brief Notes:',
-        leadForm.notes || 'No notes provided.'
-      ],
-      'purchase-agreement': [
-        'Residential Purchase Agreement (Sample)',
+  const sampleLibraryDocuments = [
+    {
+      id: 'sample-purchase-agreement',
+      docType: 'Purchase Agreement',
+      title: 'Sample Real Estate Purchase Agreement',
+      state: 'ready',
+      category: 'Contract',
+      format: 'PDF',
+      version: 'v1.0',
+      language: 'English',
+      esign: 'Yes',
+      createdAt: '2026-02-24T15:20:00.000Z',
+      updatedAt: '2026-02-26T09:35:00.000Z',
+      content: [
+        'Real Estate Purchase Agreement (Sample)',
         '',
         `Buyer: ${leadName}`,
-        `Property Address: ${leadForm.street || 'N/A'}, ${leadForm.city || 'N/A'}, ${leadForm.state || 'N/A'} ${leadForm.zipCode || ''}`,
-        'Purchase Price: $250,000 (sample)',
-        'Earnest Money: $5,000 (sample)',
-        'Inspection Period: 10 days (sample)',
+        `Property: ${leadForm.street || 'N/A'}, ${leadForm.city || 'N/A'}, ${leadForm.state || 'N/A'} ${leadForm.zipCode || ''}`,
+        'Purchase Price: $250,000',
+        'Deposit: $5,000',
+        'Closing Date: March 15, 2026',
         '',
-        'Terms are placeholders for layout/testing only.',
-        'This sample document is not legal advice.'
-      ]
-    };
-
-    return (linesByTemplate[selectedTemplate] || linesByTemplate['lead-summary']).join('\n');
-  };
-
-  const documentDraftPreview = buildGeneratedDocumentBody(documentTemplate);
-
-  const handleCreateGeneratedDocument = async () => {
-    const templateLabel = getTemplateLabel(documentTemplate);
-    const nowIso = new Date().toISOString();
-    const defaultTitle = `${templateLabel} - ${leadName}`;
-    const nextDocument = {
-      id: `lead-doc-${Date.now()}-${Math.random().toString(16).slice(2, 7)}`,
-      template: documentTemplate,
-      docType: getTemplateLabel(documentTemplate),
-      title: (documentTitle || '').trim() || defaultTitle,
-      content: documentDraftPreview,
-      state: documentStateInput,
-      createdAt: nowIso,
-      updatedAt: nowIso
-    };
-    const nextDocuments = [nextDocument, ...generatedLeadDocuments];
-
-    setSaving(true);
-    try {
-      if (!isSampleLead) {
-        await persistLeadUpdate({ generatedDocuments: nextDocuments });
-      }
-      setGeneratedLeadDocuments(nextDocuments);
-      setDocumentTitle('');
-      setSelectedDocumentId(nextDocument.id);
-      toast.success('Lead document created');
-    } catch (error) {
-      console.error('Error creating lead document:', error);
-      toast.error('Failed to create document');
-    } finally {
-      setSaving(false);
+        'This sample is for UI demonstration only and is not a legal document.'
+      ].join('\n')
+    },
+    {
+      id: 'sample-inspection-addendum',
+      docType: 'Inspection Addendum',
+      title: 'Sample Inspection Review Addendum',
+      state: 'draft',
+      category: 'Addendum',
+      format: 'PDF',
+      version: 'v0.8',
+      language: 'English',
+      esign: 'No',
+      createdAt: '2026-02-23T11:00:00.000Z',
+      updatedAt: '2026-02-25T08:15:00.000Z',
+      content: [
+        'Inspection Review Addendum (Sample)',
+        '',
+        `Property: ${leadForm.street || 'N/A'}, ${leadForm.city || 'N/A'}, ${leadForm.state || 'N/A'} ${leadForm.zipCode || ''}`,
+        'Requested Repair Credit: $3,500',
+        'Inspection Response Deadline: March 3, 2026',
+        '',
+        'This sample is for UI demonstration only and is not a legal document.'
+      ].join('\n')
+    },
+    {
+      id: 'sample-disclosure-sheet',
+      docType: 'Seller Disclosure',
+      title: 'Sample Seller Disclosure Summary',
+      state: 'review',
+      category: 'Disclosure',
+      format: 'PDF',
+      version: 'v1.2',
+      language: 'English',
+      esign: 'Yes',
+      createdAt: '2026-02-22T09:10:00.000Z',
+      updatedAt: '2026-02-24T12:05:00.000Z',
+      content: [
+        'Seller Disclosure Summary (Sample)',
+        '',
+        `Property Type: ${propertyType}`,
+        'Occupancy Status: Vacant',
+        'Material Defects Reported: None listed',
+        '',
+        'This sample is for UI demonstration only and is not a legal document.'
+      ].join('\n')
     }
-  };
-
-  const handleCopyGeneratedDocument = async (documentItem) => {
-    try {
-      await navigator.clipboard.writeText(documentItem.content || '');
-      toast.success('Document copied');
-    } catch (error) {
-      console.error('Error copying document:', error);
-      toast.error('Failed to copy document');
-    }
-  };
-
-  const handleDownloadGeneratedDocument = (documentItem) => {
-    const fileName = `${(documentItem.title || 'lead-document').replace(/[^a-z0-9-_]/gi, '_')}.txt`;
-    const blob = new Blob([documentItem.content || ''], { type: 'text/plain;charset=utf-8' });
-    const objectUrl = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = objectUrl;
-    anchor.download = fileName;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-    URL.revokeObjectURL(objectUrl);
-  };
-
-  const handleDeleteGeneratedDocument = async (documentId) => {
-    const nextDocuments = generatedLeadDocuments.filter((item) => item.id !== documentId);
-    setSaving(true);
-    try {
-      if (!isSampleLead) {
-        await persistLeadUpdate({ generatedDocuments: nextDocuments });
-      }
-      setGeneratedLeadDocuments(nextDocuments);
-      if (selectedDocumentId === documentId) {
-        setSelectedDocumentId(nextDocuments[0]?.id || 'sample-purchase-agreement');
-      }
-      toast.success('Document removed');
-    } catch (error) {
-      console.error('Error deleting document:', error);
-      toast.error('Failed to delete document');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const samplePurchaseAgreementDoc = {
-    id: 'sample-purchase-agreement',
-    template: 'purchase-agreement',
-    docType: 'Purchase Agreement',
-    title: 'Sample Real Estate Purchase Agreement',
-    state: 'ready',
-    createdAt: '2026-02-24T15:20:00.000Z',
-    updatedAt: '2026-02-26T09:35:00.000Z',
-    content: [
-      'Real Estate Purchase Agreement (Sample)',
-      '',
-      `Buyer: ${leadName}`,
-      `Property: ${leadForm.street || 'N/A'}, ${leadForm.city || 'N/A'}, ${leadForm.state || 'N/A'} ${leadForm.zipCode || ''}`,
-      'Purchase Price: $250,000',
-      'Deposit: $5,000',
-      'Closing Date: March 15, 2026',
-      '',
-      'This sample is for UI demonstration only and is not a legal document.'
-    ].join('\n')
-  };
+  ];
 
   const normalizedGeneratedDocuments = generatedLeadDocuments.map((docItem, index) => ({
     ...docItem,
-    id: docItem.id || `lead-doc-fallback-${index}`,
-    title: docItem.title || `Lead Document ${index + 1}`,
+    id: docItem.id || `admin-doc-${index}`,
+    title: docItem.title || `Admin Form ${index + 1}`,
     state: docItem.state || 'draft',
-    template: docItem.template || 'lead-summary',
-    docType: docItem.docType || getTemplateLabel(docItem.template || 'lead-summary'),
+    docType: docItem.docType || 'Admin Form',
+    category: docItem.category || 'Library',
+    format: docItem.format || 'PDF',
+    version: docItem.version || 'v1.0',
+    language: docItem.language || 'English',
+    esign: docItem.esign || 'No',
+    content: docItem.content || 'No preview content available yet.',
     createdAt: docItem.createdAt || new Date().toISOString(),
     updatedAt: docItem.updatedAt || docItem.createdAt || new Date().toISOString()
   }));
 
-  const libraryDocuments = [samplePurchaseAgreementDoc, ...normalizedGeneratedDocuments];
+  const libraryDocuments = [...sampleLibraryDocuments, ...normalizedGeneratedDocuments];
 
   const filteredLibraryDocuments = libraryDocuments.filter((docItem) => {
     const matchesSearch = !documentsSearch
-      || `${docItem.title} ${docItem.docType} ${docItem.template} ${docItem.id}`.toLowerCase().includes(documentsSearch.toLowerCase());
+      || `${docItem.title} ${docItem.docType} ${docItem.category} ${docItem.id}`.toLowerCase().includes(documentsSearch.toLowerCase());
     const matchesState = documentsStateFilter === 'all' || docItem.state === documentsStateFilter;
     return matchesSearch && matchesState;
   });
 
-  const activeSelectedDocumentId = filteredLibraryDocuments.some((docItem) => docItem.id === selectedDocumentId)
-    ? selectedDocumentId
+  const activeFocusedDocumentId = filteredLibraryDocuments.some((docItem) => docItem.id === focusedDocumentId)
+    ? focusedDocumentId
     : filteredLibraryDocuments[0]?.id || null;
 
-  const selectedLibraryDocument = filteredLibraryDocuments.find((docItem) => docItem.id === activeSelectedDocumentId)
+  const focusedLibraryDocument = filteredLibraryDocuments.find((docItem) => docItem.id === activeFocusedDocumentId)
     || null;
 
-  const handleLoadLibraryDocument = (documentItem, { openBuilder = false } = {}) => {
-    if (!documentItem) return;
-    setSelectedDocumentId(documentItem.id);
-    setDocumentTemplate(documentItem.template || 'lead-summary');
-    setDocumentTitle(documentItem.title || '');
-    setDocumentStateInput(documentItem.state || 'draft');
-    if (openBuilder) {
-      setDocumentsViewTab('builder');
-      toast.success('Document loaded into builder');
+  const selectedLibraryDocuments = libraryDocuments.filter((docItem) => selectedDocumentIds.includes(docItem.id));
+
+  const toggleLibraryDocumentSelection = (documentId) => {
+    setSelectedDocumentIds((prev) => (
+      prev.includes(documentId)
+        ? prev.filter((id) => id !== documentId)
+        : [...prev, documentId]
+    ));
+  };
+
+  const clearSelectedLibraryDocuments = () => {
+    setSelectedDocumentIds([]);
+  };
+
+  const escapeHtml = (value) => String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  const openSelectedDocumentsInPdfView = () => {
+    if (selectedLibraryDocuments.length === 0) {
+      toast.error('Select at least one document first');
+      return;
     }
+
+    const viewerWindow = window.open('', '_blank', 'noopener,noreferrer');
+    if (!viewerWindow) {
+      toast.error('Allow pop-ups to open the document viewer');
+      return;
+    }
+
+    const sidebarItems = selectedLibraryDocuments.map((docItem, index) => `
+      <a class="pdf-viewer-nav-item" href="#doc-page-${index + 1}">
+        <div class="pdf-viewer-thumb">
+          <div class="pdf-viewer-thumb-page">${index + 1}</div>
+        </div>
+        <div class="pdf-viewer-nav-text">${escapeHtml(docItem.title)}</div>
+      </a>
+    `).join('');
+
+    const documentPages = selectedLibraryDocuments.map((docItem, index) => `
+      <section class="pdf-viewer-page-wrap" id="doc-page-${index + 1}">
+        <div class="pdf-viewer-page-title">${escapeHtml(docItem.title)}</div>
+        <div class="pdf-viewer-page-meta">
+          <span>${escapeHtml(docItem.docType)}</span>
+          <span>${escapeHtml(getDocumentStateLabel(docItem.state))}</span>
+          <span>${escapeHtml(docItem.version)}</span>
+        </div>
+        <article class="pdf-viewer-page">
+          <pre>${escapeHtml(docItem.content)}</pre>
+        </article>
+      </section>
+    `).join('');
+
+    viewerWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Lead Documents Viewer</title>
+          <style>
+            * { box-sizing: border-box; }
+            body {
+              margin: 0;
+              font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+              background: #1f1f1f;
+              color: #ffffff;
+            }
+            .pdf-viewer-shell {
+              display: grid;
+              grid-template-columns: 300px minmax(0, 1fr);
+              min-height: 100vh;
+            }
+            .pdf-viewer-sidebar {
+              background: #e9edf5;
+              color: #101010;
+              padding: 20px 18px;
+              border-right: 1px solid #cfd7e3;
+            }
+            .pdf-viewer-help {
+              color: #2570d4;
+              font-size: 14px;
+              font-weight: 700;
+              margin-bottom: 20px;
+            }
+            .pdf-viewer-pack {
+              background: #c8dcff;
+              border-radius: 10px;
+              padding: 12px 14px;
+              font-size: 18px;
+              font-weight: 700;
+              margin-bottom: 20px;
+            }
+            .pdf-viewer-nav {
+              display: flex;
+              flex-direction: column;
+              gap: 14px;
+            }
+            .pdf-viewer-nav-item {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              text-decoration: none;
+              color: #101010;
+            }
+            .pdf-viewer-thumb {
+              width: 76px;
+              height: 98px;
+              border: 1px solid #8aa8d8;
+              background: linear-gradient(180deg, #ffffff 0%, #f2f5fa 100%);
+              display: flex;
+              align-items: flex-end;
+              justify-content: center;
+              padding-bottom: 8px;
+              border-radius: 6px;
+            }
+            .pdf-viewer-thumb-page {
+              font-size: 22px;
+              font-weight: 700;
+              color: #486ea4;
+            }
+            .pdf-viewer-nav-text {
+              font-size: 15px;
+              font-weight: 600;
+              line-height: 1.35;
+            }
+            .pdf-viewer-main {
+              background: #2d2d2d;
+              display: flex;
+              flex-direction: column;
+              min-width: 0;
+            }
+            .pdf-viewer-toolbar {
+              height: 72px;
+              padding: 0 22px;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 20px;
+              background: #2a2a2a;
+              border-bottom: 1px solid #3a3a3a;
+              position: sticky;
+              top: 0;
+              z-index: 10;
+            }
+            .pdf-viewer-toolbar-title {
+              font-size: 22px;
+              font-weight: 700;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+            .pdf-viewer-toolbar-stats {
+              display: flex;
+              align-items: center;
+              gap: 16px;
+              color: #cfcfcf;
+              font-size: 16px;
+            }
+            .pdf-viewer-toolbar-chip {
+              border: 1px solid #4d4d4d;
+              border-radius: 8px;
+              padding: 8px 12px;
+              background: #1f1f1f;
+            }
+            .pdf-viewer-pages {
+              padding: 26px;
+              display: flex;
+              flex-direction: column;
+              gap: 28px;
+              overflow-y: auto;
+            }
+            .pdf-viewer-page-wrap {
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+              align-items: center;
+            }
+            .pdf-viewer-page-title {
+              font-size: 18px;
+              font-weight: 700;
+            }
+            .pdf-viewer-page-meta {
+              display: flex;
+              gap: 10px;
+              flex-wrap: wrap;
+              color: #b7b7b7;
+              font-size: 13px;
+            }
+            .pdf-viewer-page {
+              width: min(100%, 880px);
+              min-height: 1120px;
+              background: #ffffff;
+              color: #111111;
+              box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+              border-radius: 2px;
+              padding: 64px 72px;
+            }
+            .pdf-viewer-page pre {
+              margin: 0;
+              white-space: pre-wrap;
+              word-break: break-word;
+              font-family: "Times New Roman", Georgia, serif;
+              font-size: 18px;
+              line-height: 1.7;
+            }
+            @media (max-width: 980px) {
+              .pdf-viewer-shell {
+                grid-template-columns: 1fr;
+              }
+              .pdf-viewer-sidebar {
+                border-right: none;
+                border-bottom: 1px solid #cfd7e3;
+              }
+              .pdf-viewer-page {
+                padding: 32px 24px;
+                min-height: auto;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="pdf-viewer-shell">
+            <aside class="pdf-viewer-sidebar">
+              <div class="pdf-viewer-help">Lead document packet</div>
+              <div class="pdf-viewer-pack">Merged Forms (${selectedLibraryDocuments.length})</div>
+              <nav class="pdf-viewer-nav">${sidebarItems}</nav>
+            </aside>
+            <main class="pdf-viewer-main">
+              <div class="pdf-viewer-toolbar">
+                <div class="pdf-viewer-toolbar-title">${escapeHtml(selectedLibraryDocuments[0]?.title || 'Lead Documents')}</div>
+                <div class="pdf-viewer-toolbar-stats">
+                  <div class="pdf-viewer-toolbar-chip">${selectedLibraryDocuments.length} docs</div>
+                  <div class="pdf-viewer-toolbar-chip">PDF View</div>
+                </div>
+              </div>
+              <div class="pdf-viewer-pages">${documentPages}</div>
+            </main>
+          </div>
+        </body>
+      </html>
+    `);
+    viewerWindow.document.close();
   };
 
   const renderFilesPanel = () => (
@@ -5113,6 +5261,13 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                   <button
                     type="button"
                     className="lead-action-btn"
+                    onClick={() => toast.info('Document library refreshed')}
+                  >
+                    Refresh Library
+                  </button>
+                  <button
+                    type="button"
+                    className="lead-action-btn"
                     onClick={() => {
                       setDocumentsSearch('');
                       setDocumentsStateFilter('all');
@@ -5126,10 +5281,12 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                   <div className="lead-doc-library-head">
                     <div>Document</div>
                     <div>Doc ID</div>
+                    <div>Language</div>
+                    <div>eSign</div>
+                    <div>Category</div>
                     <div>State</div>
                     <div>Type</div>
-                    <div>Updated</div>
-                    <div>Action</div>
+                    <div>Version</div>
                   </div>
                   <div className="lead-doc-library-body">
                     {filteredLibraryDocuments.length === 0 ? (
@@ -5138,157 +5295,87 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                       filteredLibraryDocuments.map((documentItem) => (
                         <div
                           key={documentItem.id}
-                          className={`lead-doc-library-row ${activeSelectedDocumentId === documentItem.id ? 'active' : ''}`}
-                          onClick={() => setSelectedDocumentId(documentItem.id)}
+                          className={`lead-doc-library-row ${activeFocusedDocumentId === documentItem.id ? 'active' : ''}`}
+                          onClick={() => setFocusedDocumentId(documentItem.id)}
                         >
                           <div className="lead-doc-library-title-cell">
-                            <div className="lead-doc-library-title">{documentItem.title}</div>
+                            <label className="lead-doc-library-select">
+                              <input
+                                type="checkbox"
+                                checked={selectedDocumentIds.includes(documentItem.id)}
+                                onChange={(event) => {
+                                  event.stopPropagation();
+                                  toggleLibraryDocumentSelection(documentItem.id);
+                                }}
+                              />
+                              <span className="lead-doc-library-title">{documentItem.title}</span>
+                            </label>
                             <div className="lead-doc-library-subtitle">{documentItem.id}</div>
                           </div>
                           <div className="lead-doc-library-meta">{documentItem.id}</div>
+                          <div className="lead-doc-library-meta">{documentItem.language}</div>
+                          <div className="lead-doc-library-meta">{documentItem.esign}</div>
+                          <div className="lead-doc-library-meta">{documentItem.category}</div>
                           <div className={`lead-doc-library-state-pill state-${documentItem.state || 'draft'}`}>
                             {getDocumentStateLabel(documentItem.state)}
                           </div>
-                          <div className="lead-doc-library-meta">{documentItem.docType || getTemplateLabel(documentItem.template)}</div>
-                          <div className="lead-doc-library-meta">{formatTimestamp(documentItem.updatedAt || documentItem.createdAt)}</div>
-                          <div className="lead-doc-library-actions">
-                            <button
-                              type="button"
-                              className="lead-file-link"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleLoadLibraryDocument(documentItem, { openBuilder: true });
-                              }}
-                            >
-                              Load
-                            </button>
-                          </div>
+                          <div className="lead-doc-library-meta">{documentItem.docType}</div>
+                          <div className="lead-doc-library-meta">{documentItem.version}</div>
                         </div>
                       ))
                     )}
                   </div>
                 </div>
 
-                <div className="lead-doc-library-preview">
-                  <div className="lead-panel-title" style={{ marginBottom: '10px' }}>
-                    {selectedLibraryDocument ? `Document Preview: ${selectedLibraryDocument.title}` : 'Document Preview'}
+                <div className="lead-doc-library-footer">
+                  <div className="lead-doc-library-summary">
+                    <div className="lead-doc-library-summary-title">
+                      {focusedLibraryDocument ? focusedLibraryDocument.title : 'No document selected'}
+                    </div>
+                    <div className="lead-doc-library-summary-meta">
+                      {focusedLibraryDocument ? (
+                        <>
+                          <span>{focusedLibraryDocument.docType}</span>
+                          <span>{getDocumentStateLabel(focusedLibraryDocument.state)}</span>
+                          <span>{formatTimestamp(focusedLibraryDocument.updatedAt || focusedLibraryDocument.createdAt)}</span>
+                        </>
+                      ) : (
+                        <span>Select a document row to inspect its details.</span>
+                      )}
+                    </div>
                   </div>
-                  {selectedLibraryDocument ? (
-                    <textarea
-                      className="lead-doc-preview"
-                      rows={11}
-                      value={selectedLibraryDocument.content || ''}
-                      readOnly
-                    />
-                  ) : (
-                    <div className="lead-empty-inline">Select a document from the library to preview.</div>
-                  )}
+                  <div className="lead-doc-library-footer-actions">
+                    <button
+                      type="button"
+                      className="lead-action-btn"
+                      onClick={clearSelectedLibraryDocuments}
+                      disabled={selectedDocumentIds.length === 0}
+                    >
+                      Clear Selected
+                    </button>
+                    <button
+                      type="button"
+                      className="lead-action-btn lead-action-btn-primary"
+                      onClick={openSelectedDocumentsInPdfView}
+                      disabled={selectedDocumentIds.length === 0}
+                    >
+                      Open PDF View
+                    </button>
+                  </div>
                 </div>
               </>
             )}
 
-            {documentsViewTab === 'builder' && (
-              <div className="lead-documents-grid lead-documents-grid-single">
-                <div className="lead-field-stack">
-                  <div className="lead-field">
-                    <label>Document Type</label>
-                    <select
-                      value={documentTemplate}
-                      onChange={(event) => setDocumentTemplate(event.target.value)}
-                      disabled={saving}
-                    >
-                      {leadDocumentTemplateOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="lead-field">
-                    <label>Document State</label>
-                    <select
-                      value={documentStateInput}
-                      onChange={(event) => setDocumentStateInput(event.target.value)}
-                      disabled={saving}
-                    >
-                      {leadDocumentStateOptions.filter((option) => option.value !== 'all').map((stateOption) => (
-                        <option key={stateOption.value} value={stateOption.value}>
-                          {stateOption.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="lead-field">
-                    <label>Document Name</label>
-                    <input
-                      type="text"
-                      value={documentTitle}
-                      onChange={(event) => setDocumentTitle(event.target.value)}
-                      placeholder={`${getTemplateLabel(documentTemplate)} - ${leadName}`}
-                      disabled={saving}
-                    />
-                  </div>
-                  <div className="lead-field">
-                    <label>Preview</label>
-                    <textarea rows={14} value={documentDraftPreview} readOnly className="lead-doc-preview" />
-                  </div>
-                  <button
-                    type="button"
-                    className="lead-action-btn lead-action-btn-primary"
-                    onClick={handleCreateGeneratedDocument}
-                    disabled={saving}
-                  >
-                    {saving ? 'Creating...' : 'Create Document'}
-                  </button>
-                </div>
+            {documentsViewTab === 'sign-bundles' && (
+              <div className="lead-empty-inline">
+                Sign bundles will be assigned from admin-controlled compliant forms.
               </div>
             )}
 
-            {documentsViewTab === 'saved' && (
-              <>
-                <div className="lead-panel-title">Inserted Documents ({generatedLeadDocuments.length})</div>
-                {generatedLeadDocuments.length === 0 ? (
-                  <div className="lead-empty-inline">No generated documents yet.</div>
-                ) : (
-                  <div className="lead-generated-doc-list">
-                    {generatedLeadDocuments.map((documentItem) => (
-                      <div key={documentItem.id} className="lead-generated-doc-item">
-                        <div className="lead-generated-doc-main">
-                          <div className="lead-generated-doc-title">{documentItem.title}</div>
-                          <div className="lead-generated-doc-meta">
-                            <span>{documentItem.docType || getTemplateLabel(documentItem.template)}</span>
-                            <span>{getDocumentStateLabel(documentItem.state || 'draft')}</span>
-                            <span>{formatTimestamp(documentItem.updatedAt || documentItem.createdAt)}</span>
-                          </div>
-                        </div>
-                        <div className="lead-generated-doc-actions">
-                          <button
-                            type="button"
-                            className="lead-file-link"
-                            onClick={() => handleLoadLibraryDocument(documentItem, { openBuilder: true })}
-                          >
-                            Load
-                          </button>
-                          <button type="button" className="lead-file-link" onClick={() => handleCopyGeneratedDocument(documentItem)}>
-                            Copy
-                          </button>
-                          <button type="button" className="lead-file-link" onClick={() => handleDownloadGeneratedDocument(documentItem)}>
-                            Download
-                          </button>
-                          <button
-                            type="button"
-                            className="lead-file-link"
-                            onClick={() => handleDeleteGeneratedDocument(documentItem.id)}
-                            disabled={saving}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
+            {documentsViewTab === 'print-bundles' && (
+              <div className="lead-empty-inline">
+                Print bundles will be assembled from the selected library documents.
+              </div>
             )}
           </div>
         </div>
