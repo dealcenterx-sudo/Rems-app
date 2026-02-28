@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import './App.css';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
 import { db } from './firebase';
 import DealsDashboard from './components/DealsDashboard';
 import ActiveDealsPage from './components/ActiveDealsPage';
@@ -22,6 +25,8 @@ import {
   signOut,
   onAuthStateChanged 
 } from 'firebase/auth';
+
+pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL || ''}/pdf.worker.min.mjs`;
 
 
 // Icon Components
@@ -3356,6 +3361,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const [focusedDocumentId, setFocusedDocumentId] = useState(null);
   const [generatedLeadDocuments, setGeneratedLeadDocuments] = useState([]);
   const [pdfPreviewDocument, setPdfPreviewDocument] = useState(null);
+  const [pdfPreviewNumPages, setPdfPreviewNumPages] = useState(0);
+  const [pdfPreviewScale, setPdfPreviewScale] = useState(1.1);
+  const [pdfPreviewError, setPdfPreviewError] = useState('');
   const [emailComposer, setEmailComposer] = useState({
     to: '',
     cc: '',
@@ -3478,6 +3486,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
 
   useEffect(() => {
     setPdfPreviewDocument(null);
+    setPdfPreviewNumPages(0);
+    setPdfPreviewError('');
   }, [leadId]);
 
   useEffect(() => {
@@ -4473,6 +4483,30 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       fileName: row.fileName || 'Document.pdf',
       fileUrl: row.fileUrl
     });
+    setPdfPreviewNumPages(0);
+    setPdfPreviewScale(1.1);
+    setPdfPreviewError('');
+  };
+
+  const closePdfPreview = () => {
+    setPdfPreviewDocument(null);
+    setPdfPreviewNumPages(0);
+    setPdfPreviewError('');
+  };
+
+  const handlePdfLoadSuccess = ({ numPages }) => {
+    setPdfPreviewNumPages(numPages || 0);
+    setPdfPreviewError('');
+  };
+
+  const handlePdfLoadError = (error) => {
+    console.error('Error loading PDF preview:', error);
+    setPdfPreviewError('This PDF could not be rendered in-app. Use Open New Tab or Download.');
+  };
+
+  const handleOpenPdfInNewTab = () => {
+    if (!pdfPreviewDocument?.fileUrl) return;
+    window.open(pdfPreviewDocument.fileUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleDocumentRowDoubleClick = (event, row) => {
@@ -5558,12 +5592,12 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       )}
 
       {pdfPreviewDocument && (
-        <div className="modal-overlay" onClick={() => setPdfPreviewDocument(null)}>
+        <div className="modal-overlay" onClick={closePdfPreview}>
           <div className="modal-content lead-pdf-preview-modal" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header lead-pdf-preview-header">
               <div className="lead-pdf-preview-heading">
                 <h2>{pdfPreviewDocument.fileName}</h2>
-                <div>Double-clicking uploaded PDFs opens them here for reading.</div>
+                <div>Embedded PDF reader for uploaded documents.</div>
               </div>
               <div className="lead-pdf-preview-actions">
                 <button
@@ -5575,19 +5609,80 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 </button>
                 <button
                   type="button"
+                  className="lead-action-btn"
+                  onClick={handleOpenPdfInNewTab}
+                >
+                  Open New Tab
+                </button>
+                <div className="lead-pdf-preview-zoom">
+                  <button
+                    type="button"
+                    className="lead-pdf-zoom-btn"
+                    onClick={() => setPdfPreviewScale((prev) => Math.max(0.75, Number((prev - 0.1).toFixed(2))))}
+                  >
+                    -
+                  </button>
+                  <span>{Math.round(pdfPreviewScale * 100)}%</span>
+                  <button
+                    type="button"
+                    className="lead-pdf-zoom-btn"
+                    onClick={() => setPdfPreviewScale((prev) => Math.min(2.25, Number((prev + 0.1).toFixed(2))))}
+                  >
+                    +
+                  </button>
+                </div>
+                <button
+                  type="button"
                   className="icon-button"
-                  onClick={() => setPdfPreviewDocument(null)}
+                  onClick={closePdfPreview}
                 >
                   ×
                 </button>
               </div>
             </div>
             <div className="lead-pdf-preview-frame-shell">
-              <iframe
-                title={pdfPreviewDocument.fileName}
-                src={`${pdfPreviewDocument.fileUrl}#toolbar=1&navpanes=0`}
-                className="lead-pdf-preview-frame"
-              />
+              {pdfPreviewError ? (
+                <div className="lead-pdf-preview-error">
+                  <div className="lead-pdf-preview-error-title">Preview unavailable</div>
+                  <div className="lead-pdf-preview-error-copy">{pdfPreviewError}</div>
+                  <div className="lead-pdf-preview-error-actions">
+                    <button type="button" className="lead-action-btn" onClick={handleOpenPdfInNewTab}>
+                      Open New Tab
+                    </button>
+                    <button type="button" className="lead-action-btn lead-action-btn-primary" onClick={() => handleDownloadDocument(pdfPreviewDocument)}>
+                      Download PDF
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <Document
+                  file={pdfPreviewDocument.fileUrl}
+                  loading={<div className="lead-pdf-preview-loading">Loading PDF…</div>}
+                  error=""
+                  onLoadSuccess={handlePdfLoadSuccess}
+                  onLoadError={handlePdfLoadError}
+                  className="lead-pdf-document"
+                >
+                  <div className="lead-pdf-preview-statusbar">
+                    <span>{pdfPreviewNumPages ? `${pdfPreviewNumPages} page${pdfPreviewNumPages === 1 ? '' : 's'}` : 'Preparing pages...'}</span>
+                    <span>{pdfPreviewDocument.fileName}</span>
+                  </div>
+                  <div className="lead-pdf-pages">
+                    {Array.from({ length: pdfPreviewNumPages }, (_, index) => (
+                      <div key={`pdf-page-${index + 1}`} className="lead-pdf-page-wrap">
+                        <div className="lead-pdf-page-label">Page {index + 1}</div>
+                        <Page
+                          pageNumber={index + 1}
+                          scale={pdfPreviewScale}
+                          renderAnnotationLayer
+                          renderTextLayer
+                          className="lead-pdf-page"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </Document>
+              )}
             </div>
           </div>
         </div>
