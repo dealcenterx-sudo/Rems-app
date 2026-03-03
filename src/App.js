@@ -204,13 +204,6 @@ const Mail = ({ size = 24, color = "currentColor" }) => (
   </svg>
 );
 
-const LinkIcon = ({ size = 24, color = "currentColor" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L10 5"/>
-    <path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L14 19"/>
-  </svg>
-);
-
 const CalendarIcon = ({ size = 24, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="2"/>
@@ -6431,8 +6424,7 @@ const CRMPage = ({ subTab, setSubTab, leadId, setLeadId, onOpenLead, onStartDeal
     { id: 'campaigns', label: 'Campaigns', icon: TrendingUp },
     { id: 'messages', label: 'Messages', icon: FileText },
     { id: 'email', label: 'Email', icon: Mail },
-    { id: 'reports', label: 'Reports', icon: List },
-    { id: 'connector', label: 'Connector', icon: LinkIcon }
+    { id: 'reports', label: 'Reports', icon: List }
   ];
 
   const renderedItems = subTab === 'lead-detail'
@@ -6478,7 +6470,6 @@ const CRMPage = ({ subTab, setSubTab, leadId, setLeadId, onOpenLead, onStartDeal
         {subTab === 'messages' && <CRMMessagesPage />}
         {subTab === 'email' && <CRMEmailInboxPage />}
         {subTab === 'reports' && <CRMPlaceholderPage title="Reports" description="CRM-specific reports and performance summaries will appear here." />}
-        {subTab === 'connector' && <CRMPlaceholderPage title="Connector" description="XML push and API lead communication settings will be configured here." />}
       </div>
     </div>
   );

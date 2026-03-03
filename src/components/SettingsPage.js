@@ -41,6 +41,13 @@ const BellIcon = ({ size = 24 }) => (
   </svg>
 );
 
+const ConnectorIcon = ({ size = 24 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.07 0l1.41-1.41a5 5 0 1 0-7.07-7.07L10.6 5.34"/>
+    <path d="M14 11a5 5 0 0 0-7.07 0l-1.41 1.41a5 5 0 1 0 7.07 7.07l.81-.82"/>
+  </svg>
+);
+
 const SettingsPage = () => {
   const toast = useToast();
   const [activeSection, setActiveSection] = useState('profile');
@@ -147,7 +154,8 @@ const SettingsPage = () => {
     { id: 'profile', label: 'Profile', icon: UserIcon },
     { id: 'security', label: 'Security', icon: LockIcon },
     { id: 'company', label: 'Company', icon: BuildingIcon },
-    { id: 'notifications', label: 'Notifications', icon: BellIcon }
+    { id: 'notifications', label: 'Notifications', icon: BellIcon },
+    { id: 'connector', label: 'Connector', icon: ConnectorIcon }
   ];
 
   return (
@@ -325,6 +333,48 @@ const SettingsPage = () => {
                 <BellIcon size={48} color="#666666" />
                 <div className="empty-state-title">Notifications</div>
                 <div className="empty-state-subtitle">Notification settings coming soon</div>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'connector' && (
+            <div>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#ffffff', marginBottom: '20px' }}>
+                Connector Settings
+              </h3>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+                <div className="card-surface" style={{ padding: '20px' }}>
+                  <div style={{ fontSize: '11px', color: '#888888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
+                    Lead Delivery
+                  </div>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff', marginBottom: '8px' }}>
+                    XML Push + API Routing
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#888888', lineHeight: '1.6' }}>
+                    Configure inbound lead feeds, XML endpoints, API authentication, and partner delivery routing from Settings.
+                  </div>
+                </div>
+
+                <div className="card-surface" style={{ padding: '20px' }}>
+                  <div style={{ fontSize: '11px', color: '#888888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
+                    Status
+                  </div>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', border: '1px solid #1a3c2a', background: '#0b1710', color: '#00ff88', borderRadius: '999px', padding: '8px 12px', fontSize: '12px', fontWeight: '700' }}>
+                    Admin Setup Pending
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#888888', lineHeight: '1.6', marginTop: '12px' }}>
+                    This area is ready to become the central place for compliant connector configuration.
+                  </div>
+                </div>
+              </div>
+
+              <div className="empty-state-card">
+                <ConnectorIcon size={48} color="#666666" />
+                <div className="empty-state-title">Connector moved to Settings</div>
+                <div className="empty-state-subtitle">
+                  XML push and API lead communication settings will be managed here instead of the CRM tab.
+                </div>
               </div>
             </div>
           )}
