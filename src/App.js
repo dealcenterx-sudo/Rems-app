@@ -3282,6 +3282,53 @@ const SAMPLE_CRM_LEAD = {
   attachments: []
 };
 
+const SAMPLE_CRM_LEAD_STORAGE_KEY = 'rems-sample-crm-lead';
+
+const getStoredSampleLead = () => {
+  if (typeof window === 'undefined') {
+    return SAMPLE_CRM_LEAD;
+  }
+
+  try {
+    const storedValue = window.localStorage.getItem(SAMPLE_CRM_LEAD_STORAGE_KEY);
+    if (!storedValue) {
+      return SAMPLE_CRM_LEAD;
+    }
+
+    const parsedValue = JSON.parse(storedValue);
+    return {
+      ...SAMPLE_CRM_LEAD,
+      ...parsedValue,
+      attachments: Array.isArray(parsedValue.attachments) ? parsedValue.attachments : (SAMPLE_CRM_LEAD.attachments || []),
+      activityLog: Array.isArray(parsedValue.activityLog) ? parsedValue.activityLog : (SAMPLE_CRM_LEAD.activityLog || []),
+      generatedDocuments: Array.isArray(parsedValue.generatedDocuments)
+        ? parsedValue.generatedDocuments
+        : (SAMPLE_CRM_LEAD.generatedDocuments || []),
+      activityOverrides: parsedValue.activityOverrides || SAMPLE_CRM_LEAD.activityOverrides || {}
+    };
+  } catch (error) {
+    console.error('Error reading sample CRM lead from local storage:', error);
+    return SAMPLE_CRM_LEAD;
+  }
+};
+
+const persistStoredSampleLead = (updates = {}) => {
+  const nextLead = {
+    ...getStoredSampleLead(),
+    ...updates
+  };
+
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(SAMPLE_CRM_LEAD_STORAGE_KEY, JSON.stringify(nextLead));
+    } catch (error) {
+      console.error('Error saving sample CRM lead to local storage:', error);
+    }
+  }
+
+  return nextLead;
+};
+
 const normalizeLeadWarmth = (value) => {
   const normalized = (value || '').toLowerCase().replace(/\s+/g, '-');
   if (normalized === 'active' || normalized === 'active-deals') return 'active-deal';
@@ -3400,13 +3447,14 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       }
 
       if (leadId === 'sample-lead-1') {
-        setLead(SAMPLE_CRM_LEAD);
-        setAttachments(SAMPLE_CRM_LEAD.attachments || []);
-        setWarmth(normalizeLeadWarmth(SAMPLE_CRM_LEAD.warmth));
-        setLeadForm(createLeadFormState(SAMPLE_CRM_LEAD));
-        setCustomActivities(Array.isArray(SAMPLE_CRM_LEAD.activityLog) ? SAMPLE_CRM_LEAD.activityLog : []);
-        setActivityOverrides(SAMPLE_CRM_LEAD.activityOverrides || {});
-        setGeneratedLeadDocuments(Array.isArray(SAMPLE_CRM_LEAD.generatedDocuments) ? SAMPLE_CRM_LEAD.generatedDocuments : []);
+        const sampleLead = getStoredSampleLead();
+        setLead(sampleLead);
+        setAttachments(sampleLead.attachments || []);
+        setWarmth(normalizeLeadWarmth(sampleLead.warmth));
+        setLeadForm(createLeadFormState(sampleLead));
+        setCustomActivities(Array.isArray(sampleLead.activityLog) ? sampleLead.activityLog : []);
+        setActivityOverrides(sampleLead.activityOverrides || {});
+        setGeneratedLeadDocuments(Array.isArray(sampleLead.generatedDocuments) ? sampleLead.generatedDocuments : []);
         setSelectedDocumentIds([]);
         setFocusedDocumentId(null);
         setDocumentsSearch('');
@@ -3564,10 +3612,17 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   };
 
   const persistLeadUpdate = async (updates) => {
-    if (!lead?.id || isSampleLead) return;
-    await updateDoc(doc(db, 'leads', lead.id), {
+    if (!lead?.id) return;
+    const nextUpdates = {
       ...updates,
       updatedAt: new Date().toISOString()
+    };
+    if (isSampleLead) {
+      persistStoredSampleLead(nextUpdates);
+      return;
+    }
+    await updateDoc(doc(db, 'leads', lead.id), {
+      ...nextUpdates
     });
   };
 
