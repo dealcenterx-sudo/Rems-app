@@ -3340,6 +3340,73 @@ const getLeadWarmthLabel = (value) => {
   return LEAD_PIPELINE_STAGES.find((stage) => stage.value === normalized)?.label || 'Cold';
 };
 
+const US_STATE_NAME_MAP = {
+  AL: 'Alabama',
+  AK: 'Alaska',
+  AZ: 'Arizona',
+  AR: 'Arkansas',
+  CA: 'California',
+  CO: 'Colorado',
+  CT: 'Connecticut',
+  DE: 'Delaware',
+  FL: 'Florida',
+  GA: 'Georgia',
+  HI: 'Hawaii',
+  ID: 'Idaho',
+  IL: 'Illinois',
+  IN: 'Indiana',
+  IA: 'Iowa',
+  KS: 'Kansas',
+  KY: 'Kentucky',
+  LA: 'Louisiana',
+  ME: 'Maine',
+  MD: 'Maryland',
+  MA: 'Massachusetts',
+  MI: 'Michigan',
+  MN: 'Minnesota',
+  MS: 'Mississippi',
+  MO: 'Missouri',
+  MT: 'Montana',
+  NE: 'Nebraska',
+  NV: 'Nevada',
+  NH: 'New Hampshire',
+  NJ: 'New Jersey',
+  NM: 'New Mexico',
+  NY: 'New York',
+  NC: 'North Carolina',
+  ND: 'North Dakota',
+  OH: 'Ohio',
+  OK: 'Oklahoma',
+  OR: 'Oregon',
+  PA: 'Pennsylvania',
+  RI: 'Rhode Island',
+  SC: 'South Carolina',
+  SD: 'South Dakota',
+  TN: 'Tennessee',
+  TX: 'Texas',
+  UT: 'Utah',
+  VT: 'Vermont',
+  VA: 'Virginia',
+  WA: 'Washington',
+  WV: 'West Virginia',
+  WI: 'Wisconsin',
+  WY: 'Wyoming',
+  DC: 'District of Columbia'
+};
+
+const formatDocumentJurisdictionLabel = (value) => {
+  if (!value) return 'Florida';
+  const normalized = value.toString().trim();
+  if (normalized.length === 2) {
+    return US_STATE_NAME_MAP[normalized.toUpperCase()] || normalized.toUpperCase();
+  }
+  return normalized
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
 const formatPropertyTypeLabel = (value) => {
   if (!value) return 'N/A';
   const normalized = value.toString().trim().toLowerCase();
@@ -4390,30 +4457,18 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     { id: 'files', label: 'Files Hub' }
   ];
 
-  const leadDocumentStateOptions = [
-    { value: 'all', label: 'All States' },
-    { value: 'draft', label: 'Draft' },
-    { value: 'review', label: 'Under Review' },
-    { value: 'ready', label: 'Ready to Sign' },
-    { value: 'signed', label: 'Signed' }
-  ];
-
   const leadDocumentsTabs = [
     { id: 'library', label: 'Forms Library' },
     { id: 'sign-bundles', label: 'Sign Bundles' },
     { id: 'print-bundles', label: 'Print Bundles' }
   ];
 
-  const getDocumentStateLabel = (value) => (
-    leadDocumentStateOptions.find((option) => option.value === value)?.label || 'Draft'
-  );
-
   const sampleLibraryDocuments = [
     {
       id: 'sample-purchase-agreement',
       docType: 'Purchase Agreement',
       title: 'Sample Real Estate Purchase Agreement',
-      state: 'ready',
+      jurisdictionState: 'New Jersey',
       category: 'Contract',
       format: 'PDF',
       version: 'v1.0',
@@ -4426,6 +4481,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         '',
         `Buyer: ${leadName}`,
         `Property: ${leadForm.street || 'N/A'}, ${leadForm.city || 'N/A'}, ${leadForm.state || 'N/A'} ${leadForm.zipCode || ''}`,
+        'Form State: New Jersey',
         'Purchase Price: $250,000',
         'Deposit: $5,000',
         'Closing Date: March 15, 2026',
@@ -4437,7 +4493,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       id: 'sample-inspection-addendum',
       docType: 'Inspection Addendum',
       title: 'Sample Inspection Review Addendum',
-      state: 'draft',
+      jurisdictionState: 'Florida',
       category: 'Addendum',
       format: 'PDF',
       version: 'v0.8',
@@ -4449,6 +4505,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         'Inspection Review Addendum (Sample)',
         '',
         `Property: ${leadForm.street || 'N/A'}, ${leadForm.city || 'N/A'}, ${leadForm.state || 'N/A'} ${leadForm.zipCode || ''}`,
+        'Form State: Florida',
         'Requested Repair Credit: $3,500',
         'Inspection Response Deadline: March 3, 2026',
         '',
@@ -4459,7 +4516,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       id: 'sample-disclosure-sheet',
       docType: 'Seller Disclosure',
       title: 'Sample Seller Disclosure Summary',
-      state: 'review',
+      jurisdictionState: 'Texas',
       category: 'Disclosure',
       format: 'PDF',
       version: 'v1.2',
@@ -4471,6 +4528,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         'Seller Disclosure Summary (Sample)',
         '',
         `Property Type: ${propertyType}`,
+        'Form State: Texas',
         'Occupancy Status: Vacant',
         'Material Defects Reported: None listed',
         '',
@@ -4483,7 +4541,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     ...docItem,
     id: docItem.id || `admin-doc-${index}`,
     title: docItem.title || `Admin Form ${index + 1}`,
-    state: docItem.state || 'draft',
+    jurisdictionState: formatDocumentJurisdictionLabel(
+      docItem.jurisdictionState || docItem.jurisdiction || leadForm.state || 'Florida'
+    ),
     docType: docItem.docType || 'Admin Form',
     category: docItem.category || 'Library',
     format: docItem.format || 'PDF',
@@ -4497,10 +4557,25 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
 
   const libraryDocuments = [...sampleLibraryDocuments, ...normalizedGeneratedDocuments];
 
+  const leadDocumentStateOptions = [
+    { value: 'all', label: 'All States' },
+    ...Array.from(
+      new Set(
+        libraryDocuments
+          .map((docItem) => formatDocumentJurisdictionLabel(docItem.jurisdictionState))
+          .filter(Boolean)
+      )
+    ).map((stateName) => ({
+      value: stateName,
+      label: stateName
+    }))
+  ];
+
   const filteredLibraryDocuments = libraryDocuments.filter((docItem) => {
     const matchesSearch = !documentsSearch
-      || `${docItem.title} ${docItem.docType} ${docItem.category} ${docItem.id}`.toLowerCase().includes(documentsSearch.toLowerCase());
-    const matchesState = documentsStateFilter === 'all' || docItem.state === documentsStateFilter;
+      || `${docItem.title} ${docItem.docType} ${docItem.category} ${docItem.id} ${formatDocumentJurisdictionLabel(docItem.jurisdictionState)}`.toLowerCase().includes(documentsSearch.toLowerCase());
+    const matchesState = documentsStateFilter === 'all'
+      || formatDocumentJurisdictionLabel(docItem.jurisdictionState) === documentsStateFilter;
     return matchesSearch && matchesState;
   });
 
@@ -4631,7 +4706,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         <div class="pdf-viewer-page-title">${escapeHtml(docItem.title)}</div>
         <div class="pdf-viewer-page-meta">
           <span>${escapeHtml(docItem.docType)}</span>
-          <span>${escapeHtml(getDocumentStateLabel(docItem.state))}</span>
+          <span>${escapeHtml(formatDocumentJurisdictionLabel(docItem.jurisdictionState))}</span>
           <span>${escapeHtml(docItem.version)}</span>
         </div>
         <article class="pdf-viewer-page">
@@ -5483,8 +5558,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                           <div className="lead-doc-library-meta">{documentItem.language}</div>
                           <div className="lead-doc-library-meta">{documentItem.esign}</div>
                           <div className="lead-doc-library-meta">{documentItem.category}</div>
-                          <div className={`lead-doc-library-state-pill state-${documentItem.state || 'draft'}`}>
-                            {getDocumentStateLabel(documentItem.state)}
+                          <div className="lead-doc-library-state-pill">
+                            {formatDocumentJurisdictionLabel(documentItem.jurisdictionState)}
                           </div>
                           <div className="lead-doc-library-meta">{documentItem.docType}</div>
                           <div className="lead-doc-library-meta">{documentItem.version}</div>
@@ -5503,7 +5578,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                       {focusedLibraryDocument ? (
                         <>
                           <span>{focusedLibraryDocument.docType}</span>
-                          <span>{getDocumentStateLabel(focusedLibraryDocument.state)}</span>
+                          <span>{formatDocumentJurisdictionLabel(focusedLibraryDocument.jurisdictionState)}</span>
                           <span>{formatTimestamp(focusedLibraryDocument.updatedAt || focusedLibraryDocument.createdAt)}</span>
                         </>
                       ) : (

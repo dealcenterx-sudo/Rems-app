@@ -2367,37 +2367,13 @@ body {
   justify-content: center;
   min-height: 24px;
   border-radius: 999px;
-  border: 1px solid #2a2a2a;
+  border: 1px solid rgba(0, 136, 255, 0.24);
   padding: 0 10px;
   font-size: 11px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+  color: #d8ebff;
+  background: rgba(0, 136, 255, 0.1);
   width: fit-content;
-}
-
-.lead-doc-library-state-pill.state-draft {
-  color: #ffaa00;
-  border-color: #ffaa0040;
-  background: #ffaa0015;
-}
-
-.lead-doc-library-state-pill.state-review {
-  color: #0088ff;
-  border-color: #0088ff40;
-  background: #0088ff14;
-}
-
-.lead-doc-library-state-pill.state-ready {
-  color: #00ff88;
-  border-color: #00ff8840;
-  background: #00ff8815;
-}
-
-.lead-doc-library-state-pill.state-signed {
-  color: #ffffff;
-  border-color: #4a4a4a;
-  background: #1b1b1b;
 }
 
 .lead-doc-library-actions {
