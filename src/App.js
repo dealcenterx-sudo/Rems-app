@@ -3462,6 +3462,16 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const [activityOverrides, setActivityOverrides] = useState({});
   const [editingActivityId, setEditingActivityId] = useState(null);
   const [editingActivityDraft, setEditingActivityDraft] = useState({ title: '', summary: '', detail: '' });
+  const [activityComposer, setActivityComposer] = useState({
+    isOpen: false,
+    actionLabel: '',
+    type: 'contact',
+    source: 'user',
+    isPermanent: false,
+    title: '',
+    summary: '',
+    detail: ''
+  });
   const [floatingTabId, setFloatingTabId] = useState(null);
   const [floatingTabLeft, setFloatingTabLeft] = useState(12);
   const [isFileDragOver, setIsFileDragOver] = useState(false);
@@ -3603,6 +3613,16 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     setPdfPreviewDocument(null);
     setPdfPreviewNumPages(0);
     setPdfPreviewError('');
+    setActivityComposer({
+      isOpen: false,
+      actionLabel: '',
+      type: 'contact',
+      source: 'user',
+      isPermanent: false,
+      title: '',
+      summary: '',
+      detail: ''
+    });
   }, [leadId]);
 
   useEffect(() => {
@@ -4069,9 +4089,60 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     }
   };
 
-  const handleEngagementAction = async (label) => {
-    if (label === 'Send Email') {
-      openEmailComposer();
+  const openActivityComposer = (label) => {
+    const preset = activityComposerPresets[label] || {
+      type: 'contact',
+      source: 'user',
+      isPermanent: false,
+      title: label,
+      summary: '',
+      detail: ''
+    };
+
+    setActivityComposer({
+      isOpen: true,
+      actionLabel: label,
+      type: preset.type,
+      source: preset.source,
+      isPermanent: preset.isPermanent,
+      title: preset.title,
+      summary: preset.summary,
+      detail: preset.detail
+    });
+  };
+
+  const closeActivityComposer = () => {
+    setActivityComposer({
+      isOpen: false,
+      actionLabel: '',
+      type: 'contact',
+      source: 'user',
+      isPermanent: false,
+      title: '',
+      summary: '',
+      detail: ''
+    });
+  };
+
+  const handleActivityComposerChange = (field, value) => {
+    setActivityComposer((prev) => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const saveActivityComposer = async () => {
+    const nextTitle = (activityComposer.title || '').trim();
+    const nextSummary = (activityComposer.summary || '').trim();
+    const nextDetail = (activityComposer.detail || '').trim();
+
+    if (!nextTitle) {
+      toast.error('Activity title is required');
+      return;
+    }
+
+    if (!nextSummary) {
+      toast.error('Activity summary is required');
       return;
     }
 
@@ -4079,23 +4150,34 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       const saved = await handleSaveLeadDetails({ showToast: false });
       if (!saved) return;
     }
+
     try {
       setSaving(true);
       await appendActivityEntry({
-        type: 'contact',
-        title: label,
-        summary: `${label} action created from workspace toolbar.`,
-        detail: 'Wire this action to downstream automations if needed.',
-        isPermanent: label.toLowerCase().includes('workflow'),
-        source: label.toLowerCase().includes('workflow') ? 'workflow' : 'user'
+        type: activityComposer.type,
+        title: nextTitle,
+        summary: nextSummary,
+        detail: nextDetail || 'No additional detail provided.',
+        isPermanent: activityComposer.isPermanent,
+        source: activityComposer.source
       });
-      toast.success(`${label} added to activity`);
+      toast.success(`${activityComposer.actionLabel || 'Activity'} added to activity`);
+      closeActivityComposer();
     } catch (error) {
-      console.error(`Error handling ${label}:`, error);
-      toast.error(`Failed to run ${label}`);
+      console.error(`Error saving activity composer for ${activityComposer.actionLabel}:`, error);
+      toast.error('Failed to save activity');
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleEngagementAction = async (label) => {
+    if (label === 'Send Email') {
+      openEmailComposer();
+      return;
+    }
+
+    openActivityComposer(label);
   };
 
   const handleUploadFiles = async () => {
@@ -4349,6 +4431,64 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     'Add Note',
     'Disposition'
   ];
+  const activityComposerPresets = {
+    'Phone Call': {
+      type: 'contact',
+      source: 'user',
+      isPermanent: false,
+      title: 'Phone Call',
+      summary: '',
+      detail: ''
+    },
+    'Send SMS': {
+      type: 'contact',
+      source: 'user',
+      isPermanent: false,
+      title: 'SMS Sent',
+      summary: '',
+      detail: ''
+    },
+    'Schedule Appt': {
+      type: 'contact',
+      source: 'user',
+      isPermanent: false,
+      title: 'Appointment Scheduled',
+      summary: '',
+      detail: ''
+    },
+    'Add Task': {
+      type: 'deal',
+      source: 'user',
+      isPermanent: false,
+      title: 'Task Added',
+      summary: '',
+      detail: ''
+    },
+    'Add Note': {
+      type: 'contact',
+      source: 'user',
+      isPermanent: false,
+      title: 'Lead Note',
+      summary: '',
+      detail: ''
+    },
+    Disposition: {
+      type: 'status',
+      source: 'user',
+      isPermanent: false,
+      title: 'Disposition Updated',
+      summary: '',
+      detail: ''
+    },
+    'Assign Workflow': {
+      type: 'status',
+      source: 'workflow',
+      isPermanent: true,
+      title: 'Workflow Assigned',
+      summary: '',
+      detail: ''
+    }
+  };
   const serviceRequestedOptions = [
     'Buying a property',
     'Selling a property',
@@ -5715,6 +5855,79 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
               </button>
               <button type="button" className="lead-action-btn lead-action-btn-primary" onClick={handleSendEmail} disabled={sendingEmail}>
                 {sendingEmail ? 'Sending...' : 'Send Email'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activityComposer.isOpen && (
+        <div className="modal-overlay" onClick={() => !saving && closeActivityComposer()}>
+          <div className="modal-content lead-activity-composer-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header lead-activity-composer-header">
+              <div>
+                <div className={`lead-activity-badge ${activityComposer.type}`}>
+                  {activityComposer.type}
+                </div>
+                <h2 className="lead-activity-composer-title">{activityComposer.actionLabel || 'New Activity'}</h2>
+                <div className="lead-activity-composer-copy">
+                  Add the context before this activity is saved to the lead timeline.
+                </div>
+              </div>
+              <button
+                type="button"
+                className="icon-button"
+                onClick={closeActivityComposer}
+                disabled={saving}
+              >
+                ×
+              </button>
+            </div>
+            <div className="lead-activity-composer-fields">
+              <div className="lead-field">
+                <label>Title</label>
+                <input
+                  type="text"
+                  value={activityComposer.title}
+                  onChange={(event) => handleActivityComposerChange('title', event.target.value)}
+                  placeholder="Activity title"
+                />
+              </div>
+              <div className="lead-field">
+                <label>Summary</label>
+                <textarea
+                  rows={3}
+                  value={activityComposer.summary}
+                  onChange={(event) => handleActivityComposerChange('summary', event.target.value)}
+                  placeholder="Short summary of what happened"
+                />
+              </div>
+              <div className="lead-field">
+                <label>Detail</label>
+                <textarea
+                  rows={4}
+                  value={activityComposer.detail}
+                  onChange={(event) => handleActivityComposerChange('detail', event.target.value)}
+                  placeholder="Additional details, next steps, or internal context"
+                />
+              </div>
+            </div>
+            <div className="lead-activity-composer-actions">
+              <button
+                type="button"
+                className="lead-action-btn"
+                onClick={closeActivityComposer}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="lead-action-btn lead-action-btn-primary"
+                onClick={saveActivityComposer}
+                disabled={saving}
+              >
+                {saving ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>

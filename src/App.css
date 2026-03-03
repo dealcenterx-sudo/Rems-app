@@ -1525,6 +1525,53 @@ body {
   gap: 8px;
 }
 
+.lead-activity-composer-modal {
+  max-width: 720px;
+  padding: 22px;
+  border: 1px solid #232323;
+  background: #090909;
+}
+
+.lead-activity-composer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.lead-activity-composer-title {
+  margin: 10px 0 0;
+  font-size: 22px;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.lead-activity-composer-copy {
+  margin-top: 8px;
+  color: #8b8b8b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.lead-activity-composer-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.lead-activity-composer-fields textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.lead-activity-composer-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .crm-email-view {
   height: 100%;
 }
