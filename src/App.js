@@ -9,6 +9,9 @@ import ActiveDealsPage from './components/ActiveDealsPage';
 import ClosedDealsPage from './components/ClosedDealsPage';
 import PropertiesPage from './components/PropertiesPage';
 import CRMDashboard from './components/CRMDashboard';
+import LeadDrawer from './components/LeadDrawer';
+import CRMCampaignsPage from './components/CRMCampaignsPage';
+import CRMReportsPage from './components/CRMReportsPage';
 import TasksPage from './components/TasksPage';
 import SettingsPage from './components/SettingsPage';
 import DocumentsPage from './components/DocumentsPage';
@@ -2168,6 +2171,7 @@ const CRMPlaceholderPage = ({ title, description }) => (
 );
 
 const CRMLeadsPage = ({ onOpenLead }) => {
+  const [drawerLeadId, setDrawerLeadId] = useState(null);
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -2781,6 +2785,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
               return (
                 <div
                   key={lead.id}
+                  onClick={() => setDrawerLeadId(lead.id)}
                   onDoubleClick={() => onOpenLead?.(lead.id)}
                   style={{
                     display: 'grid',
@@ -2788,11 +2793,12 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                     gap: '10px',
                     padding: '12px',
                     borderRadius: '8px',
-                    background: '#0a0a0a',
+                    background: drawerLeadId === lead.id ? '#00ff8808' : '#0a0a0a',
                     marginBottom: '8px',
                     fontSize: '12px',
                     color: '#ffffff',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    border: drawerLeadId === lead.id ? '1px solid #00ff8833' : '1px solid transparent'
                   }}
                 >
                   <div>{formatDate(lead.submittedAt || lead.createdAt)}</div>
@@ -2825,6 +2831,13 @@ const CRMLeadsPage = ({ onOpenLead }) => {
           </div>
         </div>
       </div>
+      {drawerLeadId && (
+        <LeadDrawer
+          leadId={drawerLeadId}
+          onClose={() => setDrawerLeadId(null)}
+          onOpenFullDetail={(id) => { onOpenLead?.(id); }}
+        />
+      )}
     </div>
   );
 };
@@ -6466,10 +6479,10 @@ const CRMPage = ({ subTab, setSubTab, leadId, setLeadId, onOpenLead, onStartDeal
             }}
           />
         )}
-        {subTab === 'campaigns' && <CRMPlaceholderPage title="Campaigns" description="Build and track outbound campaigns from this view." />}
+        {subTab === 'campaigns' && <CRMCampaignsPage />}
         {subTab === 'messages' && <CRMMessagesPage />}
         {subTab === 'email' && <CRMEmailInboxPage />}
-        {subTab === 'reports' && <CRMPlaceholderPage title="Reports" description="CRM-specific reports and performance summaries will appear here." />}
+        {subTab === 'reports' && <CRMReportsPage />}
       </div>
     </div>
   );
