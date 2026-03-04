@@ -2160,6 +2160,7 @@ const DealsPage = ({ subTab, setSubTab }) => {
   );
 };
 
+// eslint-disable-next-line no-unused-vars
 const CRMPlaceholderPage = ({ title, description }) => (
   <div className="page-content">
     <div className="empty-state-card">
