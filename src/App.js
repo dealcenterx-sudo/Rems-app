@@ -6601,7 +6601,7 @@ function App() {
   }
 
   // Show login if not authenticated
-  if (!user) {
+  if (!user && process.env.REACT_APP_DEV_BYPASS !== 'true') {
     return <LoginPage onLoginSuccess={() => setUser(auth.currentUser)} />;
   }
 
