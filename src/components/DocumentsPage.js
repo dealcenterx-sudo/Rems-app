@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
+import { isAdminUser } from '../utils/helpers';
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
+import useDebounce from '../utils/useDebounce';
 
 const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   const toast = useToast();
@@ -11,7 +14,8 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
-  const [searchTerm, setSearchTerm] = useState(globalSearch);
+  const [searchInput, setSearchInput] = useState(globalSearch);
+  const searchTerm = useDebounce(searchInput, 250);
   const [confirmDelete, setConfirmDelete] = useState({ open: false, document: null });
   
   const [uploadData, setUploadData] = useState({
@@ -23,20 +27,17 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
     linkedType: 'none'
   });
 
-  const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned';
-  const CLOUDINARY_CLOUD_NAME = 'dcirl3j3v';
-
   useEffect(() => {
     loadDocuments();
   }, []);
 
   useEffect(() => {
-    setSearchTerm(globalSearch || '');
+    setSearchInput(globalSearch || '');
   }, [globalSearch]);
 
   const loadDocuments = async () => {
     try {
-      const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+      const isAdmin = isAdminUser();
 
       const docsQuery = isAdmin
         ? query(collection(db, 'documents'), orderBy('createdAt', 'desc'))
@@ -205,7 +206,7 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
-  const filteredDocuments = documents
+  const filteredDocuments = useMemo(() => documents
     .filter(d => filterCategory === 'all' || d.category === filterCategory)
     .filter(d => {
       if (!searchTerm) return true;
@@ -215,7 +216,8 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
         d.description?.toLowerCase().includes(search) ||
         d.category?.toLowerCase().includes(search)
       );
-    });
+    }),
+  [documents, filterCategory, searchTerm]);
 
   const categoryOptions = [
     { value: 'all', label: 'All Documents', count: documents.length },
@@ -245,7 +247,7 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
       </div>
 
       <div style={{ marginBottom: '30px' }}>
-        <input type="text" placeholder="Search documents..." value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); if (onSearchChange) onSearchChange(e.target.value); }} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '15px' }} />
+        <input type="text" placeholder="Search documents..." value={searchInput} onChange={(e) => { setSearchInput(e.target.value); if (onSearchChange) onSearchChange(e.target.value); }} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '15px' }} />
         <div className="filters-row">
           {categoryOptions.map((option) => (
             <div

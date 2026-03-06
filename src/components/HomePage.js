@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { db, auth } from '../firebase';
 import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { UserPlus, FileText, ShoppingCart, Key } from './Icons';
-import { normalizeAddressValue, normalizePropertyTypeBucket } from '../utils/helpers';
+import { normalizeAddressValue, normalizePropertyTypeBucket, isAdminUser } from '../utils/helpers';
 
 const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProperties }) => {
   const [stats, setStats] = useState({
@@ -30,7 +30,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
   React.useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+        const isAdmin = isAdminUser();
 
         // Load contacts
         const contactsQuery = isAdmin
