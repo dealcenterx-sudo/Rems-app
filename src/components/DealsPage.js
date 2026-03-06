@@ -23,12 +23,9 @@ const DealsPage = ({ subTab, setSubTab }) => {
     { id: 'new', label: 'New Deal', icon: FilePlus },
     { id: 'dashboard', label: 'Dashboard', icon: BarChart },
     { id: 'active', label: 'Active Deals', icon: List },
-    { id: 'closed', label: 'Closed Deals', icon: CheckSquare }
+    { id: 'closed', label: 'Closed Deals', icon: CheckSquare },
+    { id: 'portal', label: 'Deal Portal', icon: CheckSquare }
   ];
-
-  const renderedItems = subTab === 'portal'
-    ? [...navItems, { id: 'portal', label: 'Deal Portal', icon: List }]
-    : navItems;
 
   return (
     <div className="page-with-subnav">
