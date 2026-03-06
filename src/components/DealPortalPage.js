@@ -45,6 +45,19 @@ const DealPortalPage = ({ dealId, onBack }) => {
     );
   }
 
+  if (!dealId) {
+    return (
+      <div className="page-content">
+        <div className="empty-state-card">
+          <div className="empty-state-icon">🤝</div>
+          <div className="empty-state-title">No Deal Selected</div>
+          <div className="empty-state-subtitle">Select a deal from Active Deals to open the collaborative portal</div>
+          <button onClick={onBack} className="btn-primary" style={{ marginTop: '16px' }}>Go to Active Deals</button>
+        </div>
+      </div>
+    );
+  }
+
   if (!deal) {
     return (
       <div className="page-content">
