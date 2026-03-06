@@ -32,7 +32,7 @@ const DealsPage = ({ subTab, setSubTab }) => {
       <div className="subnav">
         <div className="subnav-title">Deals</div>
         <div className="subnav-items">
-          {renderedItems.map((item) => (
+          {navItems.map((item) => (
             <div
               key={item.id}
               onClick={() => {
