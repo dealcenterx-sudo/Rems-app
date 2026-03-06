@@ -1,6 +1,6 @@
 # REMS App
 
-<!-- Claude Code agent connected and operational -->
+<!-- Claude Code agent connected and operational - auto-deploy test -->
 
 # Getting Started with Create React App
 
