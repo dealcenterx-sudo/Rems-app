@@ -4,7 +4,7 @@ import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 
-const ActiveDealsPage = () => {
+const ActiveDealsPage = ({ onOpenPortal }) => {
   const toast = useToast();
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -179,7 +179,15 @@ const ActiveDealsPage = () => {
                   <span style={{ fontSize: '13px', color: '#00ff88', fontWeight: '600' }}>{deal.sellerName || 'Not set'}</span>
                 </div>
               </div>
-              <div style={{ fontSize: '12px', color: '#00ff88', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>View Details →</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: '12px', color: '#00ff88', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>View Details →</div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onOpenPortal?.(deal.id); }}
+                  style={{ background: '#00ff8815', border: '1px solid #00ff8833', color: '#00ff88', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}
+                >
+                  Portal →
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -239,6 +247,12 @@ const ActiveDealsPage = () => {
               </div>
             </div>
             <div style={{ display: 'flex', gap: '10px', paddingTop: '20px', borderTop: '1px solid #1a1a1a' }}>
+              <button
+                onClick={() => { setShowDetailModal(false); onOpenPortal?.(selectedDeal.id); }}
+                className="btn-primary btn-block"
+              >
+                Open Deal Portal
+              </button>
               <button onClick={() => requestDelete(selectedDeal)} className="btn-danger btn-block">Delete Deal</button>
               <button onClick={() => setShowDetailModal(false)} className="btn-secondary btn-block">Close</button>
             </div>
