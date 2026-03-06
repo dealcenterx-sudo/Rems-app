@@ -3979,6 +3979,124 @@ body {
    All color values preserved — structural & spacing upgrades only
    ============================================================ */
 
+/* ── Main branch tokens (merged) ────────────────────────── */
+:root {
+  --surface-3: #141414;
+  --focus-ring: 0 0 0 3px rgba(0, 255, 136, 0.18);
+  --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.28);
+  --shadow-focus: 0 0 0 3px rgba(0, 136, 255, 0.25);
+}
+
+*::selection {
+  background: #00ff8820;
+  color: #f4fff8;
+}
+
+.page-content {
+  background:
+    radial-gradient(circle at 18% -10%, rgba(0, 255, 136, 0.08), transparent 36%),
+    radial-gradient(circle at 84% 12%, rgba(0, 136, 255, 0.06), transparent 34%),
+    linear-gradient(180deg, #030303, #000000);
+}
+
+.section {
+  background: var(--surface-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-soft);
+  transition: border-color var(--motion-med) var(--ease-standard),
+    transform var(--motion-med) var(--ease-standard);
+}
+
+.section-title {
+  margin-bottom: 16px;
+  gap: 12px;
+  align-items: center;
+}
+
+.section-title::before {
+  width: 4px;
+  border-radius: 999px;
+}
+
+.page-header p {
+  color: #bababa;
+}
+
+.quick-link-card,
+.kpi-container,
+.card-surface,
+.contact-form,
+.subnav,
+.tasks-table,
+.deal-card,
+.lead-panel-card,
+.lead-doc-library-table,
+.lead-doc-list,
+.detail-layout-sidebar,
+.detail-layout-main,
+.detail-layout-aside,
+.detail-layout-stage-card,
+.lead-activity-entry,
+.lead-engagement-btn,
+.lead-file-dropzone {
+  background: linear-gradient(180deg, #0a0a0a 0%, var(--surface-2) 100%);
+  border-color: #212121;
+  box-shadow: var(--shadow-soft);
+}
+
+.quick-link-card:hover,
+.kpi-container:hover,
+.card-surface:hover,
+.contact-form:hover,
+.lead-panel-card:hover,
+.lead-doc-library-row:hover,
+.lead-doc-row:hover,
+.lead-activity-entry:hover {
+  border-color: #2b2b2b;
+}
+
+.top-bar {
+  background: linear-gradient(180deg, #0b0b0b 0%, #070707 100%);
+}
+
+.search-box,
+.form-field input,
+.form-field select,
+.form-field textarea,
+.lead-doc-library-search,
+.lead-doc-library-state,
+.lead-activity-search,
+.lead-field input,
+.lead-field textarea,
+.lead-field select,
+.lead-doc-name-cell input {
+  border-radius: 10px;
+  border: 1px solid #252525;
+  background: #101010;
+}
+
+.search-box:focus-within,
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus,
+.lead-doc-library-search:focus-within,
+.lead-doc-library-state:focus,
+.lead-activity-search:focus,
+.lead-field input:focus,
+.lead-field textarea:focus,
+.lead-field select:focus,
+.lead-doc-name-cell input:focus {
+  border-color: #00ff88;
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.nav-item:focus-visible,
+.subnav-item:focus-visible,
+.filter-chip:focus-visible,
+
 /* ── Expanded Design Tokens ─────────────────────────────── */
 :root {
   /* Shadow scale */
@@ -4640,10 +4758,91 @@ body {
 .btn-warning:focus-visible,
 .btn-ghost:focus-visible,
 .btn-icon:focus-visible,
+.btn-sm:focus-visible,
 .icon-button:focus-visible,
-.filter-chip:focus-visible {
+.lead-inline-tab:focus-visible,
+.lead-doc-download-btn:focus-visible,
+.lead-file-link:focus-visible,
+.lead-activity-btn:focus-visible,
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0,255,136,0.35);
+  box-shadow: var(--shadow-focus);
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.btn-warning,
+.btn-ghost,
+.btn-icon,
+.icon-button,
+.lead-inline-tab,
+.filter-chip,
+.lead-engagement-btn,
+.lead-doc-download-btn {
+  border-radius: 10px;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.btn-warning {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.notification-panel,
+.top-bar,
+.detail-modal-content,
+.lead-pdf-preview-modal,
+.lead-tab-popup {
+  backdrop-filter: blur(8px);
+}
+
+.lead-doc-library-head,
+.lead-doc-list-head,
+.lead-file-row-head,
+.table-header,
+.lead-workspace-top-tabs {
+  position: sticky;
+  z-index: 2;
+}
+
+.lead-doc-library-head,
+.lead-doc-list-head,
+.table-header {
+  background: linear-gradient(180deg, #131313 0%, #0f0f0f 100%);
+}
+
+.lead-doc-library-row:nth-child(odd),
+.lead-doc-row:nth-child(odd),
+.table-row:nth-child(odd) {
+  background: #0c0c0c;
+}
+
+.lead-doc-library-row,
+.lead-doc-row,
+.table-row {
+  transition: background var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
+}
+
+.detail-layout-grid {
+  gap: 16px;
+}
+
+.detail-layout-stage-row {
+  gap: 12px;
+}
+
+.lead-activity-list,
+.lead-doc-list-body,
+.lead-doc-library-body {
+  scrollbar-color: #2a2a2a #0a0a0a;
 }
 
 /* ── Filters Row Spacing ─────────────────────────────────── */
@@ -4653,13 +4852,8 @@ body {
 }
 
 /* ── Grid Refinements ────────────────────────────────────── */
-.grid-four {
-  gap: 16px;
-}
-
-.grid-three {
-  gap: 16px;
-}
+.grid-four { gap: 16px; }
+.grid-three { gap: 16px; }
 
 /* ── Contact Form Checkbox ───────────────────────────────── */
 .checkbox {
@@ -4681,10 +4875,6 @@ body {
 }
 
 /* ── Lead Document Library ───────────────────────────────── */
-.lead-doc-library-table {
-  border-radius: var(--radius-md);
-}
-
 .lead-doc-library-tabs {
   border-radius: 9px;
 }
@@ -4715,11 +4905,43 @@ body {
 
 /* ── Lead Doc Search ─────────────────────────────────────── */
 .lead-doc-library-search {
-  border-radius: 7px;
   min-height: 40px;
 }
 
-/* ── Global Transition Smoothing ─────────────────────────── */
+/* ── Large screen layout ─────────────────────────────────── */
+@media (min-width: 1700px) {
+  .detail-layout-grid {
+    grid-template-columns: 320px minmax(0, 1fr) 340px;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .quick-links-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-layout-sidebar,
+  .detail-layout-main,
+  .detail-layout-aside {
+    border-radius: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Global Font Smoothing ───────────────────────────────── */
 *,
 *::before,
 *::after {
