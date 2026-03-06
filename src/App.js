@@ -1,31 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import './App.css';
-import { pdfjs } from 'react-pdf';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
 import { db } from './firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
-// Layout
+// Layout - keep eager (needed immediately)
 import { Sidebar, TopBar, BottomNav } from './components/Layout';
-
-// Pages
-import HomePage from './components/HomePage';
-import ContactsPage from './components/ContactsPage';
-import DealsPage from './components/DealsPage';
-import PropertiesPage from './components/PropertiesPage';
-import CRMPage from './components/CRMPage';
-import AnalyticsDashboard from './components/AnalyticsDashboard';
-import TasksPage from './components/TasksPage';
-import DocumentsPage from './components/DocumentsPage';
-import WebsitesPage from './components/WebsitesPage';
-import SettingsPage from './components/SettingsPage';
-import LoginPage from './components/LoginPage';
 import { ToastProvider } from './components/Toast';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL || ''}/pdf.worker.min.mjs`;
+// Login - keep eager (needed before anything else)
+import LoginPage from './components/LoginPage';
+
+// Lazy-loaded pages (only downloaded when user navigates to them)
+const HomePage = React.lazy(() => import('./components/HomePage'));
+const ContactsPage = React.lazy(() => import('./components/ContactsPage'));
+const DealsPage = React.lazy(() => import('./components/DealsPage'));
+const PropertiesPage = React.lazy(() => import('./components/PropertiesPage'));
+const CRMPage = React.lazy(() => import('./components/CRMPage'));
+const AnalyticsDashboard = React.lazy(() => import('./components/AnalyticsDashboard'));
+const TasksPage = React.lazy(() => import('./components/TasksPage'));
+const DocumentsPage = React.lazy(() => import('./components/DocumentsPage'));
+const WebsitesPage = React.lazy(() => import('./components/WebsitesPage'));
+const SettingsPage = React.lazy(() => import('./components/SettingsPage'));
+
+const PageLoader = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#00ff88', fontSize: '14px' }}>
+    Loading...
+  </div>
+);
 
 function App() {
   const [activeTab, setActiveTab] = useState('home');
@@ -153,6 +156,7 @@ function App() {
           onSearchChange={setGlobalSearch}
           showSearch={searchEnabledTabs.includes(activeTab)}
         />
+        <Suspense fallback={<PageLoader />}>
         {activeTab === 'home' && (
           <HomePage
             onNavigateToContacts={handleNavigateToContacts}
@@ -184,6 +188,7 @@ function App() {
             <div>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} page coming soon</div>
           </div>
         )}
+        </Suspense>
         </div>
       </div>
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
