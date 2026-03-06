@@ -8,6 +8,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 // Layout - keep eager (needed immediately)
 import { Sidebar, TopBar, BottomNav } from './components/Layout';
 import { ToastProvider } from './components/Toast';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Login - keep eager (needed before anything else)
 import LoginPage from './components/LoginPage';
@@ -156,6 +157,7 @@ function App() {
           onSearchChange={setGlobalSearch}
           showSearch={searchEnabledTabs.includes(activeTab)}
         />
+        <ErrorBoundary>
         <Suspense fallback={<PageLoader />}>
         {activeTab === 'home' && (
           <HomePage
@@ -189,6 +191,7 @@ function App() {
           </div>
         )}
         </Suspense>
+        </ErrorBoundary>
         </div>
       </div>
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />

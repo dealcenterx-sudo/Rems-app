@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { db, auth } from '../firebase';
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { Users, Check } from './Icons';
+import { isAdminUser } from '../utils/helpers';
+import useDebounce from '../utils/useDebounce';
 
 // CONTACTS PAGE - WITH EDIT/DELETE
 const CONTACT_FORM_TYPES = ['buyer', 'seller', 'agent', 'lender', 'investor'];
@@ -36,7 +38,8 @@ const ContactsPage = ({ initialTab = 'all', editContactId = null, globalSearch =
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(editContactId);
-  const [searchTerm, setSearchTerm] = useState(globalSearch);
+  const [searchInput, setSearchInput] = useState(globalSearch);
+  const searchTerm = useDebounce(searchInput, 250);
   const [confirmDelete, setConfirmDelete] = useState({ open: false, contact: null });
   const toast = useToast();
   // Load contacts from Firebase
@@ -45,7 +48,7 @@ const ContactsPage = ({ initialTab = 'all', editContactId = null, globalSearch =
   }, []);
 
   useEffect(() => {
-    setSearchTerm(globalSearch || '');
+    setSearchInput(globalSearch || '');
   }, [globalSearch]);
 
   useEffect(() => {
@@ -77,10 +80,8 @@ const ContactsPage = ({ initialTab = 'all', editContactId = null, globalSearch =
 
   const loadContacts = async () => {
     try {
-      // Admin sees all, regular users see only their data
-const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
-
-const querySnapshot = isAdmin
+      const isAdmin = isAdminUser();
+      const querySnapshot = isAdmin
   ? await getDocs(query(collection(db, 'contacts'), orderBy('createdAt', 'desc')))
   : await getDocs(
       query(
@@ -242,16 +243,19 @@ const handleSaveContact = async () => {
     { id: 'investor', label: 'Investors' }
   ];
 
-  const filteredContacts = contacts.filter((contact) => {
-    if (selectedViewTab !== 'all' && contact.contactType !== selectedViewTab) return false;
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    return (
-      `${contact.firstName} ${contact.lastName}`.toLowerCase().includes(search) ||
-      contact.email?.toLowerCase().includes(search) ||
-      contact.phone?.toLowerCase().includes(search)
-    );
-  });
+  // Memoised — only recomputes when contacts list, tab, or debounced search changes
+  const filteredContacts = useMemo(() => {
+    return contacts.filter((contact) => {
+      if (selectedViewTab !== 'all' && contact.contactType !== selectedViewTab) return false;
+      if (!searchTerm) return true;
+      const search = searchTerm.toLowerCase();
+      return (
+        `${contact.firstName} ${contact.lastName}`.toLowerCase().includes(search) ||
+        contact.email?.toLowerCase().includes(search) ||
+        contact.phone?.toLowerCase().includes(search)
+      );
+    });
+  }, [contacts, selectedViewTab, searchTerm]);
 
   return (
     <div className="page-with-subnav">
@@ -370,9 +374,9 @@ const handleSaveContact = async () => {
                 <input
                   type="text"
                   placeholder="Search contacts by name, email, or phone..."
-                  value={searchTerm}
+                  value={searchInput}
                   onChange={(e) => {
-                    setSearchTerm(e.target.value);
+                    setSearchInput(e.target.value);
                     if (onSearchChange) onSearchChange(e.target.value);
                   }}
                   style={{

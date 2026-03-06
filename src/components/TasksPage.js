@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { db, auth } from '../firebase';
 import { collection, addDoc, getDocs, query, where, orderBy, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
+import { isAdminUser } from '../utils/helpers';
+import useDebounce from '../utils/useDebounce';
 
 // Icons
 const PlusIcon = ({ size = 20 }) => (
@@ -333,7 +335,8 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [filterAssignee, setFilterAssignee] = useState('all');
-  const [searchTerm, setSearchTerm] = useState(globalSearch);
+  const [searchInput, setSearchInput] = useState(globalSearch);
+  const searchTerm = useDebounce(searchInput, 250);
   const [confirmDelete, setConfirmDelete] = useState({ open: false, task: null });
   const [viewMode, setViewMode] = useState('list');
   const [calendarDate, setCalendarDate] = useState(new Date());
@@ -344,12 +347,12 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
   }, []);
 
   useEffect(() => {
-    setSearchTerm(globalSearch || '');
+    setSearchInput(globalSearch || '');
   }, [globalSearch]);
 
   const loadData = async () => {
     try {
-      const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+      const isAdmin = isAdminUser();
 
       const tasksQuery = isAdmin
         ? query(collection(db, 'tasks'), orderBy('dueDate', 'asc'))
@@ -461,7 +464,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
     return date.toLocaleDateString();
   };
 
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = useMemo(() => tasks.filter(task => {
     if (filterStatus === 'all') return true;
     if (filterStatus === 'pending') return task.status !== 'completed';
     if (filterStatus === 'completed') return task.status === 'completed';
@@ -485,14 +488,14 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
       task.description?.toLowerCase().includes(search) ||
       task.assignedToName?.toLowerCase().includes(search)
     );
-  });
+  }), [tasks, filterStatus, filterPriority, filterType, filterAssignee, searchTerm]);
 
-  const stats = {
+  const stats = useMemo(() => ({
     total: tasks.length,
     pending: tasks.filter(t => t.status !== 'completed').length,
     completed: tasks.filter(t => t.status === 'completed').length,
     overdue: tasks.filter(t => isOverdue(t)).length
-  };
+  }), [tasks]);
 
   const getDateKey = (date) => {
     const d = new Date(date);
@@ -655,9 +658,9 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
           <input
             type="text"
             placeholder="Search tasks, description, or assignee..."
-            value={searchTerm}
+            value={searchInput}
             onChange={(e) => {
-              setSearchTerm(e.target.value);
+              setSearchInput(e.target.value);
               if (onSearchChange) onSearchChange(e.target.value);
             }}
             style={{

@@ -1,8 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
+import { isAdminUser } from '../utils/helpers';
+import { CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
+import useDebounce from '../utils/useDebounce';
+
+// Properties bucket uses its own Cloudinary cloud
+const PROPERTIES_CLOUD_NAME = 'djaq0av66';
 
 const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   const toast = useToast();
@@ -18,7 +24,8 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   const [confirmDelete, setConfirmDelete] = useState({ open: false, property: null });
 
   // Search & Filter States
-  const [searchTerm, setSearchTerm] = useState(globalSearch);
+  const [searchInput, setSearchInput] = useState(globalSearch);
+  const searchTerm = useDebounce(searchInput, 250);
   const [filterStatus, setFilterStatus] = useState('all');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [bedsFilter, setBedsFilter] = useState('any');
@@ -44,21 +51,18 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
   const [imageFiles, setImageFiles] = useState([]);
 
-  const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned';
-  const CLOUDINARY_CLOUD_NAME = 'djaq0av66'; // Replace with your cloud name
-
   useEffect(() => {
     loadProperties();
     loadSellers();
   }, []);
 
   useEffect(() => {
-    setSearchTerm(globalSearch || '');
+    setSearchInput(globalSearch || '');
   }, [globalSearch]);
 
   const loadProperties = async () => {
     try {
-      const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+      const isAdmin = isAdminUser();
       
       const propertiesQuery = isAdmin
         ? query(collection(db, 'properties'), orderBy('createdAt', 'desc'))
@@ -80,7 +84,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
   const loadSellers = async () => {
     try {
-      const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+      const isAdmin = isAdminUser();
       const sellersQuery = isAdmin
         ? query(collection(db, 'contacts'), where('contactType', '==', 'seller'))
         : query(
@@ -107,7 +111,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
     try {
       const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        `https://api.cloudinary.com/v1_1/${PROPERTIES_CLOUD_NAME}/image/upload`,
         {
           method: 'POST',
           body: formData
@@ -294,7 +298,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   };
 
   const clearAllFilters = () => {
-    setSearchTerm('');
+    setSearchInput('');
     setFilterStatus('all');
     setPriceRange({ min: '', max: '' });
     setBedsFilter('any');
@@ -322,11 +326,9 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
     return colors[status] || '#888888';
   };
 
-  // Advanced Filtering Logic
-  const filteredAndSortedProperties = properties
-    // Status filter
+  // Memoised — only recomputes when source data or any filter/sort dependency changes
+  const filteredAndSortedProperties = useMemo(() => properties
     .filter(p => filterStatus === 'all' || p.status === filterStatus)
-    // Search filter
     .filter(p => {
       if (!searchTerm) return true;
       const search = searchTerm.toLowerCase();
@@ -337,7 +339,6 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
         p.zipCode?.toLowerCase().includes(search)
       );
     })
-    // Price range filter
     .filter(p => {
       if (!priceRange.min && !priceRange.max) return true;
       const price = p.price || 0;
@@ -345,19 +346,16 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
       const max = priceRange.max ? parseFloat(priceRange.max) : Infinity;
       return price >= min && price <= max;
     })
-    // Beds filter
     .filter(p => {
       if (bedsFilter === 'any') return true;
       if (bedsFilter === '4+') return p.beds >= 4;
       return p.beds === parseInt(bedsFilter);
     })
-    // Baths filter
     .filter(p => {
       if (bathsFilter === 'any') return true;
       if (bathsFilter === '3+') return p.baths >= 3;
       return p.baths >= parseFloat(bathsFilter);
     })
-    // Sort
     .sort((a, b) => {
       switch (sortBy) {
         case 'price-asc':
@@ -375,7 +373,9 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
         default:
           return 0;
       }
-    });
+    }),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [properties, filterStatus, searchTerm, priceRange, bedsFilter, bathsFilter, sortBy]);
 
   const statusOptions = [
     { value: 'all', label: 'All', count: properties.length },
@@ -419,9 +419,9 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
         <input
           type="text"
           placeholder="Search by address, city, state, or zip..."
-          value={searchTerm}
+          value={searchInput}
           onChange={(e) => {
-            setSearchTerm(e.target.value);
+            setSearchInput(e.target.value);
             if (onSearchChange) onSearchChange(e.target.value);
           }}
           style={{ width: '100%', padding: '14px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', color: '#ffffff', fontSize: '14px', transition: 'all 0.3s' }}

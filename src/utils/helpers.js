@@ -1,5 +1,17 @@
 import { auth } from '../firebase';
 
+// Centralised admin check — change this constant to update across the whole app
+const ADMIN_EMAIL = 'dealcenterx@gmail.com';
+
+/**
+ * Returns true if the given Firebase user (or auth.currentUser) is the admin.
+ * Pass a user object explicitly when available to avoid stale reads.
+ */
+export const isAdminUser = (user = null) => {
+  const u = user || auth.currentUser;
+  return Boolean(u && u.email === ADMIN_EMAIL);
+};
+
 export const normalizeAddressValue = (value = '') =>
   value
     .toLowerCase()

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
+import { isAdminUser } from '../utils/helpers';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useToast } from './Toast';
 
@@ -20,7 +21,7 @@ const AnalyticsDashboard = () => {
 
   const loadAllData = async () => {
     try {
-      const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+      const isAdmin = isAdminUser();
       
       // Load deals
       const dealsQuery = isAdmin
@@ -92,120 +93,97 @@ const AnalyticsDashboard = () => {
     });
   };
 
-  const filteredDeals = filterByDateRange(deals);
-  const filteredProperties = filterByDateRange(properties);
-  // eslint-disable-next-line no-unused-vars
-  const filteredContacts = filterByDateRange(contacts);
+  // All analytics derived data is memoised — recomputes only when raw data or date range changes
+  const analytics = useMemo(() => {
+    const filteredDeals = filterByDateRange(deals);
+    const filteredProperties = filterByDateRange(properties);
 
-  // Analytics Calculations
-  const totalRevenue = filteredProperties
-    .filter(p => p.status === 'sold')
-    .reduce((sum, p) => sum + (p.price || 0), 0);
+    const soldProperties = filteredProperties.filter(p => p.status === 'sold');
+    const totalRevenue = soldProperties.reduce((sum, p) => sum + (p.price || 0), 0);
+    const avgDealSize = soldProperties.length > 0 ? totalRevenue / soldProperties.length : 0;
 
-  const avgDealSize = filteredProperties.filter(p => p.status === 'sold').length > 0
-    ? totalRevenue / filteredProperties.filter(p => p.status === 'sold').length
-    : 0;
+    const closedDeals = filteredDeals.filter(d => d.status === 'closed').length;
+    const conversionRate = filteredDeals.length > 0
+      ? ((closedDeals / filteredDeals.length) * 100).toFixed(1)
+      : 0;
 
-  const closedDeals = filteredDeals.filter(d => d.status === 'closed').length;
-  // eslint-disable-next-line no-unused-vars
-  const activeDeals = filteredDeals.filter(d => d.status === 'active').length;
-  const conversionRate = filteredDeals.length > 0 
-    ? ((closedDeals / filteredDeals.length) * 100).toFixed(1)
-    : 0;
+    const closedDealsWithDates = filteredDeals.filter(d => d.status === 'closed' && d.createdAt && d.updatedAt);
+    const avgDaysToClose = closedDealsWithDates.length > 0
+      ? closedDealsWithDates.reduce((sum, d) => {
+          const days = Math.floor((new Date(d.updatedAt) - new Date(d.createdAt)) / (1000 * 60 * 60 * 24));
+          return sum + days;
+        }, 0) / closedDealsWithDates.length
+      : 0;
 
-  // Deal velocity (avg days to close)
-  const closedDealsWithDates = filteredDeals.filter(d => d.status === 'closed' && d.createdAt && d.updatedAt);
-  const avgDaysToClose = closedDealsWithDates.length > 0
-    ? closedDealsWithDates.reduce((sum, d) => {
-        const created = new Date(d.createdAt);
-        const updated = new Date(d.updatedAt);
-        const days = Math.floor((updated - created) / (1000 * 60 * 60 * 24));
-        return sum + days;
-      }, 0) / closedDealsWithDates.length
-    : 0;
+    const dealStatusData = [
+      { name: 'New', value: filteredDeals.filter(d => d.status === 'new').length, color: '#ffaa00' },
+      { name: 'Active', value: filteredDeals.filter(d => d.status === 'active').length, color: '#00ff88' },
+      { name: 'Pending', value: filteredDeals.filter(d => d.status === 'pending').length, color: '#0088ff' },
+      { name: 'Closed', value: closedDeals, color: '#aa00ff' }
+    ].filter(item => item.value > 0);
 
-  // Deal status breakdown
-  const dealStatusData = [
-    { name: 'New', value: filteredDeals.filter(d => d.status === 'new').length, color: '#ffaa00' },
-    { name: 'Active', value: filteredDeals.filter(d => d.status === 'active').length, color: '#00ff88' },
-    { name: 'Pending', value: filteredDeals.filter(d => d.status === 'pending').length, color: '#0088ff' },
-    { name: 'Closed', value: filteredDeals.filter(d => d.status === 'closed').length, color: '#aa00ff' }
-  ].filter(item => item.value > 0);
+    const propertyStatusData = [
+      { name: 'Available', value: filteredProperties.filter(p => p.status === 'available').length, color: '#00ff88' },
+      { name: 'Under Contract', value: filteredProperties.filter(p => p.status === 'under-contract').length, color: '#ffaa00' },
+      { name: 'Sold', value: soldProperties.length, color: '#ff3333' }
+    ].filter(item => item.value > 0);
 
-  // Property status breakdown
-  const propertyStatusData = [
-    { name: 'Available', value: filteredProperties.filter(p => p.status === 'available').length, color: '#00ff88' },
-    { name: 'Under Contract', value: filteredProperties.filter(p => p.status === 'under-contract').length, color: '#ffaa00' },
-    { name: 'Sold', value: filteredProperties.filter(p => p.status === 'sold').length, color: '#ff3333' }
-  ].filter(item => item.value > 0);
-
-  // Monthly trend data (last 6 months of filtered range)
-  const getMonthlyTrend = () => {
-    const months = [];
     const now = new Date();
-    
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthlyTrendData = Array.from({ length: 6 }, (_, i) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
       const monthName = date.toLocaleDateString('en-US', { month: 'short' });
-      
       const monthDeals = deals.filter(d => {
         if (!d.createdAt) return false;
-        const dealDate = new Date(d.createdAt);
-        return dealDate.getMonth() === date.getMonth() && 
-               dealDate.getFullYear() === date.getFullYear();
+        const dd = new Date(d.createdAt);
+        return dd.getMonth() === date.getMonth() && dd.getFullYear() === date.getFullYear();
       });
-
       const monthProperties = properties.filter(p => {
         if (!p.createdAt) return false;
-        const propDate = new Date(p.createdAt);
-        return propDate.getMonth() === date.getMonth() && 
-               propDate.getFullYear() === date.getFullYear();
+        const pd = new Date(p.createdAt);
+        return pd.getMonth() === date.getMonth() && pd.getFullYear() === date.getFullYear();
       });
-
-      months.push({
+      return {
         month: monthName,
         deals: monthDeals.length,
         properties: monthProperties.length,
-        revenue: monthProperties
-          .filter(p => p.status === 'sold')
-          .reduce((sum, p) => sum + (p.price || 0), 0) / 1000 // in thousands
-      });
-    }
-    
-    return months;
-  };
+        revenue: monthProperties.filter(p => p.status === 'sold').reduce((s, p) => s + (p.price || 0), 0) / 1000
+      };
+    });
 
-  const monthlyTrendData = getMonthlyTrend();
+    const topBuyersData = Object.entries(
+      filteredDeals.reduce((acc, deal) => {
+        const buyer = deal.buyerName || 'Unknown';
+        acc[buyer] = (acc[buyer] || 0) + 1;
+        return acc;
+      }, {})
+    ).map(([name, count]) => ({ name, deals: count })).sort((a, b) => b.deals - a.deals).slice(0, 5);
 
-  // Top buyers by deal count
-  const topBuyers = filteredDeals.reduce((acc, deal) => {
-    const buyer = deal.buyerName || 'Unknown';
-    acc[buyer] = (acc[buyer] || 0) + 1;
-    return acc;
-  }, {});
-
-  const topBuyersData = Object.entries(topBuyers)
-    .map(([name, count]) => ({ name, deals: count }))
-    .sort((a, b) => b.deals - a.deals)
-    .slice(0, 5);
-
-  // Average property price by type
-  const avgPriceByType = properties.reduce((acc, prop) => {
-    const type = prop.propertyType || 'unknown';
-    if (!acc[type]) {
-      acc[type] = { total: 0, count: 0 };
-    }
-    acc[type].total += prop.price || 0;
-    acc[type].count += 1;
-    return acc;
-  }, {});
-
-  const avgPriceData = Object.entries(avgPriceByType)
-    .map(([type, data]) => ({
+    const avgPriceData = Object.entries(
+      properties.reduce((acc, prop) => {
+        const type = prop.propertyType || 'unknown';
+        if (!acc[type]) acc[type] = { total: 0, count: 0 };
+        acc[type].total += prop.price || 0;
+        acc[type].count += 1;
+        return acc;
+      }, {})
+    ).map(([type, data]) => ({
       type: type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      avgPrice: Math.round(data.total / data.count / 1000) // in thousands
-    }))
-    .sort((a, b) => b.avgPrice - a.avgPrice);
+      avgPrice: Math.round(data.total / data.count / 1000)
+    })).sort((a, b) => b.avgPrice - a.avgPrice);
+
+    return {
+      filteredDeals, filteredProperties,
+      totalRevenue, avgDealSize, closedDeals, conversionRate, avgDaysToClose,
+      dealStatusData, propertyStatusData, monthlyTrendData, topBuyersData, avgPriceData
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deals, properties, contacts, dateRange, customStartDate, customEndDate]);
+
+  const {
+    filteredDeals, filteredProperties,
+    totalRevenue, avgDealSize, closedDeals, conversionRate, avgDaysToClose,
+    dealStatusData, propertyStatusData, monthlyTrendData, topBuyersData, avgPriceData
+  } = analytics;
 
   if (loading) {
     return (
