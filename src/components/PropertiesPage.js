@@ -1,5 +1,17 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy } from 'firebase/firestore';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+  orderBy,
+  startAfter,
+  limit
+} from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
@@ -9,6 +21,7 @@ import useDebounce from '../utils/useDebounce';
 
 // Properties bucket uses its own Cloudinary cloud
 const PROPERTIES_CLOUD_NAME = 'djaq0av66';
+const PROPERTIES_PAGE_SIZE = 40;
 
 const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   const toast = useToast();
@@ -22,6 +35,9 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState({ open: false, property: null });
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageCursors, setPageCursors] = useState([null]);
+  const [hasNextPage, setHasNextPage] = useState(false);
 
   // Search & Filter States
   const [searchInput, setSearchInput] = useState(globalSearch);
@@ -51,40 +67,22 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
   const [imageFiles, setImageFiles] = useState([]);
 
-  useEffect(() => {
-    loadProperties();
-    loadSellers();
-  }, []);
+  const pageCursorsRef = useRef(pageCursors);
+  const sellersCacheRef = useRef({ scopeKey: null, loaded: false });
 
   useEffect(() => {
-    setSearchInput(globalSearch || '');
-  }, [globalSearch]);
+    pageCursorsRef.current = pageCursors;
+  }, [pageCursors]);
 
-  const loadProperties = async () => {
-    try {
-      const isAdmin = isAdminUser();
-      
-      const propertiesQuery = isAdmin
-        ? query(collection(db, 'properties'), orderBy('createdAt', 'desc'))
-        : query(collection(db, 'properties'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
-      
-      const propertiesSnapshot = await getDocs(propertiesQuery);
-      const propertiesData = [];
-      propertiesSnapshot.forEach((doc) => {
-        propertiesData.push({ id: doc.id, ...doc.data() });
-      });
-      
-      setProperties(propertiesData);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error loading properties:', error);
-      setLoading(false);
+  const loadSellers = useCallback(async (forceRefresh = false) => {
+    const isAdmin = isAdminUser();
+    const scopeKey = isAdmin ? 'admin' : `user:${auth.currentUser?.uid || 'unknown'}`;
+
+    if (!forceRefresh && sellersCacheRef.current.loaded && sellersCacheRef.current.scopeKey === scopeKey) {
+      return;
     }
-  };
 
-  const loadSellers = async () => {
     try {
-      const isAdmin = isAdminUser();
       const sellersQuery = isAdmin
         ? query(collection(db, 'contacts'), where('contactType', '==', 'seller'))
         : query(
@@ -98,11 +96,84 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
       sellersSnapshot.forEach((sellerDoc) => {
         sellersData.push({ id: sellerDoc.id, ...sellerDoc.data() });
       });
+
       setSellers(sellersData);
+      sellersCacheRef.current = { scopeKey, loaded: true };
     } catch (error) {
       console.error('Error loading sellers:', error);
     }
-  };
+  }, []);
+
+  const loadProperties = useCallback(async (targetPage = 0, forceReset = false) => {
+    const sanitizedPage = Math.max(0, Number(targetPage) || 0);
+    try {
+      const isAdmin = isAdminUser();
+      setLoading(true);
+      const dateSortDirection = sortBy === 'date-asc' ? 'asc' : 'desc';
+      const constraints = [
+        collection(db, 'properties'),
+        orderBy('createdAt', dateSortDirection),
+        limit(PROPERTIES_PAGE_SIZE + 1)
+      ];
+
+      if (!isAdmin) {
+        constraints.splice(1, 0, where('userId', '==', auth.currentUser.uid));
+      }
+
+      const cursor = forceReset ? null : pageCursorsRef.current[sanitizedPage];
+      if (cursor) {
+        constraints.push(startAfter(cursor));
+      }
+
+      const propertiesSnapshot = await getDocs(query(...constraints));
+      const propertiesData = [];
+      const fetchedProperties = propertiesSnapshot.docs.slice(0, PROPERTIES_PAGE_SIZE);
+      const nextCursor = propertiesSnapshot.docs.length > PROPERTIES_PAGE_SIZE ? propertiesSnapshot.docs[PROPERTIES_PAGE_SIZE - 1] : null;
+
+      fetchedProperties.forEach((doc) => {
+        propertiesData.push({ id: doc.id, ...doc.data() });
+      });
+
+      setHasNextPage(Boolean(nextCursor));
+      setPageCursors((prev) => {
+        const next = [...prev];
+        next[sanitizedPage + 1] = nextCursor;
+        if (next.length > sanitizedPage + 2) {
+          next.splice(sanitizedPage + 2);
+        }
+        return next;
+      });
+      if (forceReset) {
+        setPageIndex(0);
+      } else {
+        setPageIndex(sanitizedPage);
+      }
+
+      setProperties(propertiesData);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading properties:', error);
+      setLoading(false);
+    }
+  }, [sortBy]);
+
+  useEffect(() => {
+    loadProperties(0, true);
+  }, [loadProperties]);
+
+  useEffect(() => {
+    loadSellers();
+  }, [loadSellers]);
+
+  useEffect(() => {
+    setSearchInput(globalSearch || '');
+  }, [globalSearch]);
+
+  useEffect(() => {
+    setPageIndex(0);
+    setPageCursors([null]);
+    loadProperties(0, true);
+  }, [sortBy, filterStatus, priceRange.min, priceRange.max, bedsFilter, bathsFilter, loadProperties]);
 
   const uploadToCloudinary = async (file) => {
     const formData = new FormData();
@@ -191,7 +262,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
       }
 
       closeModal();
-      loadProperties();
+      loadProperties(0, true);
     } catch (error) {
       console.error('Error saving property:', error);
       toast.error('Error saving property. Please try again.');
@@ -203,7 +274,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   const deleteProperty = async (propertyId) => {
     try {
       await deleteDoc(doc(db, 'properties', propertyId));
-      loadProperties();
+      loadProperties(0, true);
       toast.success('Property deleted successfully');
     } catch (error) {
       console.error('Error deleting property:', error);
@@ -304,6 +375,16 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
     setBedsFilter('any');
     setBathsFilter('any');
     setSortBy('date-desc');
+  };
+
+  const handleNextPage = () => {
+    if (!hasNextPage) return;
+    loadProperties(pageIndex + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (pageIndex === 0) return;
+    loadProperties(pageIndex - 1);
   };
 
   const getActiveFiltersCount = () => {
@@ -763,6 +844,30 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+      {filteredAndSortedProperties.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ fontSize: '12px', color: '#888888' }}>
+            Showing {filteredAndSortedProperties.length} property{filteredAndSortedProperties.length === 1 ? '' : 's'} on this page
+            {hasNextPage ? ' · more available' : ''}
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={handlePrevPage}
+              disabled={pageIndex === 0}
+              className="btn-secondary btn-sm"
+            >
+              ← Previous
+            </button>
+            <button
+              onClick={handleNextPage}
+              disabled={!hasNextPage}
+              className="btn-primary btn-sm"
+            >
+              Next →
+            </button>
+          </div>
         </div>
       )}
 

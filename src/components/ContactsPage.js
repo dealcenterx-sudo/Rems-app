@@ -1,6 +1,18 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { db, auth } from '../firebase';
-import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, where } from 'firebase/firestore';
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  orderBy,
+  doc,
+  updateDoc,
+  deleteDoc,
+  where,
+  startAfter,
+  limit
+} from 'firebase/firestore';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { Users, Check } from './Icons';
@@ -10,6 +22,7 @@ import useDebounce from '../utils/useDebounce';
 // CONTACTS PAGE - WITH EDIT/DELETE
 const CONTACT_FORM_TYPES = ['buyer', 'seller', 'agent', 'lender', 'investor'];
 const CONTACT_LIST_TABS = ['all', 'buyer', 'seller', 'agent', 'lender', 'investor'];
+const CONTACTS_PAGE_SIZE = 50;
 
 const resolveContactsInitialState = (initialTab = 'all') => {
   if (CONTACT_FORM_TYPES.includes(initialTab)) {
@@ -37,15 +50,75 @@ const ContactsPage = ({ initialTab = 'all', editContactId = null, globalSearch =
   const [saving, setSaving] = useState(false);
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageCursors, setPageCursors] = useState([null]);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [editingId, setEditingId] = useState(editContactId);
   const [searchInput, setSearchInput] = useState(globalSearch);
   const searchTerm = useDebounce(searchInput, 250);
   const [confirmDelete, setConfirmDelete] = useState({ open: false, contact: null });
   const toast = useToast();
-  // Load contacts from Firebase
-  React.useEffect(() => {
-    loadContacts();
-  }, []);
+  const pageCursorsRef = useRef(pageCursors);
+
+  useEffect(() => {
+    pageCursorsRef.current = pageCursors;
+  }, [pageCursors]);
+  const loadContacts = useCallback(async (targetPage = 0, forceReset = false) => {
+    const sanitizedPage = Math.max(0, Number(targetPage) || 0);
+    try {
+      const isAdmin = isAdminUser();
+      setLoading(true);
+
+      const baseConstraints = [collection(db, 'contacts')];
+
+      if (!isAdmin) {
+        baseConstraints.push(where('userId', '==', auth.currentUser.uid));
+      }
+
+      if (selectedViewTab !== 'all' && selectedViewTab !== 'add') {
+        baseConstraints.push(where('contactType', '==', selectedViewTab));
+      }
+
+      baseConstraints.push(orderBy('createdAt', 'desc'), limit(CONTACTS_PAGE_SIZE + 1));
+
+      const cursor = forceReset ? null : pageCursorsRef.current[sanitizedPage];
+      if (cursor) {
+        baseConstraints.push(startAfter(cursor));
+      }
+
+      const querySnapshot = await getDocs(query(...baseConstraints));
+
+      const contactsData = [];
+      const fetchedContacts = querySnapshot.docs.slice(0, CONTACTS_PAGE_SIZE);
+      const nextCursor = querySnapshot.docs.length > CONTACTS_PAGE_SIZE ? querySnapshot.docs[CONTACTS_PAGE_SIZE - 1] : null;
+      fetchedContacts.forEach((doc) => {
+        contactsData.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+
+      setHasNextPage(Boolean(nextCursor));
+      setPageCursors((prev) => {
+        const next = [...prev];
+        next[sanitizedPage + 1] = nextCursor;
+        if (next.length > sanitizedPage + 2) {
+          next.splice(sanitizedPage + 2);
+        }
+        return next;
+      });
+      if (forceReset) {
+        setPageIndex(0);
+      } else {
+        setPageIndex(sanitizedPage);
+      }
+      setContacts(contactsData);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+      setLoading(false);
+    }
+  }, [selectedViewTab]);
 
   useEffect(() => {
     setSearchInput(globalSearch || '');
@@ -57,8 +130,14 @@ const ContactsPage = ({ initialTab = 'all', editContactId = null, globalSearch =
     setSelectedContactType(nextState.contactType);
   }, [initialTab]);
 
+  useEffect(() => {
+    setPageIndex(0);
+    setPageCursors([null]);
+    loadContacts(0, true);
+  }, [loadContacts, selectedViewTab]);
+
   // Load contact for editing if editContactId is provided
-  React.useEffect(() => {
+  useEffect(() => {
     if (editContactId && contacts.length > 0) {
       const contactToEdit = contacts.find(c => c.id === editContactId);
       if (contactToEdit) {
@@ -77,35 +156,6 @@ const ContactsPage = ({ initialTab = 'all', editContactId = null, globalSearch =
       }
     }
   }, [editContactId, contacts]);
-
-  const loadContacts = async () => {
-    try {
-      const isAdmin = isAdminUser();
-      const querySnapshot = isAdmin
-  ? await getDocs(query(collection(db, 'contacts'), orderBy('createdAt', 'desc')))
-  : await getDocs(
-      query(
-        collection(db, 'contacts'),
-        where('userId', '==', auth.currentUser.uid),
-        orderBy('createdAt', 'desc')
-      )
-    );
-
-      const contactsData = [];
-      querySnapshot.forEach((doc) => {
-        contactsData.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-
-      setContacts(contactsData);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error loading contacts:', error);
-      setLoading(false);
-    }
-  };
 
 const handleSaveContact = async () => {
   if (!formData.firstName || !formData.lastName || !formData.phone || !formData.email) {
@@ -149,7 +199,7 @@ const handleSaveContact = async () => {
     });
 
     // Reload contacts
-    loadContacts();
+    loadContacts(0, true);
   } catch (error) {
     console.error('Error saving contact:', error);
     toast.error('Error saving contact. Check console.');
@@ -162,7 +212,7 @@ const handleSaveContact = async () => {
     try {
       await deleteDoc(doc(db, 'contacts', contactId));
       toast.success('Contact deleted successfully!');
-      loadContacts();
+      loadContacts(0, true);
     } catch (error) {
       console.error('Error deleting contact:', error);
       toast.error('Error deleting contact. Check console.');
@@ -223,6 +273,16 @@ const handleSaveContact = async () => {
       setSelectedContactType(tabId);
     }
     setSelectedViewTab('add');
+  };
+
+  const handleNextPage = () => {
+    if (!hasNextPage) return;
+    loadContacts(pageIndex + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (pageIndex === 0) return;
+    loadContacts(pageIndex - 1);
   };
 
   const contactTypes = [
@@ -441,6 +501,30 @@ const handleSaveContact = async () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+              {filteredContacts.length > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ fontSize: '12px', color: '#888888' }}>
+                    Showing {filteredContacts.length} contacts
+                    {hasNextPage ? ' (more available)' : ''}
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={handlePrevPage}
+                      disabled={pageIndex === 0}
+                      className="btn-secondary btn-sm"
+                    >
+                      ← Previous
+                    </button>
+                    <button
+                      onClick={handleNextPage}
+                      disabled={!hasNextPage}
+                      className="btn-primary btn-sm"
+                    >
+                      Next →
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

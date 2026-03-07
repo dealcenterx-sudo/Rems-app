@@ -1,43 +1,98 @@
-import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  doc,
+  updateDoc,
+  deleteDoc,
+  limit,
+  startAfter
+} from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
+import { isAdminUser } from '../utils/helpers';
+
+const DEALS_PAGE_SIZE = 36;
 
 const ActiveDealsPage = ({ onOpenPortal }) => {
   const toast = useToast();
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageCursors, setPageCursors] = useState([null]);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [confirmDelete, setConfirmDelete] = useState({ open: false, deal: null });
+  const pageCursorsRef = useRef(pageCursors);
 
   useEffect(() => {
-    loadDeals();
-  }, []);
+    pageCursorsRef.current = pageCursors;
+  }, [pageCursors]);
 
-  const loadDeals = async () => {
+  const loadDeals = useCallback(async (targetPage = 0, forceReset = false) => {
+    const sanitizedPage = Math.max(0, Number(targetPage) || 0);
     try {
-      const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
-      
-      const dealsQuery = isAdmin
-        ? query(collection(db, 'deals'), orderBy('createdAt', 'desc'))
-        : query(collection(db, 'deals'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
-      
-      const dealsSnapshot = await getDocs(dealsQuery);
+      const isAdmin = isAdminUser();
+      setLoading(true);
+
+      const baseQueryParts = [collection(db, 'deals')];
+
+      if (!isAdmin) {
+        baseQueryParts.push(where('userId', '==', auth.currentUser.uid));
+      }
+      if (filterStatus !== 'all') {
+        baseQueryParts.push(where('status', '==', filterStatus));
+      }
+
+      baseQueryParts.push(orderBy('createdAt', 'desc'), limit(DEALS_PAGE_SIZE + 1));
+
+      const cursor = forceReset ? null : pageCursorsRef.current[sanitizedPage];
+      if (cursor) {
+        baseQueryParts.push(startAfter(cursor));
+      }
+
+      const dealsSnapshot = await getDocs(query(...baseQueryParts));
       const dealsData = [];
-      dealsSnapshot.forEach((doc) => {
+
+      dealsSnapshot.docs.slice(0, DEALS_PAGE_SIZE).forEach((doc) => {
         dealsData.push({ id: doc.id, ...doc.data() });
       });
-      
+
+      const nextCursor = dealsSnapshot.docs.length > DEALS_PAGE_SIZE ? dealsSnapshot.docs[DEALS_PAGE_SIZE - 1] : null;
+      setHasNextPage(Boolean(nextCursor));
+      setPageCursors((prev) => {
+        const next = [...prev];
+        next[sanitizedPage + 1] = nextCursor;
+        if (next.length > sanitizedPage + 2) {
+          next.splice(sanitizedPage + 2);
+        }
+        return next;
+      });
+
+      if (forceReset) {
+        setPageIndex(0);
+      } else {
+        setPageIndex(sanitizedPage);
+      }
       setDeals(dealsData);
       setLoading(false);
     } catch (error) {
       console.error('Error loading deals:', error);
       setLoading(false);
     }
-  };
+  }, [filterStatus]);
+
+  useEffect(() => {
+    setPageIndex(0);
+    setPageCursors([null]);
+    loadDeals(0, true);
+  }, [loadDeals]);
 
   const updateDealStatus = async (dealId, newStatus) => {
     try {
@@ -73,7 +128,7 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
   const deleteDeal = async (dealId) => {
     try {
       await deleteDoc(doc(db, 'deals', dealId));
-      loadDeals();
+      loadDeals(0, true);
       setShowDetailModal(false);
       toast.success('Deal deleted successfully');
     } catch (error) {
@@ -84,6 +139,16 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
 
   const requestDelete = (deal) => {
     setConfirmDelete({ open: true, deal });
+  };
+
+  const handleNextPage = () => {
+    if (!hasNextPage) return;
+    loadDeals(pageIndex + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (pageIndex === 0) return;
+    loadDeals(pageIndex - 1);
   };
 
   const confirmDeleteDeal = async () => {
@@ -111,10 +176,6 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
     };
     return labels[status] || status;
   };
-
-  const filteredDeals = filterStatus === 'all' 
-    ? deals 
-    : deals.filter(d => d.status === filterStatus);
 
   const statusOptions = [
     { value: 'all', label: 'All Deals', count: deals.length },
@@ -152,7 +213,7 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
       </div>
 
       {/* Deals Grid */}
-      {filteredDeals.length === 0 ? (
+      {deals.length === 0 ? (
         <div className="empty-state-card">
           <div className="empty-state-icon">💼</div>
           <div className="empty-state-title">No {filterStatus === 'all' ? '' : getStatusLabel(filterStatus)} deals found</div>
@@ -160,7 +221,7 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
         </div>
       ) : (
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
-          {filteredDeals.map((deal) => (
+          {deals.map((deal) => (
             <div key={deal.id} onClick={() => { setSelectedDeal(deal); setShowDetailModal(true); }} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = getStatusColor(deal.status); e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1a1a1a'; e.currentTarget.style.transform = 'translateY(0)'; }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                 <span style={{ fontSize: '11px', fontWeight: '700', color: getStatusColor(deal.status), background: `${getStatusColor(deal.status)}15`, padding: '4px 12px', borderRadius: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{getStatusLabel(deal.status)}</span>
@@ -190,6 +251,20 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
               </div>
             </div>
           ))}
+            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ fontSize: '12px', color: '#888888' }}>
+                Showing {deals.length} deal{deals.length === 1 ? '' : 's'} on this page
+                {hasNextPage ? ' · more available' : ''}
+              </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={handlePrevPage} disabled={pageIndex === 0} className="btn-secondary btn-sm">
+                ← Previous
+              </button>
+              <button onClick={handleNextPage} disabled={!hasNextPage} className="btn-primary btn-sm">
+                Next →
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -1,11 +1,24 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, addDoc, deleteDoc, doc, query, where, orderBy } from 'firebase/firestore';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import {
+  collection,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+  orderBy,
+  startAfter,
+  limit
+} from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { isAdminUser } from '../utils/helpers';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
 import useDebounce from '../utils/useDebounce';
+
+const DOCUMENTS_PAGE_SIZE = 30;
 
 const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   const toast = useToast();
@@ -14,9 +27,13 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageCursors, setPageCursors] = useState([null]);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [searchInput, setSearchInput] = useState(globalSearch);
   const searchTerm = useDebounce(searchInput, 250);
   const [confirmDelete, setConfirmDelete] = useState({ open: false, document: null });
+  const pageCursorsRef = useRef(pageCursors);
   
   const [uploadData, setUploadData] = useState({
     file: null,
@@ -27,27 +44,49 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
     linkedType: 'none'
   });
 
-  useEffect(() => {
-    loadDocuments();
-  }, []);
-
-  useEffect(() => {
-    setSearchInput(globalSearch || '');
-  }, [globalSearch]);
-
-  const loadDocuments = async () => {
+  const loadDocuments = useCallback(async (targetPage = 0, forceReset = false) => {
+    const sanitizedPage = Math.max(0, Number(targetPage) || 0);
     try {
       const isAdmin = isAdminUser();
+      setLoading(true);
 
-      const docsQuery = isAdmin
-        ? query(collection(db, 'documents'), orderBy('createdAt', 'desc'))
-        : query(collection(db, 'documents'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
+      const docsConstraints = [collection(db, 'documents')];
+      if (!isAdmin) {
+        docsConstraints.push(where('userId', '==', auth.currentUser.uid));
+      }
+      if (filterCategory !== 'all') {
+        docsConstraints.push(where('category', '==', filterCategory));
+      }
+      docsConstraints.push(orderBy('createdAt', 'desc'), limit(DOCUMENTS_PAGE_SIZE + 1));
 
-      const docsSnapshot = await getDocs(docsQuery);
+      const cursor = forceReset ? null : pageCursorsRef.current[sanitizedPage];
+      if (cursor) {
+        docsConstraints.push(startAfter(cursor));
+      }
+
+      const docsSnapshot = await getDocs(query(...docsConstraints));
       const docsData = [];
-      docsSnapshot.forEach((doc) => {
+      docsSnapshot.docs.slice(0, DOCUMENTS_PAGE_SIZE).forEach((doc) => {
         docsData.push({ id: doc.id, ...doc.data() });
       });
+      const nextCursor = docsSnapshot.docs.length > DOCUMENTS_PAGE_SIZE
+        ? docsSnapshot.docs[DOCUMENTS_PAGE_SIZE - 1]
+        : null;
+      setHasNextPage(Boolean(nextCursor));
+      setPageCursors((prev) => {
+        const next = [...prev];
+        next[sanitizedPage + 1] = nextCursor;
+        if (next.length > sanitizedPage + 2) {
+          next.splice(sanitizedPage + 2);
+        }
+        return next;
+      });
+
+      if (forceReset) {
+        setPageIndex(0);
+      } else {
+        setPageIndex(sanitizedPage);
+      }
 
       setDocuments(docsData);
       setLoading(false);
@@ -55,7 +94,26 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
       console.error('Error loading documents:', error);
       setLoading(false);
     }
-  };
+  }, [filterCategory]);
+
+  useEffect(() => {
+    pageCursorsRef.current = pageCursors;
+  }, [pageCursors]);
+
+  useEffect(() => {
+    loadDocuments(0, true);
+  }, [loadDocuments]);
+
+  useEffect(() => {
+    setSearchInput(globalSearch || '');
+  }, [globalSearch]);
+
+  useEffect(() => {
+    setPageIndex(0);
+    setPageCursors([null]);
+    setLoading(true);
+    loadDocuments(0, true);
+  }, [filterCategory, loadDocuments]);
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -126,7 +184,7 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
         createdAt: new Date().toISOString()
       });
 
-      loadDocuments();
+      loadDocuments(0, true);
       closeUploadModal();
       toast.success('Document uploaded successfully!');
     } catch (error) {
@@ -140,7 +198,7 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   const deleteDocument = async (documentId) => {
     try {
       await deleteDoc(doc(db, 'documents', documentId));
-      loadDocuments();
+      loadDocuments(0, true);
       toast.success('Document deleted successfully');
     } catch (error) {
       console.error('Error deleting document:', error);
@@ -172,6 +230,16 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
 
   const closeUploadModal = () => {
     setShowUploadModal(false);
+  };
+
+  const handleNextPage = () => {
+    if (!hasNextPage) return;
+    loadDocuments(pageIndex + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (pageIndex === 0) return;
+    loadDocuments(pageIndex - 1);
   };
 
   const getCategoryColor = (category) => {
@@ -242,7 +310,9 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   return (
     <div className="page-content">
       <div className="responsive-header" style={{ marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '700', margin: 0 }}>Documents ({filteredDocuments.length})</h2>
+        <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '700', margin: 0 }}>
+          Documents
+        </h2>
         <button onClick={openUploadModal} className="btn-primary">+ Upload Document</button>
       </div>
 
@@ -291,6 +361,22 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+      {filteredDocuments.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ fontSize: '12px', color: '#888888' }}>
+            Showing {filteredDocuments.length} document{filteredDocuments.length === 1 ? '' : 's'} on this page
+            {hasNextPage ? ' · more available' : ''}
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={handlePrevPage} disabled={pageIndex === 0} className="btn-secondary btn-sm">
+              ← Previous
+            </button>
+            <button onClick={handleNextPage} disabled={!hasNextPage} className="btn-primary btn-sm">
+              Next →
+            </button>
+          </div>
         </div>
       )}
       {showUploadModal && (

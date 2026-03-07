@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { db, auth } from '../firebase';
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, getCountFromServer, limit } from 'firebase/firestore';
 import { UserPlus, FileText, ShoppingCart, Key } from './Icons';
 import { normalizeAddressValue, normalizePropertyTypeBucket, isAdminUser } from '../utils/helpers';
 
@@ -26,67 +26,94 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load all data from Firebase
+  // Load dashboard KPIs from index-friendly counters + selective lookups.
   React.useEffect(() => {
     const loadDashboardData = async () => {
       try {
         const isAdmin = isAdminUser();
+        const uid = auth.currentUser?.uid;
+        const userFilter = isAdmin ? [] : [where('userId', '==', uid)];
 
-        // Load contacts
-        const contactsQuery = isAdmin
-          ? query(collection(db, 'contacts'))
-          : query(collection(db, 'contacts'), where('userId', '==', auth.currentUser.uid));
+        const contactBase = [collection(db, 'contacts'), ...userFilter];
+        const dealBase = [collection(db, 'deals'), ...userFilter];
+        const propertyBase = [collection(db, 'properties'), ...userFilter];
+        const taskBase = [collection(db, 'tasks'), ...userFilter];
 
-        const contactsSnapshot = await getDocs(contactsQuery);
-        const contactsData = [];
-        contactsSnapshot.forEach((doc) => {
-          contactsData.push({ id: doc.id, ...doc.data() });
+        const [
+          totalContactsSnap,
+          totalBuyersSnap,
+          activeBuyersSnap,
+          flippersSnap,
+          buildersSnap,
+          holdersSnap,
+          totalSellersSnap,
+          inactiveSellersSnap,
+          totalDealsSnap,
+          closedDealsSnap,
+          totalTasksSnap
+        ] = await Promise.all([
+          getCountFromServer(query(...contactBase)),
+          getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'))),
+          getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'), where('activelyBuying', '==', true))),
+          getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'), where('buyerType', '==', 'flipper'))),
+          getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'), where('buyerType', '==', 'builder'))),
+          getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'), where('buyerType', '==', 'holder'))),
+          getCountFromServer(query(...contactBase, where('contactType', '==', 'seller'))),
+          getCountFromServer(query(...contactBase, where('contactType', '==', 'seller'), where('activelySelling', '==', false))),
+          getCountFromServer(query(...dealBase)),
+          getCountFromServer(query(...dealBase, where('status', '==', 'closed'))),
+          getCountFromServer(query(...taskBase))
+        ]);
+
+        const totalContacts = totalContactsSnap.data().count;
+        const totalBuyers = totalBuyersSnap.data().count;
+        const activeBuyers = activeBuyersSnap.data().count;
+        const flippers = flippersSnap.data().count;
+        const builders = buildersSnap.data().count;
+        const holders = holdersSnap.data().count;
+        const totalSellers = totalSellersSnap.data().count;
+        const inactiveSellers = inactiveSellersSnap.data().count;
+        const activeSellers = totalSellers - inactiveSellers;
+        const totalDeals = totalDealsSnap.data().count;
+        const closedDeals = closedDealsSnap.data().count;
+        const activeDeals = Math.max(totalDeals - closedDeals, 0);
+        const totalTasks = totalTasksSnap.data().count;
+
+        // Load seller records for seller KPI grouping (limited to seller documents)
+        const sellersSnapshot = await getDocs(
+          query(...contactBase, where('contactType', '==', 'seller'))
+        );
+        const sellers = [];
+        sellersSnapshot.forEach((doc) => {
+          sellers.push({ id: doc.id, ...doc.data() });
         });
 
-        // Load deals
-        const dealsQuery = isAdmin
-          ? query(collection(db, 'deals'))
-          : query(collection(db, 'deals'), where('userId', '==', auth.currentUser.uid));
-
-        const dealsSnapshot = await getDocs(dealsQuery);
-        const dealsData = [];
-        dealsSnapshot.forEach((doc) => {
-          dealsData.push({ id: doc.id, ...doc.data() });
-        });
-
-        // Load properties
-        const propertiesQuery = isAdmin
-          ? query(collection(db, 'properties'))
-          : query(collection(db, 'properties'), where('userId', '==', auth.currentUser.uid));
-
-        const propertiesSnapshot = await getDocs(propertiesQuery);
+        // Load properties only with fields needed for seller property-type mapping
+        const propertiesSnapshot = await getDocs(
+          query(...propertyBase)
+        );
         const propertiesData = [];
         propertiesSnapshot.forEach((doc) => {
           propertiesData.push({ id: doc.id, ...doc.data() });
         });
 
-        // Load tasks
-        const tasksQuery = isAdmin
-          ? query(collection(db, 'tasks'), orderBy('dueDate', 'asc'))
-          : query(collection(db, 'tasks'), where('userId', '==', auth.currentUser.uid), orderBy('dueDate', 'asc'));
+        // Load deals with fields needed for fallback property type matching
+        const dealsSnapshot = await getDocs(
+          query(...dealBase)
+        );
+        const dealsData = [];
+        dealsSnapshot.forEach((doc) => {
+          dealsData.push({ id: doc.id, ...doc.data() });
+        });
 
-        const tasksSnapshot = await getDocs(tasksQuery);
+        // Load tasks preview only (not full list)
+        const tasksSnapshot = await getDocs(
+          query(...taskBase, orderBy('dueDate', 'asc'), limit(4))
+        );
         const tasksData = [];
         tasksSnapshot.forEach((doc) => {
           tasksData.push({ id: doc.id, ...doc.data() });
         });
-
-        // Calculate stats
-        const sellers = contactsData.filter(c => c.contactType === 'seller');
-        const buyers = contactsData.filter(c => c.contactType === 'buyer');
-        const activeBuyers = buyers.filter(b => b.activelyBuying);
-        const flippers = buyers.filter(b => b.buyerType === 'flipper');
-        const builders = buyers.filter(b => b.buyerType === 'builder');
-        const holders = buyers.filter(b => b.buyerType === 'holder');
-        const activeDeals = dealsData.filter(d => d.status !== 'closed');
-        const closedDeals = dealsData.filter(d => d.status === 'closed');
-        const activeSellers = sellers.filter(s => s.activelySelling !== false);
-        const inactiveSellers = sellers.filter(s => s.activelySelling === false);
 
         const addressToProperty = new Map();
         propertiesData.forEach((property) => {
@@ -126,25 +153,25 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
         const commercialSellers = sellers.filter((seller) => sellerTypeBuckets.get(seller.id)?.has('commercial'));
 
         setStats({
-          totalContacts: contactsData.length,
-          totalSellers: sellers.length,
-          activeSellers: activeSellers.length,
-          inactiveSellers: inactiveSellers.length,
+          totalContacts,
+          totalSellers,
+          activeSellers,
+          inactiveSellers,
           singleFamilySellers: singleFamilySellers.length,
           multiFamilySellers: multiFamilySellers.length,
           commercialSellers: commercialSellers.length,
-          totalBuyers: buyers.length,
-          activeBuyers: activeBuyers.length,
-          totalDeals: dealsData.length,
-          activeDeals: activeDeals.length,
-          closedDeals: closedDeals.length,
-          flippers: flippers.length,
-          builders: builders.length,
-          holders: holders.length,
-          totalTasks: tasksData.length
+          totalBuyers,
+          activeBuyers,
+          totalDeals,
+          activeDeals,
+          closedDeals,
+          flippers,
+          builders,
+          holders,
+          totalTasks
         });
 
-        setTasks(tasksData.slice(0, 4));
+        setTasks(tasksData);
         setLoading(false);
       } catch (error) {
         console.error('Error loading dashboard data:', error);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, limit, getCountFromServer } from 'firebase/firestore';
 import { db, auth } from '../firebase';
+import { isAdminUser } from '../utils/helpers';
 
 // ─── helpers ───────────────────────────────────────────────────────────────────
 const fmtTime = (iso) => {
@@ -165,43 +166,75 @@ const CRMDashboard = () => {
 
   const loadDashboardData = async () => {
     try {
-      const isAdmin = auth.currentUser?.email === 'dealcenterx@gmail.com';
+      const isAdmin = isAdminUser();
       const uid = auth.currentUser?.uid;
+      const baseFilter = isAdmin ? [] : [where('userId', '==', uid)];
 
-      const makeQuery = (col, ...clauses) =>
-        isAdmin ? query(collection(db, col)) : query(collection(db, col), where('userId', '==', uid), ...clauses);
+      const leadsQuery = isAdmin
+        ? query(collection(db, 'leads'), orderBy('submittedAt', 'desc'), limit(50))
+        : query(collection(db, 'leads'), where('userId', '==', uid), orderBy('submittedAt', 'desc'), limit(50));
 
-      const [contactsSnap, dealsSnap, leadsSnap] = await Promise.all([
-        getDocs(makeQuery('contacts')),
-        getDocs(makeQuery('deals')),
-        getDocs(isAdmin
-          ? query(collection(db, 'leads'), orderBy('submittedAt', 'desc'), limit(50))
-          : query(collection(db, 'leads'), where('userId', '==', uid), orderBy('submittedAt', 'desc'), limit(50))
-        )
+      const [
+        totalContactsSnap,
+        totalSellersSnap,
+        totalBuyersSnap,
+        flipperBuyersSnap,
+        builderBuyersSnap,
+        holderBuyersSnap,
+        totalDealsSnap,
+        newDealsSnap,
+        activeDealsSnap,
+        pendingDealsSnap,
+        closedDealsSnap,
+        hotLeadsSnap,
+        totalLeadsSnap,
+        recentLeadsSnap
+      ] = await Promise.all([
+        getCountFromServer(query(collection(db, 'contacts'), ...baseFilter)),
+        getCountFromServer(query(collection(db, 'contacts'), ...baseFilter, where('contactType', '==', 'seller'))),
+        getCountFromServer(query(collection(db, 'contacts'), ...baseFilter, where('contactType', '==', 'buyer'))),
+        getCountFromServer(query(collection(db, 'contacts'), ...baseFilter, where('contactType', '==', 'buyer'), where('buyerType', '==', 'flipper'))),
+        getCountFromServer(query(collection(db, 'contacts'), ...baseFilter, where('contactType', '==', 'buyer'), where('buyerType', '==', 'builder'))),
+        getCountFromServer(query(collection(db, 'contacts'), ...baseFilter, where('contactType', '==', 'buyer'), where('buyerType', '==', 'holder'))),
+        getCountFromServer(query(collection(db, 'deals'), ...baseFilter)),
+        getCountFromServer(query(collection(db, 'deals'), ...baseFilter, where('status', '==', 'new'))),
+        getCountFromServer(query(collection(db, 'deals'), ...baseFilter, where('status', '==', 'active'))),
+        getCountFromServer(query(collection(db, 'deals'), ...baseFilter, where('status', '==', 'pending'))),
+        getCountFromServer(query(collection(db, 'deals'), ...baseFilter, where('status', '==', 'closed'))),
+        getCountFromServer(query(collection(db, 'leads'), ...baseFilter, where('warmth', '==', 'hot'))),
+        getCountFromServer(query(collection(db, 'leads'), ...baseFilter)),
+        getDocs(leadsQuery)
       ]);
 
-      const contacts = contactsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const deals = dealsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const leads = leadsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      const sellers = contacts.filter(c => c.contactType === 'seller');
-      const buyers = contacts.filter(c => c.contactType === 'buyer');
-      const hotLeads = leads.filter(l => (l.warmth || '').toLowerCase() === 'hot').length;
+      const totalContacts = totalContactsSnap.data().count;
+      const totalSellers = totalSellersSnap.data().count;
+      const totalBuyers = totalBuyersSnap.data().count;
+      const flippers = flipperBuyersSnap.data().count;
+      const builders = builderBuyersSnap.data().count;
+      const holders = holderBuyersSnap.data().count;
+      const totalDeals = totalDealsSnap.data().count;
+      const newDeals = newDealsSnap.data().count;
+      const activeDeals = activeDealsSnap.data().count;
+      const pendingDeals = pendingDealsSnap.data().count;
+      const closedDeals = closedDealsSnap.data().count;
+      const hotLeads = hotLeadsSnap.data().count;
+      const totalLeads = totalLeadsSnap.data().count;
+      const leads = recentLeadsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
       const dealsByStatus = [
-        { label: 'New', value: deals.filter(d => d.status === 'new').length, color: '#ffaa00' },
-        { label: 'Active', value: deals.filter(d => d.status === 'active').length, color: '#00ff88' },
-        { label: 'Pending', value: deals.filter(d => d.status === 'pending').length, color: '#0088ff' },
-        { label: 'Closed', value: deals.filter(d => d.status === 'closed').length, color: '#aa00ff' }
+        { label: 'New', value: newDeals, color: '#ffaa00' },
+        { label: 'Active', value: activeDeals, color: '#00ff88' },
+        { label: 'Pending', value: pendingDeals, color: '#0088ff' },
+        { label: 'Closed', value: closedDeals, color: '#aa00ff' }
       ];
       const buyersByType = [
-        { label: 'Flippers', value: buyers.filter(b => b.buyerType === 'flipper').length, color: '#ff6600' },
-        { label: 'Builders', value: buyers.filter(b => b.buyerType === 'builder').length, color: '#0088ff' },
-        { label: 'Holders', value: buyers.filter(b => b.buyerType === 'holder').length, color: '#aa00ff' }
+        { label: 'Flippers', value: flippers, color: '#ff6600' },
+        { label: 'Builders', value: builders, color: '#0088ff' },
+        { label: 'Holders', value: holders, color: '#aa00ff' }
       ];
 
       // Recent activity from leads
-      const recentLeads = leads.slice(0, 8).map(l => ({
+      const recentLeads = leads.slice(0, 8).map((l) => ({
         icon: (l.warmth || '').toLowerCase() === 'hot' ? '🔥' : '📋',
         color: (l.warmth || '').toLowerCase() === 'hot' ? '#ff4444' : '#00ff88',
         message: `New lead: ${l.name || l.fullName || l.entityName || 'Unknown'}`,
@@ -209,14 +242,18 @@ const CRMDashboard = () => {
         time: fmtTime(l.submittedAt || l.createdAt)
       }));
 
-      const conversionRate = sellers.length > 0 ? ((deals.length / sellers.length) * 100).toFixed(1) : 0;
+      const conversionRate = totalSellers > 0 ? ((totalDeals / totalSellers) * 100).toFixed(1) : 0;
 
       setStats({
-        totalContacts: contacts.length, totalDeals: deals.length,
-        totalSellers: sellers.length, totalBuyers: buyers.length,
-        totalLeads: leads.length, hotLeads,
-        closedDeals: deals.filter(d => d.status === 'closed').length,
-        dealsByStatus, buyersByType,
+        totalContacts,
+        totalDeals,
+        totalSellers,
+        totalBuyers,
+        totalLeads,
+        hotLeads,
+        closedDeals,
+        dealsByStatus,
+        buyersByType,
         conversionRate: parseFloat(conversionRate),
         recentLeads
       });

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { db, auth } from '../firebase';
-import { collection, addDoc, getDocs, query, where, orderBy, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, orderBy, updateDoc, doc, deleteDoc, limit, startAfter } from 'firebase/firestore';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { isAdminUser } from '../utils/helpers';
@@ -56,6 +56,8 @@ const PRIORITIES = [
   { value: 'medium', label: 'Medium', color: '#ffaa00' },
   { value: 'low', label: 'Low', color: '#0088ff' }
 ];
+
+const TASKS_PAGE_SIZE = 40;
 
 const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
   const toast = useToast();
@@ -338,76 +340,128 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
   const [searchInput, setSearchInput] = useState(globalSearch);
   const searchTerm = useDebounce(searchInput, 250);
   const [confirmDelete, setConfirmDelete] = useState({ open: false, task: null });
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageCursors, setPageCursors] = useState([null]);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const pageCursorsRef = useRef(pageCursors);
   const [viewMode, setViewMode] = useState('list');
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
+  const relatedDataCacheRef = useRef({ scopeKey: null, loaded: false });
 
   useEffect(() => {
-    loadData();
+    pageCursorsRef.current = pageCursors;
+  }, [pageCursors]);
+
+  const loadRelatedData = useCallback(async ({ forceRefresh = false } = {}) => {
+    const isAdmin = isAdminUser();
+    const scopeKey = isAdmin ? 'admin' : `user:${auth.currentUser?.uid || 'unknown'}`;
+
+    if (!forceRefresh && relatedDataCacheRef.current.loaded && relatedDataCacheRef.current.scopeKey === scopeKey) {
+      return;
+    }
+
+    const dealsQuery = isAdmin
+      ? query(collection(db, 'deals'))
+      : query(collection(db, 'deals'), where('userId', '==', auth.currentUser.uid));
+    const contactsQuery = isAdmin
+      ? query(collection(db, 'contacts'))
+      : query(collection(db, 'contacts'), where('userId', '==', auth.currentUser.uid));
+    const propertiesQuery = isAdmin
+      ? query(collection(db, 'properties'))
+      : query(collection(db, 'properties'), where('userId', '==', auth.currentUser.uid));
+
+    const [dealsSnapshot, contactsSnapshot, propertiesSnapshot] = await Promise.all([
+      getDocs(dealsQuery),
+      getDocs(contactsQuery),
+      getDocs(propertiesQuery)
+    ]);
+
+    const dealsData = [];
+    const contactsData = [];
+    const propertiesData = [];
+
+    dealsSnapshot.forEach((doc) => dealsData.push({ id: doc.id, ...doc.data() }));
+    contactsSnapshot.forEach((doc) => contactsData.push({ id: doc.id, ...doc.data() }));
+    propertiesSnapshot.forEach((doc) => propertiesData.push({ id: doc.id, ...doc.data() }));
+
+    setDeals(dealsData);
+    setContacts(contactsData);
+    setProperties(propertiesData);
+
+    relatedDataCacheRef.current = { scopeKey, loaded: true };
   }, []);
 
-  useEffect(() => {
-    setSearchInput(globalSearch || '');
-  }, [globalSearch]);
-
-  const loadData = async () => {
+  const loadTasks = useCallback(async (targetPage = 0, forceReset = false) => {
+    const sanitizedPage = Math.max(0, Number(targetPage) || 0);
+    const isAdmin = isAdminUser();
     try {
-      const isAdmin = isAdminUser();
+      const baseQuery = [
+        collection(db, 'tasks'),
+        orderBy('dueDate', 'asc'),
+        limit(TASKS_PAGE_SIZE + 1)
+      ];
+      if (!isAdmin) {
+        baseQuery.splice(1, 0, where('userId', '==', auth.currentUser.uid));
+      }
 
-      const tasksQuery = isAdmin
-        ? query(collection(db, 'tasks'), orderBy('dueDate', 'asc'))
-        : query(
-            collection(db, 'tasks'),
-            where('userId', '==', auth.currentUser.uid),
-            orderBy('dueDate', 'asc')
-          );
+      const cursor = forceReset ? null : pageCursorsRef.current[sanitizedPage];
+      if (cursor) {
+        baseQuery.push(startAfter(cursor));
+      }
 
-      const tasksSnapshot = await getDocs(tasksQuery);
+      const tasksSnapshot = await getDocs(query(...baseQuery));
       const tasksData = [];
-      tasksSnapshot.forEach((doc) => {
+      tasksSnapshot.docs.slice(0, TASKS_PAGE_SIZE).forEach((doc) => {
         tasksData.push({ id: doc.id, ...doc.data() });
       });
 
-      const dealsQuery = isAdmin
-        ? query(collection(db, 'deals'))
-        : query(collection(db, 'deals'), where('userId', '==', auth.currentUser.uid));
-
-      const dealsSnapshot = await getDocs(dealsQuery);
-      const dealsData = [];
-      dealsSnapshot.forEach((doc) => {
-        dealsData.push({ id: doc.id, ...doc.data() });
+      const nextCursor = tasksSnapshot.docs.length > TASKS_PAGE_SIZE ? tasksSnapshot.docs[TASKS_PAGE_SIZE - 1] : null;
+      setHasNextPage(Boolean(nextCursor));
+      setPageCursors((prev) => {
+        const next = [...prev];
+        next[sanitizedPage + 1] = nextCursor;
+        if (next.length > sanitizedPage + 2) {
+          next.splice(sanitizedPage + 2);
+        }
+        return next;
       });
 
-      const contactsQuery = isAdmin
-        ? query(collection(db, 'contacts'))
-        : query(collection(db, 'contacts'), where('userId', '==', auth.currentUser.uid));
-
-      const contactsSnapshot = await getDocs(contactsQuery);
-      const contactsData = [];
-      contactsSnapshot.forEach((doc) => {
-        contactsData.push({ id: doc.id, ...doc.data() });
-      });
-
-      const propertiesQuery = isAdmin
-        ? query(collection(db, 'properties'))
-        : query(collection(db, 'properties'), where('userId', '==', auth.currentUser.uid));
-
-      const propertiesSnapshot = await getDocs(propertiesQuery);
-      const propertiesData = [];
-      propertiesSnapshot.forEach((doc) => {
-        propertiesData.push({ id: doc.id, ...doc.data() });
-      });
-
+      if (forceReset) {
+        setPageIndex(0);
+      } else {
+        setPageIndex(sanitizedPage);
+      }
       setTasks(tasksData);
-      setDeals(dealsData);
-      setContacts(contactsData);
-      setProperties(propertiesData);
+    } catch (error) {
+      throw error;
+    }
+  }, []);
+
+  const loadData = useCallback(async (targetPage = 0, forceResetTasks = true) => {
+    try {
+      setLoading(true);
+      await loadTasks(targetPage, forceResetTasks);
       setLoading(false);
     } catch (error) {
       console.error('Error loading data:', error);
       setLoading(false);
     }
-  };
+  }, [loadTasks]);
+
+  useEffect(() => {
+    setSearchInput(globalSearch || '');
+  }, [globalSearch]);
+
+  useEffect(() => {
+    loadData(0, true);
+  }, [loadData]);
+
+  useEffect(() => {
+    setPageIndex(0);
+    setPageCursors([null]);
+    loadData(0, true);
+  }, [filterStatus, filterPriority, filterType, filterAssignee, searchTerm, loadData]);
 
   const handleToggleComplete = async (task) => {
     try {
@@ -417,7 +471,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
         completedDate: newStatus === 'completed' ? new Date().toISOString() : null,
         updatedAt: new Date().toISOString()
       });
-      loadData();
+      loadData(pageIndex, false);
     } catch (error) {
       console.error('Error updating task:', error);
       toast.error('Failed to update task. Please try again.');
@@ -428,10 +482,31 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
     try {
       await deleteDoc(doc(db, 'tasks', taskId));
       toast.success('Task deleted successfully!');
-      loadData();
+      loadData(pageIndex, false);
     } catch (error) {
       console.error('Error deleting task:', error);
       toast.error('Failed to delete task. Please try again.');
+    }
+  };
+
+  const handleNextPage = () => {
+    if (!hasNextPage) return;
+    loadData(pageIndex + 1, false);
+  };
+
+  const handlePrevPage = () => {
+    if (pageIndex === 0) return;
+    loadData(pageIndex - 1, false);
+  };
+
+  const openTaskModal = async (task = null) => {
+    try {
+      await loadRelatedData();
+      setSelectedTask(task);
+      setShowModal(true);
+    } catch (error) {
+      console.error('Error preparing task modal:', error);
+      toast.error('Failed to load task options. Please try again.');
     }
   };
 
@@ -574,8 +649,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
           </div>
           <button
             onClick={() => {
-              setSelectedTask(null);
-              setShowModal(true);
+              openTaskModal(null);
             }}
             className="btn-primary"
           >
@@ -961,10 +1035,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
 
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                   <button
-                    onClick={() => {
-                      setSelectedTask(task);
-                      setShowModal(true);
-                    }}
+                    onClick={() => openTaskModal(task)}
                     className="btn-secondary btn-sm"
                   >
                     Edit
@@ -979,6 +1050,20 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
               </div>
             );
           })}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ fontSize: '12px', color: '#888888' }}>
+              Showing {filteredTasks.length} task{filteredTasks.length === 1 ? '' : 's'} on this page
+              {hasNextPage ? ' · more available' : ''}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={handlePrevPage} disabled={pageIndex === 0} className="btn-secondary btn-sm">
+                ← Previous
+              </button>
+              <button onClick={handleNextPage} disabled={!hasNextPage} className="btn-primary btn-sm">
+                Next →
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -992,7 +1077,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
             setShowModal(false);
             setSelectedTask(null);
           }}
-          onSave={loadData}
+          onSave={() => loadData(pageIndex, false)}
         />
       )}
 

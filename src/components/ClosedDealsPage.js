@@ -1,74 +1,92 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { db, auth } from '../firebase';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, limit, startAfter } from 'firebase/firestore';
 import DealEditModal from './DealEditModal';
+import { isAdminUser } from '../utils/helpers';
+
+const CLOSED_DEALS_PAGE_SIZE = 30;
 
 const ClosedDealsPage = () => {
   const [deals, setDeals] = useState([]);
-  const [filteredDeals, setFilteredDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageCursors, setPageCursors] = useState([null]);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const pageCursorsRef = useRef(pageCursors);
 
   useEffect(() => {
-    loadDeals();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    pageCursorsRef.current = pageCursors;
+  }, [pageCursors]);
 
-  useEffect(() => {
-    filterDeals();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deals, searchQuery]);
-
-  const loadDeals = async () => {
+  const loadDeals = useCallback(async (targetPage = 0, forceReset = false) => {
+    const sanitizedPage = Math.max(0, Number(targetPage) || 0);
     try {
-      const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+      const isAdmin = isAdminUser();
 
-      const dealsQuery = isAdmin
-        ? query(collection(db, 'deals'), orderBy('createdAt', 'desc'))
-        : query(
-            collection(db, 'deals'),
-            where('userId', '==', auth.currentUser.uid),
-            orderBy('createdAt', 'desc')
-          );
+      const constraints = [collection(db, 'deals')];
+      if (!isAdmin) {
+        constraints.push(where('userId', '==', auth.currentUser.uid));
+      }
 
-      const querySnapshot = await getDocs(dealsQuery);
+      constraints.push(where('status', '==', 'closed'), orderBy('createdAt', 'desc'), limit(CLOSED_DEALS_PAGE_SIZE + 1));
+
+      const cursor = forceReset ? null : pageCursorsRef.current[sanitizedPage];
+      if (cursor) {
+        constraints.push(startAfter(cursor));
+      }
+
+      const querySnapshot = await getDocs(query(...constraints));
       const dealsData = [];
-      
-      querySnapshot.forEach((doc) => {
+
+      querySnapshot.docs.slice(0, CLOSED_DEALS_PAGE_SIZE).forEach((doc) => {
         const data = doc.data();
-        // Only include closed deals
-        if (data.status === 'closed') {
-          dealsData.push({
-            id: doc.id,
-            ...data
-          });
-        }
+        dealsData.push({
+          id: doc.id,
+          ...data
+        });
       });
 
+      const nextCursor = querySnapshot.docs.length > CLOSED_DEALS_PAGE_SIZE
+        ? querySnapshot.docs[CLOSED_DEALS_PAGE_SIZE - 1]
+        : null;
+      setHasNextPage(Boolean(nextCursor));
+      setPageCursors((prev) => {
+        const next = [...prev];
+        next[sanitizedPage + 1] = nextCursor;
+        if (next.length > sanitizedPage + 2) {
+          next.splice(sanitizedPage + 2);
+        }
+        return next;
+      });
+      if (forceReset) {
+        setPageIndex(0);
+      } else {
+        setPageIndex(sanitizedPage);
+      }
+
       setDeals(dealsData);
-      setFilteredDeals(dealsData);
       setLoading(false);
     } catch (error) {
       console.error('Error loading deals:', error);
       setLoading(false);
     }
-  };
+  }, []);
 
-  const filterDeals = () => {
-    let filtered = [...deals];
+  useEffect(() => {
+    loadDeals(0, true);
+  }, [loadDeals]);
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(deal => 
-        deal.propertyAddress?.toLowerCase().includes(query) ||
-        deal.buyerName?.toLowerCase().includes(query) ||
-        deal.sellerName?.toLowerCase().includes(query)
-      );
-    }
-
-    setFilteredDeals(filtered);
-  };
+  const filteredDeals = useMemo(() => {
+    if (!searchQuery) return deals;
+    const query = searchQuery.toLowerCase();
+    return deals.filter(deal =>
+      deal.propertyAddress?.toLowerCase().includes(query) ||
+      deal.buyerName?.toLowerCase().includes(query) ||
+      deal.sellerName?.toLowerCase().includes(query)
+    );
+  }, [deals, searchQuery]);
 
   const formatCurrency = (amount) => {
     if (!amount) return 'N/A';
@@ -87,6 +105,16 @@ const ClosedDealsPage = () => {
 
   const totalRevenue = filteredDeals.reduce((sum, d) => sum + (d.commission?.agentEarnings || 0), 0);
   const totalVolume = filteredDeals.reduce((sum, d) => sum + (d.purchasePrice || 0), 0);
+
+  const handleNextPage = () => {
+    if (!hasNextPage) return;
+    loadDeals(pageIndex + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (pageIndex === 0) return;
+    loadDeals(pageIndex - 1);
+  };
 
   if (loading) {
     return (
@@ -202,12 +230,26 @@ const ClosedDealsPage = () => {
                   {formatCurrency(deal.commission?.agentEarnings)}
                 </div>
 
-                <div data-label="Close Date" style={{ fontSize: '12px', color: '#888888' }}>
+              <div data-label="Close Date" style={{ fontSize: '12px', color: '#888888' }}>
                   {formatDate(deal.actualCloseDate || deal.expectedCloseDate)}
                 </div>
               </div>
             );
           })}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ fontSize: '12px', color: '#888888' }}>
+              Showing {filteredDeals.length} closed deal{filteredDeals.length === 1 ? '' : 's'} on this page
+              {hasNextPage ? ' · more available' : ''}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={handlePrevPage} disabled={pageIndex === 0} className="btn-secondary btn-sm">
+                ← Previous
+              </button>
+              <button onClick={handleNextPage} disabled={!hasNextPage} className="btn-primary btn-sm">
+                Next →
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

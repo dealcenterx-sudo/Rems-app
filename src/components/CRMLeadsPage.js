@@ -1,13 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { db, auth } from '../firebase';
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where, limit, startAfter } from 'firebase/firestore';
 import LeadDrawer from './LeadDrawer';
 import { CalendarIcon } from './Icons';
+import { isAdminUser } from '../utils/helpers';
+
+const CRM_LEADS_PAGE_SIZE = 30;
 
 const CRMLeadsPage = ({ onOpenLead }) => {
   const [drawerLeadId, setDrawerLeadId] = useState(null);
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageCursors, setPageCursors] = useState([null]);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -26,34 +32,74 @@ const CRMLeadsPage = ({ onOpenLead }) => {
   const [toCalendarMonth, setToCalendarMonth] = useState(new Date());
   const [fromDateInput, setFromDateInput] = useState('');
   const [toDateInput, setToDateInput] = useState('');
+  const pageCursorsRef = useRef(pageCursors);
 
   useEffect(() => {
-    const loadLeads = async () => {
-      try {
-        const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
-        const leadsQuery = isAdmin
-          ? query(collection(db, 'leads'), orderBy('submittedAt', 'desc'))
-          : query(
-              collection(db, 'leads'),
-              where('userId', '==', auth.currentUser.uid),
-              orderBy('submittedAt', 'desc')
-            );
+    pageCursorsRef.current = pageCursors;
+  }, [pageCursors]);
 
-        const leadsSnapshot = await getDocs(leadsQuery);
-        const leadsData = [];
-        leadsSnapshot.forEach((leadDoc) => {
-          leadsData.push({ id: leadDoc.id, ...leadDoc.data() });
-        });
-        setLeads(leadsData);
-      } catch (error) {
-        console.error('Error loading leads:', error);
-      } finally {
-        setLoading(false);
+  const loadLeads = useCallback(async (targetPage = 0, forceReset = false) => {
+    const sanitizedPage = Math.max(0, Number(targetPage) || 0);
+    try {
+      const isAdmin = isAdminUser();
+      const constraints = [collection(db, 'leads')];
+      if (!isAdmin) {
+        constraints.push(where('userId', '==', auth.currentUser.uid));
       }
-    };
 
-    loadLeads();
-  }, []);
+      if (fromDate) {
+        constraints.push(where('submittedAt', '>=', `${fromDate}T00:00:00`));
+      }
+      if (toDate) {
+        constraints.push(where('submittedAt', '<=', `${toDate}T23:59:59`));
+      }
+
+      constraints.push(orderBy('submittedAt', 'desc'), limit(CRM_LEADS_PAGE_SIZE + 1));
+
+      const cursor = forceReset ? null : pageCursorsRef.current[sanitizedPage];
+      if (cursor) {
+        constraints.push(startAfter(cursor));
+      }
+
+      const leadsSnapshot = await getDocs(query(...constraints));
+      const leadsData = [];
+      leadsSnapshot.docs.slice(0, CRM_LEADS_PAGE_SIZE).forEach((leadDoc) => {
+        leadsData.push({ id: leadDoc.id, ...leadDoc.data() });
+      });
+
+      const nextCursor = leadsSnapshot.docs.length > CRM_LEADS_PAGE_SIZE
+        ? leadsSnapshot.docs[CRM_LEADS_PAGE_SIZE - 1]
+        : null;
+
+      setHasNextPage(Boolean(nextCursor));
+      setPageCursors((prev) => {
+        const next = [...prev];
+        next[sanitizedPage + 1] = nextCursor;
+        if (next.length > sanitizedPage + 2) {
+          next.splice(sanitizedPage + 2);
+        }
+        return next;
+      });
+      if (forceReset) {
+        setPageIndex(0);
+      } else {
+        setPageIndex(sanitizedPage);
+      }
+
+      setLeads(leadsData);
+    } catch (error) {
+      console.error('Error loading leads:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [fromDate, toDate]);
+
+  useEffect(() => {
+    setPageIndex(0);
+    setPageCursors([null]);
+    setLoading(true);
+    loadLeads(0, true);
+  }, [fromDate, toDate, loadLeads]);
 
   const sampleLead = {
     id: 'sample-lead-1',
@@ -156,6 +202,16 @@ const CRMLeadsPage = ({ onOpenLead }) => {
     for (let day = 1; day <= totalDays; day += 1) cells.push(new Date(year, month, day));
     while (cells.length % 7 !== 0) cells.push(null);
     return cells;
+  };
+
+  const handleNextPage = () => {
+    if (!hasNextPage) return;
+    loadLeads(pageIndex + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (pageIndex === 0) return;
+    loadLeads(pageIndex - 1);
   };
 
   useEffect(() => {
@@ -656,6 +712,20 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                 </div>
               );
             })}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ fontSize: '12px', color: '#888888' }}>
+                Showing {filteredLeads.length} lead{filteredLeads.length === 1 ? '' : 's'} on this page
+                {hasNextPage ? ' · more available' : ''}
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={handlePrevPage} disabled={pageIndex === 0} className="btn-secondary btn-sm">
+                  ← Previous
+                </button>
+                <button onClick={handleNextPage} disabled={!hasNextPage} className="btn-primary btn-sm">
+                  Next →
+                </button>
+              </div>
+            </div>
             {filteredLeads.length === 0 && (
               <div className="empty-state-card">
                 <div className="empty-state-title">No leads match these filters</div>
