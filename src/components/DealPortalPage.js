@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import DealPartiesTab from './DealPartiesTab';
-import DealChatTab from './DealChatTab';
-import DealFinancialsTab from './DealFinancialsTab';
-import DealDocumentsTab from './DealDocumentsTab';
-import DealProgressTab from './DealProgressTab';
 import { Users, FileText, BarChart, Mail, CheckSquare } from './Icons';
+
+const DealPartiesTab = React.lazy(() => import('./DealPartiesTab'));
+const DealChatTab = React.lazy(() => import('./DealChatTab'));
+const DealFinancialsTab = React.lazy(() => import('./DealFinancialsTab'));
+const DealDocumentsTab = React.lazy(() => import('./DealDocumentsTab'));
+const DealProgressTab = React.lazy(() => import('./DealProgressTab'));
 
 const PORTAL_TABS = [
   { id: 'parties', label: 'Parties', icon: Users },
@@ -135,11 +136,13 @@ const DealPortalPage = ({ dealId, onBack }) => {
 
       {/* Tab content */}
       <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
-        {activeTab === 'parties' && <DealPartiesTab dealId={dealId} deal={deal} />}
-        {activeTab === 'chat' && <DealChatTab dealId={dealId} deal={deal} />}
-        {activeTab === 'financials' && <DealFinancialsTab dealId={dealId} deal={deal} onDealUpdate={setDeal} />}
-        {activeTab === 'documents' && <DealDocumentsTab dealId={dealId} deal={deal} />}
-        {activeTab === 'progress' && <DealProgressTab dealId={dealId} deal={deal} />}
+        <React.Suspense fallback={<div className="loading-container"><div className="loading-spinner" /></div>}>
+          {activeTab === 'parties' && <DealPartiesTab dealId={dealId} deal={deal} />}
+          {activeTab === 'chat' && <DealChatTab dealId={dealId} deal={deal} />}
+          {activeTab === 'financials' && <DealFinancialsTab dealId={dealId} deal={deal} onDealUpdate={setDeal} />}
+          {activeTab === 'documents' && <DealDocumentsTab dealId={dealId} deal={deal} />}
+          {activeTab === 'progress' && <DealProgressTab dealId={dealId} deal={deal} />}
+        </React.Suspense>
       </div>
     </div>
   );

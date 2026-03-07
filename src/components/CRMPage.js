@@ -1,12 +1,13 @@
 import React from 'react';
-import CRMDashboard from './CRMDashboard';
-import CRMLeadsPage from './CRMLeadsPage';
-import CRMLeadDetailPage from './CRMLeadDetailPage';
-import CRMCampaignsPage from './CRMCampaignsPage';
-import CRMMessagesPage from './CRMMessagesPage';
-import CRMEmailInboxPage from './CRMEmailInboxPage';
-import CRMReportsPage from './CRMReportsPage';
 import { BarChart, Users, TrendingUp, FileText, Mail, List } from './Icons';
+
+const CRMDashboard = React.lazy(() => import('./CRMDashboard'));
+const CRMLeadsPage = React.lazy(() => import('./CRMLeadsPage'));
+const CRMLeadDetailPage = React.lazy(() => import('./CRMLeadDetailPage'));
+const CRMCampaignsPage = React.lazy(() => import('./CRMCampaignsPage'));
+const CRMMessagesPage = React.lazy(() => import('./CRMMessagesPage'));
+const CRMEmailInboxPage = React.lazy(() => import('./CRMEmailInboxPage'));
+const CRMReportsPage = React.lazy(() => import('./CRMReportsPage'));
 
 const CRMPage = ({ subTab, setSubTab, leadId, setLeadId, onOpenLead, onStartDeal }) => {
   const crmItems = [
@@ -45,22 +46,24 @@ const CRMPage = ({ subTab, setSubTab, leadId, setLeadId, onOpenLead, onStartDeal
         </div>
       </div>
       <div className="subnav-content">
-        {subTab === 'dashboard' && <CRMDashboard />}
-        {subTab === 'leads' && <CRMLeadsPage onOpenLead={onOpenLead} />}
-        {subTab === 'lead-detail' && (
-          <CRMLeadDetailPage
-            leadId={leadId}
-            onStartDeal={onStartDeal}
-            onBackToLeads={() => {
-              setLeadId?.(null);
-              setSubTab('leads');
-            }}
-          />
-        )}
-        {subTab === 'campaigns' && <CRMCampaignsPage />}
-        {subTab === 'messages' && <CRMMessagesPage />}
-        {subTab === 'email' && <CRMEmailInboxPage />}
-        {subTab === 'reports' && <CRMReportsPage />}
+        <React.Suspense fallback={<div className="loading-container"><div className="loading-spinner" /></div>}>
+          {subTab === 'dashboard' && <CRMDashboard />}
+          {subTab === 'leads' && <CRMLeadsPage onOpenLead={onOpenLead} />}
+          {subTab === 'lead-detail' && (
+            <CRMLeadDetailPage
+              leadId={leadId}
+              onStartDeal={onStartDeal}
+              onBackToLeads={() => {
+                setLeadId?.(null);
+                setSubTab('leads');
+              }}
+            />
+          )}
+          {subTab === 'campaigns' && <CRMCampaignsPage />}
+          {subTab === 'messages' && <CRMMessagesPage />}
+          {subTab === 'email' && <CRMEmailInboxPage />}
+          {subTab === 'reports' && <CRMReportsPage />}
+        </React.Suspense>
       </div>
     </div>
   );

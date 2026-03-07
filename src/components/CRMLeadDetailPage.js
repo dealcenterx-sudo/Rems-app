@@ -1,7 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { db, auth } from '../firebase';
 import { collection, addDoc, getDocs, getDoc, query, doc, updateDoc, where } from 'firebase/firestore';
 import { useToast } from './Toast';
@@ -18,7 +15,7 @@ import {
   persistStoredSampleLead,
 } from '../utils/helpers';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+const LeadPdfViewer = React.lazy(() => import('./LeadPdfViewer'));
 
 const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const toast = useToast();
@@ -879,34 +876,14 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="page-content">
-        <div className="loading-container">
-          <div className="loading-spinner" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!lead) {
-    return (
-      <div className="page-content">
-        <div className="empty-state-card">
-          <div className="empty-state-title">Lead not found</div>
-          <div className="empty-state-subtitle">This lead may have been removed or is unavailable.</div>
-        </div>
-      </div>
-    );
-  }
-
-  const leadName = leadForm.name || lead.name || lead.fullName || lead.entityName || 'N/A';
-  const serviceType = leadForm.serviceType || lead.serviceType || lead.service || lead.serviceRequested || 'N/A';
-  const source = leadForm.source || lead.source || lead.leadSource || 'N/A';
-  const propertyType = formatPropertyTypeLabel(leadForm.propertyType || lead.propertyType);
-  const submittedAt = lead.submittedAt || lead.createdAt;
+  const leadRecord = lead || {};
+  const leadName = leadForm.name || leadRecord.name || leadRecord.fullName || leadRecord.entityName || 'N/A';
+  const serviceType = leadForm.serviceType || leadRecord.serviceType || leadRecord.service || leadRecord.serviceRequested || 'N/A';
+  const source = leadForm.source || leadRecord.source || leadRecord.leadSource || 'N/A';
+  const propertyType = formatPropertyTypeLabel(leadForm.propertyType || leadRecord.propertyType);
+  const submittedAt = leadRecord.submittedAt || leadRecord.createdAt;
   const submittedLabel = formatTimestamp(submittedAt);
-  const lastUpdatedLabel = formatTimestamp(lead.updatedAt || submittedAt);
+  const lastUpdatedLabel = formatTimestamp(leadRecord.updatedAt || submittedAt);
   const pipelineStageIndex = Math.max(0, LEAD_PIPELINE_STAGES.findIndex((stage) => stage.value === warmth));
   const pipelineProgressPct = LEAD_PIPELINE_STAGES.length > 1
     ? (pipelineStageIndex / (LEAD_PIPELINE_STAGES.length - 1)) * 100
@@ -930,7 +907,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     { id: 'files', label: 'Files' }
   ];
 
-  const baseActivityEntries = [
+  const activitySearchNormalized = activitySearch.trim().toLowerCase();
+  const baseActivityEntries = useMemo(() => [
     {
       id: 'lead-submitted',
       type: 'status',
@@ -945,13 +923,13 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       title: 'Pipeline stage updated',
       summary: `Lead is currently in "${getLeadWarmthLabel(warmth)}".`,
       detail: 'Use the stage tracker above to move the lead through the workflow.',
-      createdAt: lead.updatedAt || submittedAt
+      createdAt: leadRecord.updatedAt || submittedAt
     },
     {
       id: 'lead-contact',
       type: 'contact',
       title: 'Contact profile captured',
-      summary: `${leadForm.phone || lead.phone || 'No phone on file'} • ${leadForm.email || lead.email || 'No email on file'}`,
+      summary: `${leadForm.phone || leadRecord.phone || 'No phone on file'} • ${leadForm.email || leadRecord.email || 'No email on file'}`,
       detail: 'Keep contact details complete for assignment and outreach automation.',
       createdAt: submittedAt
     },
@@ -961,7 +939,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       title: 'Deal conversion available',
       summary: 'Start Deal creates a linked record in the Deals page.',
       detail: 'Converted deals remain connected to this lead by leadId.',
-      createdAt: lead.updatedAt || submittedAt
+      createdAt: leadRecord.updatedAt || submittedAt
     },
     {
       id: 'lead-files',
@@ -969,32 +947,47 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       title: attachments.length > 0 ? 'Files attached' : 'No files attached yet',
       summary: attachments.length > 0 ? `${attachments.length} file(s) currently linked.` : 'Upload files from the right panel.',
       detail: 'Rename files after upload for cleaner organization.',
-      createdAt: lead.updatedAt || submittedAt
+      createdAt: leadRecord.updatedAt || submittedAt
     }
-  ];
+  ], [
+    attachments.length,
+    leadForm.email,
+    leadForm.phone,
+    leadName,
+    leadRecord.email,
+    leadRecord.phone,
+    leadRecord.updatedAt,
+    serviceType,
+    source,
+    submittedAt,
+    warmth
+  ]);
 
-  const customActivityEntries = customActivities.map((entry) => ({ ...entry, isCustom: true }));
-  const baseSystemActivityEntries = baseActivityEntries.map((entry) => ({
+  const customActivityEntries = useMemo(
+    () => customActivities.map((entry) => ({ ...entry, isCustom: true })),
+    [customActivities]
+  );
+  const baseSystemActivityEntries = useMemo(() => baseActivityEntries.map((entry) => ({
     ...entry,
     isCustom: false,
     isPermanent: true,
     source: 'system'
-  }));
+  })), [baseActivityEntries]);
 
-  const activityEntries = [...customActivityEntries, ...baseSystemActivityEntries]
+  const activityEntries = useMemo(() => [...customActivityEntries, ...baseSystemActivityEntries]
     .slice()
     .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
     .map((entry) => ({
       ...entry,
       ...(activityOverrides[entry.id] || {})
-    }));
+    })), [activityOverrides, baseSystemActivityEntries, customActivityEntries]);
 
-  const filteredActivityEntries = activityEntries.filter((entry) => {
+  const filteredActivityEntries = useMemo(() => activityEntries.filter((entry) => {
     const matchesTab = activityTab === 'all' || entry.type === activityTab;
     const queryText = `${entry.title} ${entry.summary} ${entry.detail}`.toLowerCase();
-    const matchesSearch = !activitySearch || queryText.includes(activitySearch.toLowerCase());
+    const matchesSearch = !activitySearchNormalized || queryText.includes(activitySearchNormalized);
     return matchesTab && matchesSearch;
-  });
+  }), [activityEntries, activityTab, activitySearchNormalized]);
 
   const primaryActions = [
     { id: 'save', label: 'Save' }
@@ -1149,7 +1142,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
     return `${(size / (1024 * 1024)).toFixed(1)} MB`;
   };
-  const documentRows = [
+  const documentRows = useMemo(() => [
     ...pendingFiles.map((pendingItem) => ({
       id: pendingItem.id,
       source: 'pending',
@@ -1167,7 +1160,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       fileSize: attachment.fileSize || 0,
       fileUrl: attachment.fileUrl || null
     }))
-  ];
+  ], [attachments, pendingFiles]);
 
   const leadDetailTabs = [
     { id: 'workspace', label: 'Lead Workspace' },
@@ -1181,7 +1174,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     { id: 'print-bundles', label: 'Print Bundles' }
   ];
 
-  const sampleLibraryDocuments = [
+  const documentsSearchNormalized = documentsSearch.trim().toLowerCase();
+
+  const sampleLibraryDocuments = useMemo(() => [
     {
       id: 'sample-purchase-agreement',
       docType: 'Purchase Agreement',
@@ -1253,9 +1248,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         'This sample is for UI demonstration only and is not a legal document.'
       ].join('\n')
     }
-  ];
+  ], [leadName, leadForm.city, leadForm.state, leadForm.street, leadForm.zipCode, propertyType]);
 
-  const normalizedGeneratedDocuments = generatedLeadDocuments.map((docItem, index) => ({
+  const normalizedGeneratedDocuments = useMemo(() => generatedLeadDocuments.map((docItem, index) => ({
     ...docItem,
     id: docItem.id || `admin-doc-${index}`,
     title: docItem.title || `Admin Form ${index + 1}`,
@@ -1271,11 +1266,14 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     content: docItem.content || 'No preview content available yet.',
     createdAt: docItem.createdAt || new Date().toISOString(),
     updatedAt: docItem.updatedAt || docItem.createdAt || new Date().toISOString()
-  }));
+  })), [generatedLeadDocuments, leadForm.state]);
 
-  const libraryDocuments = [...sampleLibraryDocuments, ...normalizedGeneratedDocuments];
+  const libraryDocuments = useMemo(
+    () => [...sampleLibraryDocuments, ...normalizedGeneratedDocuments],
+    [normalizedGeneratedDocuments, sampleLibraryDocuments]
+  );
 
-  const leadDocumentStateOptions = [
+  const leadDocumentStateOptions = useMemo(() => [
     { value: 'all', label: 'All States' },
     ...Array.from(
       new Set(
@@ -1287,24 +1285,27 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       value: stateName,
       label: stateName
     }))
-  ];
+  ], [libraryDocuments]);
 
-  const filteredLibraryDocuments = libraryDocuments.filter((docItem) => {
-    const matchesSearch = !documentsSearch
-      || `${docItem.title} ${docItem.docType} ${docItem.category} ${docItem.id} ${formatDocumentJurisdictionLabel(docItem.jurisdictionState)}`.toLowerCase().includes(documentsSearch.toLowerCase());
+  const filteredLibraryDocuments = useMemo(() => libraryDocuments.filter((docItem) => {
+    const formattedJurisdiction = formatDocumentJurisdictionLabel(docItem.jurisdictionState);
+    const matchesSearch = !documentsSearchNormalized
+      || `${docItem.title} ${docItem.docType} ${docItem.category} ${docItem.id} ${formattedJurisdiction}`.toLowerCase().includes(documentsSearchNormalized);
     const matchesState = documentsStateFilter === 'all'
-      || formatDocumentJurisdictionLabel(docItem.jurisdictionState) === documentsStateFilter;
+      || formattedJurisdiction === documentsStateFilter;
     return matchesSearch && matchesState;
-  });
+  }), [documentsSearchNormalized, documentsStateFilter, libraryDocuments]);
 
-  const activeFocusedDocumentId = filteredLibraryDocuments.some((docItem) => docItem.id === focusedDocumentId)
+  const activeFocusedDocumentId = useMemo(() => filteredLibraryDocuments.some((docItem) => docItem.id === focusedDocumentId)
     ? focusedDocumentId
-    : filteredLibraryDocuments[0]?.id || null;
+    : filteredLibraryDocuments[0]?.id || null, [focusedDocumentId, filteredLibraryDocuments]);
 
-  const focusedLibraryDocument = filteredLibraryDocuments.find((docItem) => docItem.id === activeFocusedDocumentId)
-    || null;
+  const focusedLibraryDocument = useMemo(() => filteredLibraryDocuments.find((docItem) => docItem.id === activeFocusedDocumentId)
+    || null, [activeFocusedDocumentId, filteredLibraryDocuments]);
 
-  const selectedLibraryDocuments = libraryDocuments.filter((docItem) => selectedDocumentIds.includes(docItem.id));
+  const selectedLibraryDocuments = useMemo(() => (
+    libraryDocuments.filter((docItem) => selectedDocumentIds.includes(docItem.id))
+  ), [libraryDocuments, selectedDocumentIds]);
 
   const toggleLibraryDocumentSelection = (documentId) => {
     setSelectedDocumentIds((prev) => (
@@ -1735,6 +1736,27 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       )}
     </div>
   );
+
+  if (loading) {
+    return (
+      <div className="page-content">
+        <div className="loading-container">
+          <div className="loading-spinner" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!lead) {
+    return (
+      <div className="page-content">
+        <div className="empty-state-card">
+          <div className="empty-state-title">Lead not found</div>
+          <div className="empty-state-subtitle">This lead may have been removed or is unavailable.</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="lead-workspace">
@@ -2576,33 +2598,16 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                   </div>
                 </div>
               ) : (
-                <Document
-                  file={pdfPreviewDocument.fileUrl}
-                  loading={<div className="lead-pdf-preview-loading">Loading PDF…</div>}
-                  error=""
-                  onLoadSuccess={handlePdfLoadSuccess}
-                  onLoadError={handlePdfLoadError}
-                  className="lead-pdf-document"
-                >
-                  <div className="lead-pdf-preview-statusbar">
-                    <span>{pdfPreviewNumPages ? `${pdfPreviewNumPages} page${pdfPreviewNumPages === 1 ? '' : 's'}` : 'Preparing pages...'}</span>
-                    <span>{pdfPreviewDocument.fileName}</span>
-                  </div>
-                  <div className="lead-pdf-pages">
-                    {Array.from({ length: pdfPreviewNumPages }, (_, index) => (
-                      <div key={`pdf-page-${index + 1}`} className="lead-pdf-page-wrap">
-                        <div className="lead-pdf-page-label">Page {index + 1}</div>
-                        <Page
-                          pageNumber={index + 1}
-                          scale={pdfPreviewScale}
-                          renderAnnotationLayer
-                          renderTextLayer
-                          className="lead-pdf-page"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </Document>
+                <React.Suspense fallback={<div className="lead-pdf-preview-loading">Loading PDF…</div>}>
+                  <LeadPdfViewer
+                    fileUrl={pdfPreviewDocument.fileUrl}
+                    fileName={pdfPreviewDocument.fileName}
+                    pageScale={pdfPreviewScale}
+                    numPages={pdfPreviewNumPages}
+                    onLoadSuccess={handlePdfLoadSuccess}
+                    onLoadError={handlePdfLoadError}
+                  />
+                </React.Suspense>
               )}
             </div>
           </div>

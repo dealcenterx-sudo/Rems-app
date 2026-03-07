@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import DealsDashboard from './DealsDashboard';
-import ActiveDealsPage from './ActiveDealsPage';
-import ClosedDealsPage from './ClosedDealsPage';
-import NewDealPage from './NewDealPage';
-import DealPortalPage from './DealPortalPage';
 import { FilePlus, BarChart, List, CheckSquare } from './Icons';
+
+const DealsDashboard = React.lazy(() => import('./DealsDashboard'));
+const ActiveDealsPage = React.lazy(() => import('./ActiveDealsPage'));
+const ClosedDealsPage = React.lazy(() => import('./ClosedDealsPage'));
+const NewDealPage = React.lazy(() => import('./NewDealPage'));
+const DealPortalPage = React.lazy(() => import('./DealPortalPage'));
 
 const DealsPage = ({ subTab, setSubTab }) => {
   const [portalDealId, setPortalDealId] = useState(null);
@@ -48,13 +49,15 @@ const DealsPage = ({ subTab, setSubTab }) => {
         </div>
       </div>
       <div className="subnav-content">
-        {subTab === 'new' && <NewDealPage />}
-        {subTab === 'dashboard' && <DealsDashboard />}
-        {subTab === 'active' && <ActiveDealsPage onOpenPortal={handleOpenPortal} />}
-        {subTab === 'closed' && <ClosedDealsPage />}
-        {subTab === 'portal' && portalDealId && (
-          <DealPortalPage dealId={portalDealId} onBack={handleBackFromPortal} />
-        )}
+        <React.Suspense fallback={<div className="loading-container"><div className="loading-spinner" /></div>}>
+          {subTab === 'new' && <NewDealPage />}
+          {subTab === 'dashboard' && <DealsDashboard />}
+          {subTab === 'active' && <ActiveDealsPage onOpenPortal={handleOpenPortal} />}
+          {subTab === 'closed' && <ClosedDealsPage />}
+          {subTab === 'portal' && portalDealId && (
+            <DealPortalPage dealId={portalDealId} onBack={handleBackFromPortal} />
+          )}
+        </React.Suspense>
       </div>
     </div>
   );
