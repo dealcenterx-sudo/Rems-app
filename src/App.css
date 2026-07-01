@@ -17,13 +17,62 @@ body {
 }
 
 :root {
+  /* Text — muted stays AA-compliant on surface-1 at 12px+ */
   --text-primary: #f1f1f1;
   --text-secondary: #cfcfcf;
   --text-muted: #8a8a8a;
-  --border-subtle: #1d1d1d;
-  --border-strong: #2a2a2a;
+  --text-faint: #757575; /* minimum legible tier; replaces inline #666666 */
+
+  /* Surfaces & borders */
+  --surface-0: #000000;
   --surface-1: #0a0a0a;
   --surface-2: #0f0f0f;
+  --surface-3: #141414;
+  --border-subtle: #1d1d1d;
+  --border-strong: #2a2a2a;
+
+  /* Brand accent */
+  --accent: #00ff88;
+  --accent-strong: #00cc6a;
+  --accent-soft: rgba(0, 255, 136, 0.1);
+  --accent-border: rgba(0, 255, 136, 0.3);
+
+  /* Semantic */
+  --info: #0088ff;
+  --warning: #ffaa00;
+  --danger: #ff3333;
+  --danger-hover: #ff4d4d;
+  --danger-soft: rgba(255, 51, 51, 0.08);
+
+  /* Type scale — 11px is the floor for any UI text */
+  --font-xs: 11px;
+  --font-sm: 12px;
+  --font-md: 13px;
+  --font-base: 14px;
+  --font-lg: 16px;
+  --font-xl: 20px;
+  --font-2xl: 24px;
+  --font-3xl: 28px;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+
+  /* Focus */
+  --focus-ring: 0 0 0 3px rgba(0, 255, 136, 0.25);
+
+  /* Motion */
   --ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --motion-fast: 0.18s;
@@ -116,7 +165,7 @@ body {
   min-width: 64px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 10px;
+  font-size: var(--font-xs);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   transition: all 0.2s;
@@ -638,8 +687,16 @@ body {
 
 .btn-primary:disabled {
   background: #333333;
+  color: #8a8a8a;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary:disabled,
+.btn-danger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .card-surface {
@@ -773,8 +830,8 @@ body {
 
 .btn-sm {
   padding: 6px 12px;
-  font-size: 11px;
-  border-radius: 6px;
+  font-size: var(--font-sm);
+  border-radius: var(--radius-sm);
 }
 
 .btn-block {
