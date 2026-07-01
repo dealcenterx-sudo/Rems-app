@@ -2586,6 +2586,12 @@ body {
   box-shadow: var(--focus-ring);
 }
 
+.checkbox-field:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
 .settings-nav-item span {
   font-size: var(--font-base);
   font-weight: 600;

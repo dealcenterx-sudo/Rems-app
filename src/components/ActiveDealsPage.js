@@ -29,6 +29,7 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [confirmDelete, setConfirmDelete] = useState({ open: false, deal: null });
+  const [confirmClose, setConfirmClose] = useState({ open: false, dealId: null });
   const pageCursorsRef = useRef(pageCursors);
 
   useEffect(() => {
@@ -119,10 +120,27 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
       if (selectedDeal && selectedDeal.id === dealId) {
         setSelectedDeal({ ...selectedDeal, status: newStatus });
       }
+      toast.success(`Deal marked ${getStatusLabel(newStatus)}`);
     } catch (error) {
       console.error('Error updating deal:', error);
       toast.error('Error updating deal status');
     }
+  };
+
+  // Closing is consequential: the deal leaves this list and the seller's
+  // contact is marked inactive — confirm before committing.
+  const requestStatusChange = (dealId, newStatus) => {
+    if (newStatus === 'closed') {
+      setConfirmClose({ open: true, dealId });
+      return;
+    }
+    updateDealStatus(dealId, newStatus);
+  };
+
+  const confirmCloseDeal = async () => {
+    const dealId = confirmClose.dealId;
+    setConfirmClose({ open: false, dealId: null });
+    if (dealId) await updateDealStatus(dealId, 'closed');
   };
 
   const deleteDeal = async (dealId) => {
@@ -311,7 +329,7 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
                 {['new', 'active', 'pending', 'closed'].map((status) => (
                   <button
                     key={status}
-                    onClick={() => updateDealStatus(selectedDeal.id, status)}
+                    onClick={() => requestStatusChange(selectedDeal.id, status)}
                     disabled={selectedDeal.status === status}
                     className={selectedDeal.status === status ? 'btn-primary' : 'btn-secondary'}
                     style={selectedDeal.status === status ? { background: getStatusColor(status), color: '#000000' } : undefined}
@@ -334,6 +352,17 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmClose.open}
+        title="Close this deal?"
+        message="The deal will move to Closed Deals and the seller's contact will be marked inactive. You can reopen it later by changing its status."
+        confirmLabel="Close Deal"
+        cancelLabel="Not Yet"
+        danger={false}
+        onConfirm={confirmCloseDeal}
+        onCancel={() => setConfirmClose({ open: false, dealId: null })}
+      />
 
       <ConfirmModal
         open={confirmDelete.open}

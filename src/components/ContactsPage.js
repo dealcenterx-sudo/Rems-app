@@ -383,7 +383,19 @@ const handleSaveContact = async () => {
                     </div>
                     <div className="form-field">
                       <label>Actively Buying</label>
-                      <div onClick={() => setFormData({...formData, activelyBuying: !formData.activelyBuying})} className="checkbox-field">
+                      <div
+                        onClick={() => setFormData({...formData, activelyBuying: !formData.activelyBuying})}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setFormData({...formData, activelyBuying: !formData.activelyBuying});
+                          }
+                        }}
+                        role="checkbox"
+                        aria-checked={formData.activelyBuying}
+                        tabIndex={0}
+                        className="checkbox-field"
+                      >
                         <div className={`checkbox ${formData.activelyBuying ? 'checked' : ''}`}>
                           {formData.activelyBuying && <Check size={14} color="#000000" />}
                         </div>
@@ -395,7 +407,19 @@ const handleSaveContact = async () => {
                 {selectedContactType === 'seller' && (
                   <div className="form-field">
                     <label>Actively Selling</label>
-                    <div onClick={() => setFormData({...formData, activelySelling: !formData.activelySelling})} className="checkbox-field">
+                    <div
+                      onClick={() => setFormData({...formData, activelySelling: !formData.activelySelling})}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setFormData({...formData, activelySelling: !formData.activelySelling});
+                        }
+                      }}
+                      role="checkbox"
+                      aria-checked={formData.activelySelling}
+                      tabIndex={0}
+                      className="checkbox-field"
+                    >
                       <div className={`checkbox ${formData.activelySelling ? 'checked' : ''}`}>
                         {formData.activelySelling && <Check size={14} color="#000000" />}
                       </div>
@@ -497,7 +521,7 @@ const handleSaveContact = async () => {
                       </div>
                       <div data-label="Actions" style={{ display: 'flex', gap: '8px' }}>
                         <button onClick={() => handleEditContact(contact)} className="btn-secondary btn-sm">Edit</button>
-                        <button onClick={() => requestDeleteContact(contact)} className="btn-danger btn-sm">Delete</button>
+                        <button onClick={() => requestDeleteContact(contact)} className="btn-danger-quiet btn-sm">Delete</button>
                       </div>
                     </div>
                   ))}
