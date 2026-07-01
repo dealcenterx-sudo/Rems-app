@@ -1,9 +1,6 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import './App.css';
-import { db, ensureUserExists } from './firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { auth } from './firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { useUser } from './contexts/UserContext';
 
 // Layout - keep eager (needed immediately)
 import { Sidebar, TopBar, BottomNav } from './components/Layout';
@@ -38,41 +35,9 @@ function App() {
   const [dealsSubTab, setDealsSubTab] = useState('new');
   const [contactsViewTab, setContactsViewTab] = useState('all');
   const [globalSearch, setGlobalSearch] = useState('');
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [companyId, setCompanyId] = useState(null);
-
-  // Check auth state
-  React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-
-      if (currentUser) {
-        try {
-          const ensuredUser = await ensureUserExists(currentUser);
-
-          if (ensuredUser) {
-            setCompanyId(ensuredUser.companyId || null);
-          } else {
-            const userQuery = await getDocs(
-              query(collection(db, 'users'), where('userId', '==', currentUser.uid))
-            );
-
-            if (!userQuery.empty) {
-              const userData = userQuery.docs[0].data();
-              setCompanyId(userData.companyId);
-            }
-          }
-        } catch (error) {
-          console.error('Error loading user data:', error);
-        }
-      }
-
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const { user, userDoc, loading } = useUser();
+  const [companyIdOverride, setCompanyIdOverride] = useState(null);
+  const companyId = companyIdOverride ?? userDoc?.companyId ?? null;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -126,7 +91,7 @@ function App() {
 
   // eslint-disable-next-line no-unused-vars
   const handleCompanySetup = (newCompanyId) => {
-    setCompanyId(newCompanyId);
+    setCompanyIdOverride(newCompanyId);
   };
 
   if (loading) {
@@ -147,7 +112,8 @@ function App() {
   }
 
   if (!user && process.env.REACT_APP_DEV_BYPASS !== 'true') {
-    return <LoginPage onLoginSuccess={() => setUser(auth.currentUser)} />;
+    // UserContext's auth listener picks up the new session and re-renders.
+    return <LoginPage onLoginSuccess={() => {}} />;
   }
 
   const searchEnabledTabs = ['contacts', 'properties', 'tasks', 'documents'];

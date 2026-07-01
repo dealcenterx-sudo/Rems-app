@@ -3,6 +3,7 @@ import { auth } from '../firebase';
 import { updateProfile, updateEmail, updatePassword } from 'firebase/auth';
 import { useToast } from './Toast';
 import useUserDoc from '../utils/useUserDoc';
+import UserManagement from './UserManagement';
 
 // Icons
 const UserIcon = ({ size = 24 }) => (
@@ -158,8 +159,11 @@ const SettingsPage = () => {
     { id: 'security', label: 'Security', icon: LockIcon },
     { id: 'company', label: 'Company', icon: BuildingIcon },
     { id: 'notifications', label: 'Notifications', icon: BellIcon },
-    // Connector holds XML/API lead-routing config — admin only
-    ...(isAdmin ? [{ id: 'connector', label: 'Connector', icon: ConnectorIcon }] : [])
+    // Admin-only sections: user management and XML/API lead-routing config
+    ...(isAdmin ? [
+      { id: 'users', label: 'Users', icon: UserIcon },
+      { id: 'connector', label: 'Connector', icon: ConnectorIcon }
+    ] : [])
   ];
 
   return (
@@ -338,6 +342,16 @@ const SettingsPage = () => {
                 <div className="empty-state-title">Notifications</div>
                 <div className="empty-state-subtitle">Notification settings coming soon</div>
               </div>
+            </div>
+          )}
+
+          {/* User Management Section (admin only) */}
+          {activeSection === 'users' && isAdmin && (
+            <div>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#ffffff', marginBottom: '20px' }}>
+                User Management
+              </h3>
+              <UserManagement />
             </div>
           )}
 
