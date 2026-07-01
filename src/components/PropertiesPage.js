@@ -16,6 +16,8 @@ import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { isAdminUser } from '../utils/helpers';
+import { canUserManageProperty, getEditableFields } from '../utils/permissions';
+import useUserDoc from '../utils/useUserDoc';
 import { CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
 import useDebounce from '../utils/useDebounce';
 
@@ -25,6 +27,11 @@ const PROPERTIES_PAGE_SIZE = 40;
 
 const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   const toast = useToast();
+  const { userDoc } = useUserDoc();
+  // While the user doc is loading, keep current behavior (buttons visible);
+  // Firestore rules are the enforcement layer.
+  const canAddProperty = !userDoc || getEditableFields(userDoc, 'property').length > 0;
+  const canManageProperty = (property) => !userDoc || canUserManageProperty(userDoc, property);
   const [properties, setProperties] = useState([]);
   const [sellers, setSellers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -490,9 +497,11 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
             Showing {filteredAndSortedProperties.length} of {properties.length} properties
           </p>
         </div>
-        <button onClick={() => openModal()} className="btn-primary">
-          + Add Property
-        </button>
+        {canAddProperty && (
+          <button onClick={() => openModal()} className="btn-primary">
+            + Add Property
+          </button>
+        )}
       </div>
 
       {/* Search Bar */}
@@ -827,20 +836,22 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                 )}
 
                 {/* Action Buttons */}
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); openModal(property); }}
-                    className="btn-secondary btn-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); requestDelete(property); }}
-                    className="btn-danger btn-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
+                {canManageProperty(property) && (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); openModal(property); }}
+                      className="btn-secondary btn-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); requestDelete(property); }}
+                      className="btn-danger btn-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

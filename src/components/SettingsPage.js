@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { updateProfile, updateEmail, updatePassword } from 'firebase/auth';
 import { useToast } from './Toast';
+import useUserDoc from '../utils/useUserDoc';
 
 // Icons
 const UserIcon = ({ size = 24 }) => (
@@ -50,6 +51,8 @@ const ConnectorIcon = ({ size = 24 }) => (
 
 const SettingsPage = () => {
   const toast = useToast();
+  const { userDoc } = useUserDoc();
+  const isAdmin = userDoc?.role === 'admin';
   const [activeSection, setActiveSection] = useState('profile');
   const [profileData, setProfileData] = useState({
     displayName: '',
@@ -155,7 +158,8 @@ const SettingsPage = () => {
     { id: 'security', label: 'Security', icon: LockIcon },
     { id: 'company', label: 'Company', icon: BuildingIcon },
     { id: 'notifications', label: 'Notifications', icon: BellIcon },
-    { id: 'connector', label: 'Connector', icon: ConnectorIcon }
+    // Connector holds XML/API lead-routing config — admin only
+    ...(isAdmin ? [{ id: 'connector', label: 'Connector', icon: ConnectorIcon }] : [])
   ];
 
   return (

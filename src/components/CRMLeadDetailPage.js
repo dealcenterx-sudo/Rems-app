@@ -14,11 +14,14 @@ import {
   getStoredSampleLead,
   persistStoredSampleLead,
 } from '../utils/helpers';
+import { canUserAccess, getEditableFields } from '../utils/permissions';
+import useUserDoc from '../utils/useUserDoc';
 
 const LeadPdfViewer = React.lazy(() => import('./LeadPdfViewer'));
 
 const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const toast = useToast();
+  const { userDoc } = useUserDoc();
   const workspaceTabsWrapRef = useRef(null);
   const leadFileInputRef = useRef(null);
   const [lead, setLead] = useState(null);
@@ -459,8 +462,17 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     }
   };
 
+  // Sample lead persists locally and stays editable. While the user doc is
+  // loading, keep current behavior; Firestore rules enforce.
+  const canEditLead = isSampleLead || !userDoc ||
+    (canUserAccess(userDoc, lead || {}) && getEditableFields(userDoc, 'lead').length > 0);
+
   const handleSaveLeadDetails = async ({ showToast = true, closeAfterSave = false } = {}) => {
     if (!lead) return false;
+    if (!canEditLead) {
+      toast.error('You do not have permission to edit this lead');
+      return false;
+    }
 
     setSaving(true);
     try {
@@ -1805,7 +1817,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
             type="button"
             className="lead-action-btn"
             onClick={handleSaveAndClose}
-            disabled={saving}
+            disabled={saving || !canEditLead}
           >
             Save & Close
           </button>
@@ -1958,7 +1970,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 type="button"
                 className="lead-action-btn lead-action-btn-primary"
                 onClick={() => handleSaveLeadDetails()}
-                disabled={saving}
+                disabled={saving || !canEditLead}
                 style={{ width: '100%', marginTop: '4px' }}
               >
                 {saving ? 'Saving...' : 'Save Notes'}

@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import './App.css';
-import { db } from './firebase';
+import { db, ensureUserExists } from './firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -49,13 +49,19 @@ function App() {
 
       if (currentUser) {
         try {
-          const userQuery = await getDocs(
-            query(collection(db, 'users'), where('userId', '==', currentUser.uid))
-          );
+          const ensuredUser = await ensureUserExists(currentUser);
 
-          if (!userQuery.empty) {
-            const userData = userQuery.docs[0].data();
-            setCompanyId(userData.companyId);
+          if (ensuredUser?.companyId) {
+            setCompanyId(ensuredUser.companyId);
+          } else {
+            const userQuery = await getDocs(
+              query(collection(db, 'users'), where('userId', '==', currentUser.uid))
+            );
+
+            if (!userQuery.empty) {
+              const userData = userQuery.docs[0].data();
+              setCompanyId(userData.companyId);
+            }
           }
         } catch (error) {
           console.error('Error loading user data:', error);

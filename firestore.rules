@@ -1,0 +1,127 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Admin check: role on the user doc, with the admin email as fallback
+    // so the admin is never locked out before their doc has role: 'admin'.
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'dealcenterx@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    // Record ownership via the userId field used across all collections.
+    function ownsResource() {
+      return isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    function createsAsSelf() {
+      return isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Prevent reassigning a record to another user on update.
+    function keepsOwner() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    // ---------- users ----------
+    // Docs are keyed by auth UID (see ensureUserExists in src/firebase.js).
+    match /users/{userId} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+
+      // Users may create their own doc but never grant themselves admin.
+      allow create: if isAdmin() || (
+        isSignedIn() &&
+        request.auth.uid == userId &&
+        request.resource.data.role != 'admin'
+      );
+
+      // Users may update their own doc but cannot change role or
+      // assignedProperties — only the admin manages those.
+      allow update: if isAdmin() || (
+        isSignedIn() &&
+        request.auth.uid == userId &&
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.assignedProperties == resource.data.assignedProperties
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // ---------- userId-scoped business collections ----------
+
+    match /contacts/{docId} {
+      allow read, delete: if isAdmin() || ownsResource();
+      allow create: if isAdmin() || createsAsSelf();
+      allow update: if isAdmin() || (ownsResource() && keepsOwner());
+    }
+
+    match /leads/{docId} {
+      allow read, delete: if isAdmin() || ownsResource();
+      allow create: if isAdmin() || createsAsSelf();
+      allow update: if isAdmin() || (ownsResource() && keepsOwner());
+    }
+
+    match /deals/{docId} {
+      allow read, delete: if isAdmin() || ownsResource();
+      allow create: if isAdmin() || createsAsSelf();
+      allow update: if isAdmin() || (ownsResource() && keepsOwner());
+    }
+
+    match /properties/{docId} {
+      // Assigned agents may read and update (but not delete) properties
+      // assigned to them via users/{uid}.assignedProperties.
+      function isAssignedToProperty() {
+        return isSignedIn() &&
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          docId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.assignedProperties;
+      }
+
+      allow read: if isAdmin() || ownsResource() || isAssignedToProperty();
+      allow create: if isAdmin() || createsAsSelf();
+      allow update: if isAdmin() ||
+        (ownsResource() && keepsOwner()) ||
+        (isAssignedToProperty() && keepsOwner());
+      allow delete: if isAdmin() || ownsResource();
+    }
+
+    match /documents/{docId} {
+      allow read, delete: if isAdmin() || ownsResource();
+      allow create: if isAdmin() || createsAsSelf();
+      allow update: if isAdmin() || (ownsResource() && keepsOwner());
+    }
+
+    match /tasks/{docId} {
+      // Tasks are visible to owner and assignee.
+      allow read: if isAdmin() || ownsResource() ||
+        (isSignedIn() && resource.data.assignedTo == request.auth.uid);
+      allow create: if isAdmin() || createsAsSelf();
+      allow update: if isAdmin() || (ownsResource() && keepsOwner()) ||
+        (isSignedIn() && resource.data.assignedTo == request.auth.uid && keepsOwner());
+      allow delete: if isAdmin() || ownsResource();
+    }
+
+    // ---------- companies ----------
+    match /companies/{companyId} {
+      allow read: if isAdmin() ||
+        (isSignedIn() && request.auth.uid in resource.data.userIds);
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() ||
+        (isSignedIn() && resource.data.ownerId == request.auth.uid);
+    }
+
+    // ---------- everything else ----------
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
