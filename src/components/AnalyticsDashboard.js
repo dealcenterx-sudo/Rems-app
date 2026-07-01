@@ -44,13 +44,16 @@ const AnalyticsDashboard = () => {
 
   const loadCollectionInRange = useCallback(async (collectionName, userFilter) => {
     const { start, end } = getDateRangeBounds();
-    const getArgs = (includeDateBounds = true) => {
+    const getArgs = (includeDateBounds = true, includeOrderBy = true) => {
       const args = [collection(db, collectionName), ...userFilter];
       if (includeDateBounds && start) args.push(where('createdAt', '>=', start.toISOString()));
       if (includeDateBounds && end) args.push(where('createdAt', '<=', end.toISOString()));
-      args.push(orderBy('createdAt', 'desc'));
+      if (includeOrderBy) args.push(orderBy('createdAt', 'desc'));
       return args;
     };
+
+    const sortByCreatedAtDesc = (items) =>
+      items.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
     try {
       const snapshot = await getDocs(query(...getArgs(true)));
@@ -58,8 +61,9 @@ const AnalyticsDashboard = () => {
     } catch (error) {
       if ((error?.code === 'failed-precondition') || /index/i.test(String(error?.message || ''))) {
         setQueryError(`Fallback mode active for ${collectionName}: using in-memory date filtering.`);
-        const snapshot = await getDocs(query(...getArgs(false)));
-        return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+        // Equality-only query needs no composite index; filter and sort locally.
+        const snapshot = await getDocs(query(...getArgs(false, false)));
+        return sortByCreatedAtDesc(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })))
           .filter((item) => {
             if (!start && !end) return true;
             const itemDate = item.createdAt ? new Date(item.createdAt) : null;

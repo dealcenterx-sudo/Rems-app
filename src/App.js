@@ -51,8 +51,8 @@ function App() {
         try {
           const ensuredUser = await ensureUserExists(currentUser);
 
-          if (ensuredUser?.companyId) {
-            setCompanyId(ensuredUser.companyId);
+          if (ensuredUser) {
+            setCompanyId(ensuredUser.companyId || null);
           } else {
             const userQuery = await getDocs(
               query(collection(db, 'users'), where('userId', '==', currentUser.uid))
