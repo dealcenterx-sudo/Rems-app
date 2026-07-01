@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
-import { auth, googleProvider } from '../firebase';
+import { auth, googleProvider, setPendingSignupRole } from '../firebase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup
 } from 'firebase/auth';
 
+const SIGNUP_ROLES = [
+  { value: 'agent', label: 'Agent / Operator', description: 'Manage leads, deals, and properties' },
+  { value: 'buyer', label: 'Buyer', description: 'Browse and purchase properties' },
+  { value: 'seller', label: 'Seller', description: 'List a property for sale' }
+];
+
 const LoginPage = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignup, setIsSignup] = useState(false);
+  const [signupRole, setSignupRole] = useState('agent');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -19,6 +26,7 @@ const LoginPage = ({ onLoginSuccess }) => {
     setError('');
     try {
       if (isSignup) {
+        setPendingSignupRole(signupRole);
         await createUserWithEmailAndPassword(auth, email, password);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
@@ -35,6 +43,9 @@ const LoginPage = ({ onLoginSuccess }) => {
     setLoading(true);
     setError('');
     try {
+      if (isSignup) {
+        setPendingSignupRole(signupRole);
+      }
       await signInWithPopup(auth, googleProvider);
       onLoginSuccess();
     } catch (err) {
@@ -62,6 +73,50 @@ const LoginPage = ({ onLoginSuccess }) => {
           </div>
         )}
         <form onSubmit={handleEmailAuth}>
+          {isSignup && (
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: '#888888', marginBottom: '8px' }}>
+                I am signing up as a...
+              </label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {SIGNUP_ROLES.map((role) => {
+                  const isSelected = signupRole === role.value;
+                  return (
+                    <div
+                      key={role.value}
+                      onClick={() => setSignupRole(role.value)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '10px 12px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        background: isSelected ? '#00ff8810' : '#0f0f0f',
+                        border: isSelected ? '1px solid #00ff88' : '1px solid #1a1a1a',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{
+                        width: '14px',
+                        height: '14px',
+                        borderRadius: '50%',
+                        flexShrink: 0,
+                        border: isSelected ? '4px solid #00ff88' : '2px solid #444444',
+                        background: isSelected ? '#000000' : 'transparent'
+                      }} />
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: isSelected ? '#ffffff' : '#cccccc' }}>
+                          {role.label}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#666666' }}>{role.description}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div className="form-field" style={{ marginBottom: '15px' }}>
             <label>Email</label>
             <input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
