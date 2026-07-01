@@ -587,9 +587,11 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
             <label style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Beds</label>
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {bedsOptions.map((bed) => (
-                <div
+                <button
                   key={bed}
+                  type="button"
                   onClick={() => setBedsFilter(bed)}
+                  aria-pressed={bedsFilter === bed}
                   style={{
                     padding: '8px 14px',
                     background: bedsFilter === bed ? '#0088ff' : '#0f0f0f',
@@ -598,13 +600,14 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                     cursor: 'pointer',
                     fontSize: '12px',
                     fontWeight: '600',
+                    fontFamily: 'inherit',
                     color: bedsFilter === bed ? '#ffffff' : '#888888',
                     transition: 'all 0.2s',
                     textTransform: 'capitalize'
                   }}
                 >
                   {bed}
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -614,9 +617,11 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
             <label style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Baths</label>
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {bathsOptions.map((bath) => (
-                <div
+                <button
                   key={bath}
+                  type="button"
                   onClick={() => setBathsFilter(bath)}
+                  aria-pressed={bathsFilter === bath}
                   style={{
                     padding: '8px 14px',
                     background: bathsFilter === bath ? '#0088ff' : '#0f0f0f',
@@ -625,13 +630,14 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                     cursor: 'pointer',
                     fontSize: '12px',
                     fontWeight: '600',
+                    fontFamily: 'inherit',
                     color: bathsFilter === bath ? '#ffffff' : '#888888',
                     transition: 'all 0.2s',
                     textTransform: 'capitalize'
                   }}
                 >
                   {bath}
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -691,19 +697,38 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
       {/* Properties Grid */}
       {filteredAndSortedProperties.length === 0 ? (
-        <div className="empty-state-card">
-          <div className="empty-state-icon">🏠</div>
-          <div className="empty-state-title">No properties match your filters</div>
-          <div className="empty-state-subtitle">Try adjusting your search criteria</div>
-          {getActiveFiltersCount() > 0 && (
-            <button
-              onClick={clearAllFilters}
-              className="btn-primary"
-            >
-              Clear Filters
-            </button>
-          )}
-        </div>
+        properties.length === 0 && getActiveFiltersCount() === 0 && !searchTerm ? (
+          <div className="empty-state-card">
+            <div className="empty-state-icon">🏠</div>
+            <div className="empty-state-title">No properties yet</div>
+            <div className="empty-state-subtitle" style={{ marginBottom: canAddProperty ? '20px' : 0 }}>
+              {canAddProperty
+                ? 'Add your first property to start building your inventory'
+                : 'Properties assigned to you will appear here'}
+            </div>
+            {canAddProperty && (
+              <button onClick={() => openModal()} className="btn-primary">
+                + Add Property
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="empty-state-card">
+            <div className="empty-state-icon">🏠</div>
+            <div className="empty-state-title">No properties match your filters</div>
+            <div className="empty-state-subtitle" style={{ marginBottom: '20px' }}>
+              Try adjusting your search criteria
+            </div>
+            {getActiveFiltersCount() > 0 && (
+              <button
+                onClick={clearAllFilters}
+                className="btn-primary"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        )
       ) : (
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
           {filteredAndSortedProperties.map((property) => (
@@ -723,9 +748,18 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
               }}
             >
               {/* Property Image */}
-              <div 
+              <div
                 onClick={() => property.images && property.images.length > 0 && openGallery(property, 0)}
-                style={{ 
+                onKeyDown={(e) => {
+                  if ((e.key === 'Enter' || e.key === ' ') && property.images?.length > 0) {
+                    e.preventDefault();
+                    openGallery(property, 0);
+                  }
+                }}
+                role={property.images?.length > 0 ? 'button' : undefined}
+                tabIndex={property.images?.length > 0 ? 0 : undefined}
+                aria-label={property.images?.length > 0 ? `View ${property.images.length} photos of ${property.address}` : undefined}
+                style={{
                   width: '100%', 
                   height: '200px', 
                   background: property.featuredImage 
@@ -750,7 +784,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
-                  {property.status.replace('-', ' ')}
+                  {(property.status || 'available').replace('-', ' ')}
                 </div>
 
                 {/* Image Count Badge */}
@@ -790,7 +824,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
               <div style={{ padding: '20px' }}>
                 {/* Price */}
                 <div style={{ fontSize: '24px', fontWeight: '700', color: '#00ff88', marginBottom: '10px' }}>
-                  ${property.price?.toLocaleString()}
+                  {property.price ? `$${property.price.toLocaleString()}` : 'Price TBD'}
                 </div>
 
                 {/* Address */}
@@ -811,15 +845,15 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                   borderTop: '1px solid #1a1a1a'
                 }}>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>{property.beds}</div>
+                    <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>{property.beds ?? '—'}</div>
                     <div style={{ fontSize: '11px', color: '#888888', textTransform: 'uppercase' }}>Beds</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>{property.baths}</div>
+                    <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>{property.baths ?? '—'}</div>
                     <div style={{ fontSize: '11px', color: '#888888', textTransform: 'uppercase' }}>Baths</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>{property.sqft?.toLocaleString()}</div>
+                    <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>{property.sqft ? property.sqft.toLocaleString() : '—'}</div>
                     <div style={{ fontSize: '11px', color: '#888888', textTransform: 'uppercase' }}>Sqft</div>
                   </div>
                 </div>
@@ -846,7 +880,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); requestDelete(property); }}
-                      className="btn-danger btn-sm"
+                      className="btn-danger-quiet btn-sm"
                     >
                       Delete
                     </button>
