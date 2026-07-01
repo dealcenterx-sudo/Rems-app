@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { isAdminUser } from '../utils/helpers';
@@ -9,62 +9,94 @@ const AnalyticsDashboard = () => {
   const toast = useToast();
   const [deals, setDeals] = useState([]);
   const [properties, setProperties] = useState([]);
-  const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('30'); // 7, 30, 90, custom
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
+  const [queryError, setQueryError] = useState('');
 
-  useEffect(() => {
-    loadAllData();
-  }, []);
+  const getDateRangeBounds = useCallback(() => {
+    const now = new Date();
+    let start = new Date(now);
+    let end;
 
-  const loadAllData = async () => {
+    const parseDate = (value, isEnd = false) => {
+      if (!value) return null;
+      const parsed = new Date(`${value}T${isEnd ? '23:59:59.999' : '00:00:00'}`);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    };
+
+    if (dateRange === 'custom') {
+      start = parseDate(customStartDate);
+      end = parseDate(customEndDate, true);
+      if (start || end) {
+        return { start, end };
+      }
+      return { start: null, end: null };
+    }
+
+    const daysAgo = parseInt(dateRange, 10);
+    if (Number.isNaN(daysAgo)) return { start: null, end: null };
+
+    start.setDate(start.getDate() - daysAgo);
+    return { start, end: null };
+  }, [dateRange, customStartDate, customEndDate]);
+
+  const loadCollectionInRange = useCallback(async (collectionName, userFilter) => {
+    const { start, end } = getDateRangeBounds();
+    const getArgs = (includeDateBounds = true) => {
+      const args = [collection(db, collectionName), ...userFilter];
+      if (includeDateBounds && start) args.push(where('createdAt', '>=', start.toISOString()));
+      if (includeDateBounds && end) args.push(where('createdAt', '<=', end.toISOString()));
+      args.push(orderBy('createdAt', 'desc'));
+      return args;
+    };
+
     try {
+      const snapshot = await getDocs(query(...getArgs(true)));
+      return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+    } catch (error) {
+      if ((error?.code === 'failed-precondition') || /index/i.test(String(error?.message || ''))) {
+        setQueryError(`Fallback mode active for ${collectionName}: using in-memory date filtering.`);
+        const snapshot = await getDocs(query(...getArgs(false)));
+        return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+          .filter((item) => {
+            if (!start && !end) return true;
+            const itemDate = item.createdAt ? new Date(item.createdAt) : null;
+            if (!itemDate || Number.isNaN(itemDate.getTime())) return false;
+            if (start && itemDate < start) return false;
+            if (end && itemDate > end) return false;
+            return true;
+          });
+      }
+      throw error;
+    }
+  }, [getDateRangeBounds]);
+
+  const loadAllData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setQueryError('');
       const isAdmin = isAdminUser();
-      
-      // Load deals
-      const dealsQuery = isAdmin
-        ? query(collection(db, 'deals'), orderBy('createdAt', 'desc'))
-        : query(collection(db, 'deals'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
-      
-      const dealsSnapshot = await getDocs(dealsQuery);
-      const dealsData = [];
-      dealsSnapshot.forEach((doc) => {
-        dealsData.push({ id: doc.id, ...doc.data() });
-      });
+      const userFilter = isAdmin ? [] : [where('userId', '==', auth.currentUser?.uid)];
+      const [dealsData, propertiesData] = await Promise.all([
+        loadCollectionInRange('deals', userFilter),
+        loadCollectionInRange('properties', userFilter)
+      ]);
 
-      // Load properties
-      const propertiesQuery = isAdmin
-        ? query(collection(db, 'properties'), orderBy('createdAt', 'desc'))
-        : query(collection(db, 'properties'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
-      
-      const propertiesSnapshot = await getDocs(propertiesQuery);
-      const propertiesData = [];
-      propertiesSnapshot.forEach((doc) => {
-        propertiesData.push({ id: doc.id, ...doc.data() });
-      });
-
-      // Load contacts
-      const contactsQuery = isAdmin
-        ? query(collection(db, 'contacts'), orderBy('createdAt', 'desc'))
-        : query(collection(db, 'contacts'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
-      
-      const contactsSnapshot = await getDocs(contactsQuery);
-      const contactsData = [];
-      contactsSnapshot.forEach((doc) => {
-        contactsData.push({ id: doc.id, ...doc.data() });
-      });
-      
       setDeals(dealsData);
       setProperties(propertiesData);
-      setContacts(contactsData);
       setLoading(false);
     } catch (error) {
       console.error('Error loading data:', error);
+      toast.error('Failed to load analytics data. Please retry.');
       setLoading(false);
     }
-  };
+  }, [loadCollectionInRange, toast]);
+
+  useEffect(() => {
+    loadAllData();
+  }, [loadAllData]);
 
   const getDateRangeStart = () => {
     const now = new Date();
@@ -98,74 +130,111 @@ const AnalyticsDashboard = () => {
     const filteredDeals = filterByDateRange(deals);
     const filteredProperties = filterByDateRange(properties);
 
-    const soldProperties = filteredProperties.filter(p => p.status === 'sold');
-    const totalRevenue = soldProperties.reduce((sum, p) => sum + (p.price || 0), 0);
-    const avgDealSize = soldProperties.length > 0 ? totalRevenue / soldProperties.length : 0;
+    const soldProperties = [];
+    const dealStatusByType = { new: 0, active: 0, pending: 0, closed: 0 };
+    const propertyStatusByType = { available: 0, 'under-contract': 0, sold: 0 };
+    const buyerTotals = Object.create(null);
+    const propertyTypeTotals = Object.create(null);
+    const monthDealTotals = Object.create(null);
+    const monthPropertyTotals = Object.create(null);
+    const monthRevenueTotals = Object.create(null);
+    let totalRevenue = 0;
+    let closedDeals = 0;
+    let totalDaysToClose = 0;
+    let closedWithDateCount = 0;
 
-    const closedDeals = filteredDeals.filter(d => d.status === 'closed').length;
-    const conversionRate = filteredDeals.length > 0
-      ? ((closedDeals / filteredDeals.length) * 100).toFixed(1)
-      : 0;
+    filteredDeals.forEach((deal) => {
+      const status = deal.status || 'unknown';
+      if (dealStatusByType[status] !== undefined) {
+        dealStatusByType[status] += 1;
+      }
+      if (status === 'closed') {
+        closedDeals += 1;
+        const createdAt = deal.createdAt ? new Date(deal.createdAt) : null;
+        const updatedAt = deal.updatedAt ? new Date(deal.updatedAt) : null;
+        if (createdAt && updatedAt && !Number.isNaN(createdAt.getTime()) && !Number.isNaN(updatedAt.getTime()) && updatedAt >= createdAt) {
+          totalDaysToClose += Math.floor((updatedAt - createdAt) / (1000 * 60 * 60 * 24));
+          closedWithDateCount += 1;
+        }
+      }
 
-    const closedDealsWithDates = filteredDeals.filter(d => d.status === 'closed' && d.createdAt && d.updatedAt);
-    const avgDaysToClose = closedDealsWithDates.length > 0
-      ? closedDealsWithDates.reduce((sum, d) => {
-          const days = Math.floor((new Date(d.updatedAt) - new Date(d.createdAt)) / (1000 * 60 * 60 * 24));
-          return sum + days;
-        }, 0) / closedDealsWithDates.length
-      : 0;
+      if (deal.createdAt) {
+        const created = new Date(deal.createdAt);
+        if (!Number.isNaN(created.getTime())) {
+          const monthKey = `${created.getFullYear()}-${String(created.getMonth()).padStart(2, '0')}`;
+          monthDealTotals[monthKey] = (monthDealTotals[monthKey] || 0) + 1;
+        }
+      }
+
+      const buyer = deal.buyerName || 'Unknown';
+      buyerTotals[buyer] = (buyerTotals[buyer] || 0) + 1;
+    });
+
+    filteredProperties.forEach((property) => {
+      if (property.status === 'sold') {
+        soldProperties.push(property);
+        totalRevenue += (property.price || 0);
+      }
+      const status = property.status || 'unknown';
+      if (propertyStatusByType[status] !== undefined) {
+        propertyStatusByType[status] += 1;
+      }
+
+      if (property.createdAt) {
+        const created = new Date(property.createdAt);
+        if (!Number.isNaN(created.getTime())) {
+          const monthKey = `${created.getFullYear()}-${String(created.getMonth()).padStart(2, '0')}`;
+          monthPropertyTotals[monthKey] = (monthPropertyTotals[monthKey] || 0) + 1;
+          if (property.status === 'sold') {
+            monthRevenueTotals[monthKey] = (monthRevenueTotals[monthKey] || 0) + (property.price || 0);
+          }
+        }
+      }
+
+      const type = property.propertyType || 'unknown';
+      if (!propertyTypeTotals[type]) {
+        propertyTypeTotals[type] = { total: 0, count: 0 };
+      }
+      propertyTypeTotals[type].total += (property.price || 0);
+      propertyTypeTotals[type].count += 1;
+    });
+
+    const avgDealSize = soldProperties.length > 0 ? (totalRevenue / soldProperties.length) : 0;
+    const conversionRate = filteredDeals.length > 0 ? ((closedDeals / filteredDeals.length) * 100).toFixed(1) : 0;
+    const avgDaysToClose = closedWithDateCount > 0 ? (totalDaysToClose / closedWithDateCount) : 0;
 
     const dealStatusData = [
-      { name: 'New', value: filteredDeals.filter(d => d.status === 'new').length, color: '#ffaa00' },
-      { name: 'Active', value: filteredDeals.filter(d => d.status === 'active').length, color: '#00ff88' },
-      { name: 'Pending', value: filteredDeals.filter(d => d.status === 'pending').length, color: '#0088ff' },
-      { name: 'Closed', value: closedDeals, color: '#aa00ff' }
-    ].filter(item => item.value > 0);
+      { name: 'New', value: dealStatusByType.new, color: '#ffaa00' },
+      { name: 'Active', value: dealStatusByType.active, color: '#00ff88' },
+      { name: 'Pending', value: dealStatusByType.pending, color: '#0088ff' },
+      { name: 'Closed', value: dealStatusByType.closed, color: '#aa00ff' }
+    ].filter((item) => item.value > 0);
 
     const propertyStatusData = [
-      { name: 'Available', value: filteredProperties.filter(p => p.status === 'available').length, color: '#00ff88' },
-      { name: 'Under Contract', value: filteredProperties.filter(p => p.status === 'under-contract').length, color: '#ffaa00' },
-      { name: 'Sold', value: soldProperties.length, color: '#ff3333' }
-    ].filter(item => item.value > 0);
+      { name: 'Available', value: propertyStatusByType.available, color: '#00ff88' },
+      { name: 'Under Contract', value: propertyStatusByType['under-contract'], color: '#ffaa00' },
+      { name: 'Sold', value: propertyStatusByType.sold, color: '#ff3333' }
+    ].filter((item) => item.value > 0);
 
     const now = new Date();
     const monthlyTrendData = Array.from({ length: 6 }, (_, i) => {
       const date = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
       const monthName = date.toLocaleDateString('en-US', { month: 'short' });
-      const monthDeals = deals.filter(d => {
-        if (!d.createdAt) return false;
-        const dd = new Date(d.createdAt);
-        return dd.getMonth() === date.getMonth() && dd.getFullYear() === date.getFullYear();
-      });
-      const monthProperties = properties.filter(p => {
-        if (!p.createdAt) return false;
-        const pd = new Date(p.createdAt);
-        return pd.getMonth() === date.getMonth() && pd.getFullYear() === date.getFullYear();
-      });
+      const key = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}`;
       return {
         month: monthName,
-        deals: monthDeals.length,
-        properties: monthProperties.length,
-        revenue: monthProperties.filter(p => p.status === 'sold').reduce((s, p) => s + (p.price || 0), 0) / 1000
+        deals: monthDealTotals[key] || 0,
+        properties: monthPropertyTotals[key] || 0,
+        revenue: (monthRevenueTotals[key] || 0) / 1000
       };
     });
 
     const topBuyersData = Object.entries(
-      filteredDeals.reduce((acc, deal) => {
-        const buyer = deal.buyerName || 'Unknown';
-        acc[buyer] = (acc[buyer] || 0) + 1;
-        return acc;
-      }, {})
+      buyerTotals
     ).map(([name, count]) => ({ name, deals: count })).sort((a, b) => b.deals - a.deals).slice(0, 5);
 
     const avgPriceData = Object.entries(
-      properties.reduce((acc, prop) => {
-        const type = prop.propertyType || 'unknown';
-        if (!acc[type]) acc[type] = { total: 0, count: 0 };
-        acc[type].total += prop.price || 0;
-        acc[type].count += 1;
-        return acc;
-      }, {})
+      propertyTypeTotals
     ).map(([type, data]) => ({
       type: type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
       avgPrice: Math.round(data.total / data.count / 1000)
@@ -177,7 +246,7 @@ const AnalyticsDashboard = () => {
       dealStatusData, propertyStatusData, monthlyTrendData, topBuyersData, avgPriceData
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deals, properties, contacts, dateRange, customStartDate, customEndDate]);
+  }, [deals, properties, dateRange, customStartDate, customEndDate]);
 
   const {
     filteredDeals, filteredProperties,
@@ -212,6 +281,11 @@ const AnalyticsDashboard = () => {
         <label style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
           Date Range
         </label>
+        {queryError && (
+          <div style={{ color: '#ffaa00', fontSize: '12px', marginBottom: '12px' }}>
+            {queryError}
+          </div>
+        )}
         <div className="filters-row">
           {['7', '30', '90', 'custom'].map((range) => (
             <div

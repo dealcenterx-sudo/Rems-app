@@ -1,8 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { db, auth } from '../firebase';
 import { collection, getDocs, query, where, orderBy, getCountFromServer, limit } from 'firebase/firestore';
 import { UserPlus, FileText, ShoppingCart, Key } from './Icons';
 import { normalizeAddressValue, normalizePropertyTypeBucket, isAdminUser } from '../utils/helpers';
+
+const HOME_KPI_CACHE_TTL_MS = 30_000;
+const HOME_KPI_CACHE_KEY = 'rems-home-dashboard-cache-v1';
+
+const getHomeScope = (isAdmin, uid) => (isAdmin ? 'admin' : uid || 'anonymous');
+
+const readHomeKpiCache = (scope) => {
+  try {
+    const raw = localStorage.getItem(`${HOME_KPI_CACHE_KEY}:${scope}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || Date.now() - parsed.savedAt > HOME_KPI_CACHE_TTL_MS) return null;
+    return parsed.payload;
+  } catch {
+    return null;
+  }
+};
+
+const writeHomeKpiCache = (scope, payload) => {
+  try {
+    localStorage.setItem(
+      `${HOME_KPI_CACHE_KEY}:${scope}`,
+      JSON.stringify({ savedAt: Date.now(), payload })
+    );
+  } catch {
+    // storage full or unavailable — cache is best-effort
+  }
+};
 
 const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProperties }) => {
   const [stats, setStats] = useState({
@@ -26,161 +54,179 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load dashboard KPIs from index-friendly counters + selective lookups.
-  React.useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        const isAdmin = isAdminUser();
-        const uid = auth.currentUser?.uid;
-        const userFilter = isAdmin ? [] : [where('userId', '==', uid)];
-
-        const contactBase = [collection(db, 'contacts'), ...userFilter];
-        const dealBase = [collection(db, 'deals'), ...userFilter];
-        const propertyBase = [collection(db, 'properties'), ...userFilter];
-        const taskBase = [collection(db, 'tasks'), ...userFilter];
-
-        const [
-          totalContactsSnap,
-          totalBuyersSnap,
-          activeBuyersSnap,
-          flippersSnap,
-          buildersSnap,
-          holdersSnap,
-          totalSellersSnap,
-          inactiveSellersSnap,
-          totalDealsSnap,
-          closedDealsSnap,
-          totalTasksSnap
-        ] = await Promise.all([
-          getCountFromServer(query(...contactBase)),
-          getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'))),
-          getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'), where('activelyBuying', '==', true))),
-          getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'), where('buyerType', '==', 'flipper'))),
-          getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'), where('buyerType', '==', 'builder'))),
-          getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'), where('buyerType', '==', 'holder'))),
-          getCountFromServer(query(...contactBase, where('contactType', '==', 'seller'))),
-          getCountFromServer(query(...contactBase, where('contactType', '==', 'seller'), where('activelySelling', '==', false))),
-          getCountFromServer(query(...dealBase)),
-          getCountFromServer(query(...dealBase, where('status', '==', 'closed'))),
-          getCountFromServer(query(...taskBase))
-        ]);
-
-        const totalContacts = totalContactsSnap.data().count;
-        const totalBuyers = totalBuyersSnap.data().count;
-        const activeBuyers = activeBuyersSnap.data().count;
-        const flippers = flippersSnap.data().count;
-        const builders = buildersSnap.data().count;
-        const holders = holdersSnap.data().count;
-        const totalSellers = totalSellersSnap.data().count;
-        const inactiveSellers = inactiveSellersSnap.data().count;
-        const activeSellers = totalSellers - inactiveSellers;
-        const totalDeals = totalDealsSnap.data().count;
-        const closedDeals = closedDealsSnap.data().count;
-        const activeDeals = Math.max(totalDeals - closedDeals, 0);
-        const totalTasks = totalTasksSnap.data().count;
-
-        // Load seller records for seller KPI grouping (limited to seller documents)
-        const sellersSnapshot = await getDocs(
-          query(...contactBase, where('contactType', '==', 'seller'))
-        );
-        const sellers = [];
-        sellersSnapshot.forEach((doc) => {
-          sellers.push({ id: doc.id, ...doc.data() });
-        });
-
-        // Load properties only with fields needed for seller property-type mapping
-        const propertiesSnapshot = await getDocs(
-          query(...propertyBase)
-        );
-        const propertiesData = [];
-        propertiesSnapshot.forEach((doc) => {
-          propertiesData.push({ id: doc.id, ...doc.data() });
-        });
-
-        // Load deals with fields needed for fallback property type matching
-        const dealsSnapshot = await getDocs(
-          query(...dealBase)
-        );
-        const dealsData = [];
-        dealsSnapshot.forEach((doc) => {
-          dealsData.push({ id: doc.id, ...doc.data() });
-        });
-
-        // Load tasks preview only (not full list)
-        const tasksSnapshot = await getDocs(
-          query(...taskBase, orderBy('dueDate', 'asc'), limit(4))
-        );
-        const tasksData = [];
-        tasksSnapshot.forEach((doc) => {
-          tasksData.push({ id: doc.id, ...doc.data() });
-        });
-
-        const addressToProperty = new Map();
-        propertiesData.forEach((property) => {
-          const fullAddress = `${property.address || ''}, ${property.city || ''}, ${property.state || ''} ${property.zipCode || ''}`;
-          const normalizedFullAddress = normalizeAddressValue(fullAddress);
-          const normalizedStreetAddress = normalizeAddressValue(property.address || '');
-
-          if (normalizedFullAddress && !addressToProperty.has(normalizedFullAddress)) {
-            addressToProperty.set(normalizedFullAddress, property);
-          }
-          if (normalizedStreetAddress && !addressToProperty.has(normalizedStreetAddress)) {
-            addressToProperty.set(normalizedStreetAddress, property);
-          }
-        });
-
-        const sellerTypeBuckets = new Map();
-        const addSellerBucket = (sellerId, propertyType) => {
-          const bucket = normalizePropertyTypeBucket(propertyType);
-          if (!sellerId || !bucket) return;
-          const current = sellerTypeBuckets.get(sellerId) || new Set();
-          current.add(bucket);
-          sellerTypeBuckets.set(sellerId, current);
-        };
-
-        propertiesData.forEach((property) => {
-          addSellerBucket(property.sellerId, property.propertyType);
-        });
-
-        dealsData.forEach((deal) => {
-          const normalizedDealAddress = normalizeAddressValue(deal.propertyAddress || '');
-          const matchedProperty = addressToProperty.get(normalizedDealAddress);
-          addSellerBucket(deal.sellerId, matchedProperty?.propertyType || deal.propertyType);
-        });
-
-        const singleFamilySellers = sellers.filter((seller) => sellerTypeBuckets.get(seller.id)?.has('single-family'));
-        const multiFamilySellers = sellers.filter((seller) => sellerTypeBuckets.get(seller.id)?.has('multi-family'));
-        const commercialSellers = sellers.filter((seller) => sellerTypeBuckets.get(seller.id)?.has('commercial'));
-
-        setStats({
-          totalContacts,
-          totalSellers,
-          activeSellers,
-          inactiveSellers,
-          singleFamilySellers: singleFamilySellers.length,
-          multiFamilySellers: multiFamilySellers.length,
-          commercialSellers: commercialSellers.length,
-          totalBuyers,
-          activeBuyers,
-          totalDeals,
-          activeDeals,
-          closedDeals,
-          flippers,
-          builders,
-          holders,
-          totalTasks
-        });
-
-        setTasks(tasksData);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        setLoading(false);
+  const loadDashboardData = useCallback(async (refreshOnly = false) => {
+    try {
+      if (!refreshOnly) {
+        setLoading(true);
       }
-    };
+
+      const isAdmin = isAdminUser();
+      const uid = auth.currentUser?.uid;
+      const userFilter = isAdmin ? [] : [where('userId', '==', uid)];
+
+      const contactBase = [collection(db, 'contacts'), ...userFilter];
+      const dealBase = [collection(db, 'deals'), ...userFilter];
+      const propertyBase = [collection(db, 'properties'), ...userFilter];
+      const taskBase = [collection(db, 'tasks'), ...userFilter];
+
+      const [
+        totalContactsSnap,
+        totalBuyersSnap,
+        activeBuyersSnap,
+        flippersSnap,
+        buildersSnap,
+        holdersSnap,
+        totalSellersSnap,
+        inactiveSellersSnap,
+        totalDealsSnap,
+        closedDealsSnap,
+        totalTasksSnap
+      ] = await Promise.all([
+        getCountFromServer(query(...contactBase)),
+        getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'))),
+        getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'), where('activelyBuying', '==', true))),
+        getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'), where('buyerType', '==', 'flipper'))),
+        getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'), where('buyerType', '==', 'builder'))),
+        getCountFromServer(query(...contactBase, where('contactType', '==', 'buyer'), where('buyerType', '==', 'holder'))),
+        getCountFromServer(query(...contactBase, where('contactType', '==', 'seller'))),
+        getCountFromServer(query(...contactBase, where('contactType', '==', 'seller'), where('activelySelling', '==', false))),
+        getCountFromServer(query(...dealBase)),
+        getCountFromServer(query(...dealBase, where('status', '==', 'closed'))),
+        getCountFromServer(query(...taskBase))
+      ]);
+
+      const totalContacts = totalContactsSnap.data().count;
+      const totalBuyers = totalBuyersSnap.data().count;
+      const activeBuyers = activeBuyersSnap.data().count;
+      const flippers = flippersSnap.data().count;
+      const builders = buildersSnap.data().count;
+      const holders = holdersSnap.data().count;
+      const totalSellers = totalSellersSnap.data().count;
+      const inactiveSellers = inactiveSellersSnap.data().count;
+      const activeSellers = totalSellers - inactiveSellers;
+      const totalDeals = totalDealsSnap.data().count;
+      const closedDeals = closedDealsSnap.data().count;
+      const activeDeals = Math.max(totalDeals - closedDeals, 0);
+      const totalTasks = totalTasksSnap.data().count;
+
+      // Load seller records for seller KPI grouping (limited to seller documents)
+      const sellersSnapshot = await getDocs(
+        query(...contactBase, where('contactType', '==', 'seller'))
+      );
+      const sellers = [];
+      sellersSnapshot.forEach((doc) => {
+        sellers.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Load properties only with fields needed for seller property-type mapping
+      const propertiesSnapshot = await getDocs(
+        query(...propertyBase)
+      );
+      const propertiesData = [];
+      propertiesSnapshot.forEach((doc) => {
+        propertiesData.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Load deals with fields needed for fallback property type matching
+      const dealsSnapshot = await getDocs(
+        query(...dealBase)
+      );
+      const dealsData = [];
+      dealsSnapshot.forEach((doc) => {
+        dealsData.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Load tasks preview only (not full list)
+      const tasksSnapshot = await getDocs(
+        query(...taskBase, orderBy('dueDate', 'asc'), limit(4))
+      );
+      const tasksData = [];
+      tasksSnapshot.forEach((doc) => {
+        tasksData.push({ id: doc.id, ...doc.data() });
+      });
+
+      const addressToProperty = new Map();
+      propertiesData.forEach((property) => {
+        const fullAddress = `${property.address || ''}, ${property.city || ''}, ${property.state || ''} ${property.zipCode || ''}`;
+        const normalizedFullAddress = normalizeAddressValue(fullAddress);
+        const normalizedStreetAddress = normalizeAddressValue(property.address || '');
+
+        if (normalizedFullAddress && !addressToProperty.has(normalizedFullAddress)) {
+          addressToProperty.set(normalizedFullAddress, property);
+        }
+        if (normalizedStreetAddress && !addressToProperty.has(normalizedStreetAddress)) {
+          addressToProperty.set(normalizedStreetAddress, property);
+        }
+      });
+
+      const sellerTypeBuckets = new Map();
+      const addSellerBucket = (sellerId, propertyType) => {
+        const bucket = normalizePropertyTypeBucket(propertyType);
+        if (!sellerId || !bucket) return;
+        const current = sellerTypeBuckets.get(sellerId) || new Set();
+        current.add(bucket);
+        sellerTypeBuckets.set(sellerId, current);
+      };
+
+      propertiesData.forEach((property) => {
+        addSellerBucket(property.sellerId, property.propertyType);
+      });
+
+      dealsData.forEach((deal) => {
+        const normalizedDealAddress = normalizeAddressValue(deal.propertyAddress || '');
+        const matchedProperty = addressToProperty.get(normalizedDealAddress);
+        addSellerBucket(deal.sellerId, matchedProperty?.propertyType || deal.propertyType);
+      });
+
+      const singleFamilySellers = sellers.filter((seller) => sellerTypeBuckets.get(seller.id)?.has('single-family'));
+      const multiFamilySellers = sellers.filter((seller) => sellerTypeBuckets.get(seller.id)?.has('multi-family'));
+      const commercialSellers = sellers.filter((seller) => sellerTypeBuckets.get(seller.id)?.has('commercial'));
+
+      const nextStats = {
+        totalContacts,
+        totalSellers,
+        activeSellers,
+        inactiveSellers,
+        singleFamilySellers: singleFamilySellers.length,
+        multiFamilySellers: multiFamilySellers.length,
+        commercialSellers: commercialSellers.length,
+        totalBuyers,
+        activeBuyers,
+        totalDeals,
+        activeDeals,
+        closedDeals,
+        flippers,
+        builders,
+        holders,
+        totalTasks
+      };
+
+      setStats(nextStats);
+      setTasks(tasksData);
+      writeHomeKpiCache(getHomeScope(isAdmin, uid), {
+        stats: nextStats,
+        tasks: tasksData
+      });
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const cacheScope = getHomeScope(isAdminUser(), auth.currentUser?.uid);
+    const cached = readHomeKpiCache(cacheScope);
+    if (cached) {
+      if (cached.stats) setStats(cached.stats);
+      if (Array.isArray(cached.tasks)) setTasks(cached.tasks);
+      setLoading(false);
+      loadDashboardData(true);
+      return;
+    }
 
     loadDashboardData();
-  }, []);
+  }, [loadDashboardData]);
 
   const quickLinks = [
     { label: 'New Seller', icon: UserPlus, color: '#00ff88', action: () => onNavigateToContacts('seller') },
