@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { db, auth } from '../firebase';
 import { collection, addDoc, getDocs, getDoc, query, doc, updateDoc, where } from 'firebase/firestore';
 import { useToast } from './Toast';
+import ConfirmModal from './ConfirmModal';
 import { Search } from './Icons';
 import {
   LEAD_PIPELINE_STAGES,
@@ -40,6 +41,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const [activityOverrides, setActivityOverrides] = useState({});
   const [editingActivityId, setEditingActivityId] = useState(null);
   const [editingActivityDraft, setEditingActivityDraft] = useState({ title: '', summary: '', detail: '' });
+  const [confirmDeleteActivity, setConfirmDeleteActivity] = useState({ open: false, entry: null });
   const [activityComposer, setActivityComposer] = useState({
     isOpen: false,
     actionLabel: '',
@@ -426,15 +428,19 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
 
   const canDeleteActivityEntry = (entry) => Boolean(entry?.isCustom) && !isPermanentActivityEntry(entry);
 
-  const handleDeleteActivityEntry = async (entry) => {
+  const handleDeleteActivityEntry = (entry) => {
     if (!entry?.id || !entry?.isCustom) return;
     if (isPermanentActivityEntry(entry)) {
       toast.info('Email and workflow activity entries are permanent');
       return;
     }
+    setConfirmDeleteActivity({ open: true, entry });
+  };
 
-    const confirmed = window.confirm('Delete this activity entry?');
-    if (!confirmed) return;
+  const performDeleteActivityEntry = async () => {
+    const entry = confirmDeleteActivity.entry;
+    setConfirmDeleteActivity({ open: false, entry: null });
+    if (!entry?.id) return;
 
     const nextActivities = customActivities.filter((activity) => activity.id !== entry.id);
     const nextOverrides = { ...activityOverrides };
@@ -466,6 +472,17 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   // loading, keep current behavior; Firestore rules enforce.
   const canEditLead = isSampleLead || !userDoc ||
     (canUserAccess(userDoc, lead || {}) && getEditableFields(userDoc, 'lead').length > 0);
+
+  // Leads open in their own tabs — warn before closing one with unsaved edits.
+  useEffect(() => {
+    if (!formDirty) return undefined;
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [formDirty]);
 
   const handleSaveLeadDetails = async ({ showToast = true, closeAfterSave = false } = {}) => {
     if (!lead) return false;
@@ -1813,9 +1830,14 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
           >
             Start Deal
           </button>
+          {formDirty && (
+            <span className="lead-unsaved-chip" role="status">
+              Unsaved changes
+            </span>
+          )}
           <button
             type="button"
-            className="lead-action-btn"
+            className={`lead-action-btn ${formDirty ? 'lead-action-btn-attention' : ''}`}
             onClick={handleSaveAndClose}
             disabled={saving || !canEditLead}
           >
@@ -2625,6 +2647,15 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmDeleteActivity.open}
+        title="Delete activity entry"
+        message={`This will permanently remove "${confirmDeleteActivity.entry?.title || 'this entry'}" from the lead's activity log.`}
+        confirmLabel="Delete"
+        onConfirm={performDeleteActivityEntry}
+        onCancel={() => setConfirmDeleteActivity({ open: false, entry: null })}
+      />
     </div>
   );
 };
