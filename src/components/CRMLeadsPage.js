@@ -3,7 +3,18 @@ import { db, auth } from '../firebase';
 import { collection, getDocs, query, orderBy, where, limit, startAfter } from 'firebase/firestore';
 import LeadDrawer from './LeadDrawer';
 import { CalendarIcon } from './Icons';
-import { isAdminUser } from '../utils/helpers';
+import { isAdminUser, normalizeLeadWarmth } from '../utils/helpers';
+
+// Warmth is a pipeline signal — color it like one instead of flat green.
+const WARMTH_COLORS = {
+  cold: 'var(--text-muted)',
+  worked: 'var(--warning)',
+  'active-deal': 'var(--accent)',
+  closed: '#ffffff',
+  lost: 'var(--danger)'
+};
+
+const warmthColor = (value) => WARMTH_COLORS[normalizeLeadWarmth(value)] || 'var(--text-muted)';
 
 const CRM_LEADS_PAGE_SIZE = 30;
 
@@ -675,20 +686,26 @@ const CRMLeadsPage = ({ onOpenLead }) => {
               return (
                 <div
                   key={lead.id}
+                  className={`crm-lead-row ${drawerLeadId === lead.id ? 'selected' : ''}`}
                   onClick={() => setDrawerLeadId(lead.id)}
                   onDoubleClick={() => onOpenLead?.(lead.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      setDrawerLeadId(lead.id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  title="Click to preview · Double-click to open in a new tab"
                   style={{
                     display: 'grid',
                     gridTemplateColumns: '180px 220px 150px 230px 180px 220px 130px 80px 100px 120px 140px',
                     gap: '10px',
                     padding: '12px',
-                    borderRadius: '8px',
-                    background: drawerLeadId === lead.id ? '#00ff8808' : '#0a0a0a',
                     marginBottom: '8px',
                     fontSize: '12px',
-                    color: '#ffffff',
-                    cursor: 'pointer',
-                    border: drawerLeadId === lead.id ? '1px solid #00ff8833' : '1px solid transparent'
+                    color: '#ffffff'
                   }}
                 >
                   <div>{formatDate(lead.submittedAt || lead.createdAt)}</div>
@@ -707,7 +724,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                   <div>{city}</div>
                   <div>{state}</div>
                   <div>{zipCode}</div>
-                  <div style={{ color: '#00ff88' }}>{leadWarmth}</div>
+                  <div style={{ color: warmthColor(leadWarmth), fontWeight: '600' }}>{leadWarmth}</div>
                   <div>{leadSource}</div>
                 </div>
               );

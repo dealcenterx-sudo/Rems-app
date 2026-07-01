@@ -183,41 +183,16 @@ const SettingsPage = () => {
         {/* Sidebar Navigation */}
         <div className="card-surface" style={{ height: 'fit-content' }}>
           {sections.map(section => (
-            <div
+            <button
               key={section.id}
+              type="button"
+              className={`settings-nav-item ${activeSection === section.id ? 'active' : ''}`}
               onClick={() => setActiveSection(section.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '12px 15px',
-                borderRadius: '4px',
-                marginBottom: '5px',
-                cursor: 'pointer',
-                background: activeSection === section.id ? '#0f0f0f' : 'transparent',
-                border: activeSection === section.id ? '1px solid #0088ff' : '1px solid transparent',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                if (activeSection !== section.id) {
-                  e.currentTarget.style.background = '#0f0f0f';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeSection !== section.id) {
-                  e.currentTarget.style.background = 'transparent';
-                }
-              }}
+              aria-current={activeSection === section.id ? 'true' : undefined}
             >
               <section.icon size={18} color={activeSection === section.id ? '#0088ff' : '#888888'} />
-              <span style={{
-                fontSize: '14px',
-                fontWeight: '600',
-                color: activeSection === section.id ? '#ffffff' : '#888888'
-              }}>
-                {section.label}
-              </span>
-            </div>
+              <span>{section.label}</span>
+            </button>
           ))}
         </div>
 
