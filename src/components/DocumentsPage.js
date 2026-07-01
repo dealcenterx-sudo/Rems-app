@@ -344,17 +344,17 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
             <div key={document.id} className="card-surface hover-lift">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                 <span style={{ fontSize: '24px' }}>{getCategoryIcon(document.category)}</span>
-                <span style={{ fontSize: '10px', fontWeight: '700', color: getCategoryColor(document.category), background: `${getCategoryColor(document.category)}15`, padding: '4px 10px', borderRadius: '10px', textTransform: 'uppercase' }}>{document.category}</span>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: getCategoryColor(document.category), background: `${getCategoryColor(document.category)}15`, padding: '4px 10px', borderRadius: '10px', textTransform: 'uppercase' }}>{document.category}</span>
               </div>
               <div style={{ marginBottom: '12px' }}>
                 <div style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff', marginBottom: '4px', wordBreak: 'break-word' }}>{document.fileName}</div>
                 {document.description && <div style={{ fontSize: '12px', color: '#888888', lineHeight: '1.4' }}>{document.description}</div>}
               </div>
-              <div style={{ fontSize: '11px', color: '#666666', marginBottom: '16px' }}>{formatFileSize(document.fileSize || 0)} • {document.fileFormat?.toUpperCase() || 'N/A'}</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginBottom: '16px' }}>{formatFileSize(document.fileSize || 0)} • {document.fileFormat?.toUpperCase() || 'N/A'}</div>
               {document.linkedTo && document.linkedType !== 'none' && (
                 <div style={{ fontSize: '11px', color: '#0088ff', marginBottom: '16px', padding: '8px', background: '#0088ff15', borderRadius: '4px' }}>Linked to: {document.linkedType} - {document.linkedTo}</div>
               )}
-              <div style={{ fontSize: '11px', color: '#666666', marginBottom: '16px', borderTop: '1px solid #1a1a1a', paddingTop: '12px' }}>Uploaded: {document.createdAt ? new Date(document.createdAt).toLocaleDateString() : 'N/A'}</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginBottom: '16px', borderTop: '1px solid #1a1a1a', paddingTop: '12px' }}>Uploaded: {document.createdAt ? new Date(document.createdAt).toLocaleDateString() : 'N/A'}</div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <a href={document.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm btn-block">View</a>
                 <button onClick={() => requestDelete(document)} className="btn-danger btn-sm btn-block">Delete</button>

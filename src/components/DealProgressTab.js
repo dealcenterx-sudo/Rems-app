@@ -170,7 +170,7 @@ const DealProgressTab = ({ dealId, deal }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <div style={{ fontSize: '16px', fontWeight: '600', color: '#fff' }}>Deal Progress</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Track every step from offer to closing</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-faint)', marginTop: '4px' }}>Track every step from offer to closing</div>
         </div>
         <button
           onClick={() => setShowAddItem(true)}
@@ -196,7 +196,7 @@ const DealProgressTab = ({ dealId, deal }) => {
             transition: 'width 0.5s ease'
           }} />
         </div>
-        <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+        <div style={{ fontSize: '12px', color: 'var(--text-faint)', marginTop: '8px' }}>
           {completedItems} of {totalItems} steps completed
         </div>
       </div>
@@ -220,7 +220,7 @@ const DealProgressTab = ({ dealId, deal }) => {
                   <span style={{ fontSize: '12px' }}>✅</span>
                 )}
               </div>
-              <span style={{ fontSize: '11px', color: '#666' }}>{allPhaseCompleted}/{allPhaseItems}</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>{allPhaseCompleted}/{allPhaseItems}</span>
             </div>
 
             {/* Items */}
@@ -265,7 +265,7 @@ const DealProgressTab = ({ dealId, deal }) => {
                   </div>
                   {/* Completed info */}
                   {isCompleted && state?.completedBy && (
-                    <div style={{ fontSize: '10px', color: '#555', textAlign: 'right' }}>
+                    <div style={{ fontSize: '11px', color: '#555', textAlign: 'right' }}>
                       <div>{state.completedBy}</div>
                       <div>{state.completedAt ? new Date(state.completedAt).toLocaleDateString() : ''}</div>
                     </div>
@@ -303,7 +303,7 @@ const DealProgressTab = ({ dealId, deal }) => {
                     color: item.completed ? '#0088ff' : '#ccc',
                     textDecoration: item.completed ? 'line-through' : 'none'
                   }}>
-                    {item.label} <span style={{ fontSize: '10px', color: '#555' }}>(custom)</span>
+                    {item.label} <span style={{ fontSize: '11px', color: '#555' }}>(custom)</span>
                   </div>
                   {item.description && <div style={{ fontSize: '11px', color: '#555', marginTop: '2px' }}>{item.description}</div>}
                 </div>

@@ -248,7 +248,7 @@ const SettingsPage = () => {
                     value={profileData.email}
                     onChange={(e) => setProfileData({...profileData, email: e.target.value})}
                   />
-                  <div style={{ fontSize: '11px', color: '#666666', marginTop: '5px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginTop: '5px' }}>
                     Changing your email requires re-authentication
                   </div>
                 </div>

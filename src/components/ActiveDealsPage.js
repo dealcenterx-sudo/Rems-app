@@ -225,7 +225,7 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
             <div key={deal.id} onClick={() => { setSelectedDeal(deal); setShowDetailModal(true); }} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = getStatusColor(deal.status); e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1a1a1a'; e.currentTarget.style.transform = 'translateY(0)'; }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                 <span style={{ fontSize: '11px', fontWeight: '700', color: getStatusColor(deal.status), background: `${getStatusColor(deal.status)}15`, padding: '4px 12px', borderRadius: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{getStatusLabel(deal.status)}</span>
-                <span style={{ fontSize: '11px', color: '#666666' }}>{deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : 'N/A'}</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>{deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : 'N/A'}</span>
               </div>
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ fontSize: '16px', fontWeight: '600', color: '#ffffff', marginBottom: '4px' }}>{deal.propertyAddress || 'No address'}</div>

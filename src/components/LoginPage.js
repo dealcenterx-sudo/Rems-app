@@ -3,7 +3,8 @@ import { auth, googleProvider, setPendingSignupRole } from '../firebase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup
+  signInWithPopup,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 
 const SIGNUP_ROLES = [
@@ -12,6 +13,33 @@ const SIGNUP_ROLES = [
   { value: 'seller', label: 'Seller', description: 'List a property for sale' }
 ];
 
+// Raw Firebase codes read like stack traces; show people something they can act on.
+const friendlyAuthError = (err) => {
+  const code = err?.code || '';
+  if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+    return 'Incorrect email or password. Please try again.';
+  }
+  if (code === 'auth/email-already-in-use') {
+    return 'An account with this email already exists. Try signing in instead.';
+  }
+  if (code === 'auth/weak-password') {
+    return 'Password must be at least 6 characters.';
+  }
+  if (code === 'auth/invalid-email') {
+    return 'That email address doesn’t look right. Please check it.';
+  }
+  if (code === 'auth/too-many-requests') {
+    return 'Too many attempts. Please wait a moment and try again.';
+  }
+  if (code === 'auth/popup-closed-by-user') {
+    return 'Google sign-in was cancelled.';
+  }
+  if (code === 'auth/network-request-failed') {
+    return 'Network error. Check your connection and try again.';
+  }
+  return err?.message || 'Something went wrong. Please try again.';
+};
+
 const LoginPage = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,11 +47,13 @@ const LoginPage = ({ onLoginSuccess }) => {
   const [signupRole, setSignupRole] = useState('agent');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setNotice('');
     try {
       if (isSignup) {
         setPendingSignupRole(signupRole);
@@ -33,7 +63,7 @@ const LoginPage = ({ onLoginSuccess }) => {
       }
       onLoginSuccess();
     } catch (err) {
-      setError(err.message);
+      setError(friendlyAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -42,6 +72,7 @@ const LoginPage = ({ onLoginSuccess }) => {
   const handleGoogleAuth = async () => {
     setLoading(true);
     setError('');
+    setNotice('');
     try {
       if (isSignup) {
         setPendingSignupRole(signupRole);
@@ -49,7 +80,25 @@ const LoginPage = ({ onLoginSuccess }) => {
       await signInWithPopup(auth, googleProvider);
       onLoginSuccess();
     } catch (err) {
-      setError(err.message);
+      setError(friendlyAuthError(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Enter your email above first, then click "Forgot password?"');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    setNotice('');
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setNotice(`Password reset link sent to ${email}. Check your inbox.`);
+    } catch (err) {
+      setError(friendlyAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -63,13 +112,18 @@ const LoginPage = ({ onLoginSuccess }) => {
           <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', marginBottom: '8px', letterSpacing: '-0.5px' }}>
             {isSignup ? 'Create Account' : 'Welcome Back'}
           </h1>
-          <p style={{ fontSize: '13px', color: '#666666' }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-faint)' }}>
             {isSignup ? 'Sign up to get started' : 'Sign in to your account'}
           </p>
         </div>
         {error && (
-          <div style={{ background: '#ff333315', border: '1px solid #ff3333', padding: '12px', borderRadius: '4px', marginBottom: '20px', fontSize: '12px', color: '#ff3333' }}>
+          <div role="alert" style={{ background: 'var(--danger-soft)', border: '1px solid var(--danger)', padding: '12px', borderRadius: '6px', marginBottom: '20px', fontSize: '13px', color: 'var(--danger)' }}>
             {error}
+          </div>
+        )}
+        {notice && (
+          <div role="status" style={{ background: 'var(--accent-soft)', border: '1px solid var(--accent-border)', padding: '12px', borderRadius: '6px', marginBottom: '20px', fontSize: '13px', color: 'var(--accent)' }}>
+            {notice}
           </div>
         )}
         <form onSubmit={handleEmailAuth}>
@@ -78,13 +132,22 @@ const LoginPage = ({ onLoginSuccess }) => {
               <label style={{ display: 'block', fontSize: '12px', color: '#888888', marginBottom: '8px' }}>
                 I am signing up as a...
               </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div role="radiogroup" aria-label="Account type" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {SIGNUP_ROLES.map((role) => {
                   const isSelected = signupRole === role.value;
                   return (
                     <div
                       key={role.value}
+                      role="radio"
+                      aria-checked={isSelected}
+                      tabIndex={0}
                       onClick={() => setSignupRole(role.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSignupRole(role.value);
+                        }
+                      }}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -109,7 +172,7 @@ const LoginPage = ({ onLoginSuccess }) => {
                         <div style={{ fontSize: '13px', fontWeight: '600', color: isSelected ? '#ffffff' : '#cccccc' }}>
                           {role.label}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#666666' }}>{role.description}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-faint)' }}>{role.description}</div>
                       </div>
                     </div>
                   );
@@ -121,15 +184,42 @@ const LoginPage = ({ onLoginSuccess }) => {
             <label>Email</label>
             <input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
-          <div className="form-field" style={{ marginBottom: '20px' }}>
+          <div className="form-field" style={{ marginBottom: isSignup ? '8px' : '6px' }}>
             <label>Password</label>
-            <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              minLength={6}
+              autoComplete={isSignup ? 'new-password' : 'current-password'}
+              required
+            />
           </div>
+          {isSignup ? (
+            <div style={{ fontSize: '12px', color: 'var(--text-faint)', marginBottom: '20px' }}>
+              At least 6 characters
+            </div>
+          ) : (
+            <div style={{ textAlign: 'right', marginBottom: '20px' }}>
+              <span
+                onClick={loading ? undefined : handleForgotPassword}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleForgotPassword(); }}
+                role="button"
+                tabIndex={0}
+                style={{ fontSize: '12px', color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px' }}
+              >
+                Forgot password?
+              </span>
+            </div>
+          )}
           <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', marginBottom: '15px' }}>
-            {loading ? 'Loading...' : isSignup ? 'Sign Up' : 'Sign In'}
+            {loading
+              ? (isSignup ? 'Creating Account...' : 'Signing In...')
+              : (isSignup ? 'Create Account' : 'Sign In')}
           </button>
         </form>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '20px 0', color: '#666666', fontSize: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '20px 0', color: 'var(--text-faint)', fontSize: '12px' }}>
           <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }}></div>
           <span>OR</span>
           <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }}></div>
@@ -145,9 +235,18 @@ const LoginPage = ({ onLoginSuccess }) => {
         </button>
         <div style={{ textAlign: 'center', fontSize: '13px', color: '#888888' }}>
           {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
-          <span onClick={() => setIsSignup(!isSignup)} style={{ color: '#00ff88', cursor: 'pointer', fontWeight: '600' }}>
+          <span
+            onClick={() => { setIsSignup(!isSignup); setError(''); setNotice(''); }}
+            onKeyDown={(e) => { if (e.key === 'Enter') { setIsSignup(!isSignup); setError(''); setNotice(''); } }}
+            role="button"
+            tabIndex={0}
+            style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: '600' }}
+          >
             {isSignup ? 'Sign In' : 'Sign Up'}
           </span>
+        </div>
+        <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-faint)', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #1a1a1a' }}>
+          Secured with Firebase Authentication · Your data is encrypted in transit
         </div>
       </div>
     </div>

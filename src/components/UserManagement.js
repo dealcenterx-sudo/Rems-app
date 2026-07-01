@@ -175,7 +175,7 @@ const UserManagement = () => {
                     Assigned Properties
                   </div>
                   {properties.length === 0 ? (
-                    <div style={{ fontSize: '13px', color: '#666666' }}>No properties available</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-faint)' }}>No properties available</div>
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '8px', maxHeight: '260px', overflowY: 'auto' }}>
                       {properties.map((property) => {

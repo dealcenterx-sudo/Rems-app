@@ -193,7 +193,7 @@ const CRMReportsPage = () => {
               onMouseEnter={e => e.currentTarget.style.background = '#111'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              <div style={{ fontSize: '12px', color: '#666' }}>{r.date}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-faint)' }}>{r.date}</div>
               <div style={{ fontSize: '13px', color: '#fff', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}</div>
               <div style={{ fontSize: '12px', color: '#888' }}>{r.source}</div>
               <div style={{ fontSize: '12px', color: '#aaa' }}>{r.serviceType}</div>
@@ -204,7 +204,7 @@ const CRMReportsPage = () => {
                   borderRadius: '999px', padding: '2px 8px', fontSize: '11px', fontWeight: '600'
                 }}>{r.warmth}</span>
               </div>
-              <div style={{ fontSize: '12px', color: '#666' }}>{r.city}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-faint)' }}>{r.city}</div>
             </div>
           ))
         )}

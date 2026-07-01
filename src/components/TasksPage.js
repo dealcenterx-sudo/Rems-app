@@ -621,7 +621,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
           <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', margin: '0 0 5px 0' }}>
             Tasks
           </h2>
-          <p style={{ fontSize: '13px', color: '#666666', margin: 0 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-faint)', margin: 0 }}>
             {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -672,7 +672,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
           }}
         >
           <div style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff' }}>{stats.total}</div>
-          <div style={{ fontSize: '11px', color: '#666666' }}>Total Tasks</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-faint)' }}>Total Tasks</div>
         </div>
 
         <div
@@ -687,7 +687,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
           }}
         >
           <div style={{ fontSize: '24px', fontWeight: '700', color: '#0088ff' }}>{stats.pending}</div>
-          <div style={{ fontSize: '11px', color: '#666666' }}>Pending</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-faint)' }}>Pending</div>
         </div>
 
         <div
@@ -702,7 +702,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
           }}
         >
           <div style={{ fontSize: '24px', fontWeight: '700', color: '#ff3333' }}>{stats.overdue}</div>
-          <div style={{ fontSize: '11px', color: '#666666' }}>Overdue</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-faint)' }}>Overdue</div>
         </div>
 
         <div
@@ -717,7 +717,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
           }}
         >
           <div style={{ fontSize: '24px', fontWeight: '700', color: '#00ff88' }}>{stats.completed}</div>
-          <div style={{ fontSize: '11px', color: '#666666' }}>Completed</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-faint)' }}>Completed</div>
         </div>
       </div>
 
@@ -840,7 +840,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
 
           <div className="grid-seven" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dayLabel) => (
-              <div key={dayLabel} style={{ fontSize: '11px', color: '#666666', textAlign: 'center', padding: '6px 0' }}>
+              <div key={dayLabel} style={{ fontSize: '11px', color: 'var(--text-faint)', textAlign: 'center', padding: '6px 0' }}>
                 {dayLabel}
               </div>
             ))}
@@ -878,7 +878,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                     <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       {dayTasks.slice(0, 3).map((task) => (
                         <div key={task.id} style={{
-                          fontSize: '10px',
+                          fontSize: '11px',
                           color: '#ffffff',
                           background: '#1a1a1a',
                           padding: '3px 6px',
@@ -891,7 +891,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                         </div>
                       ))}
                       {dayTasks.length > 3 && (
-                        <div style={{ fontSize: '10px', color: '#888888' }}>+{dayTasks.length - 3} more</div>
+                        <div style={{ fontSize: '11px', color: '#888888' }}>+{dayTasks.length - 3} more</div>
                       )}
                     </div>
                   )}
@@ -1021,7 +1021,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                       alignItems: 'center',
                       gap: '15px',
                       fontSize: '11px',
-                      color: '#666666'
+                      color: 'var(--text-faint)'
                     }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                         <ClockIcon size={14} />

@@ -169,7 +169,7 @@ const DealDocumentsTab = ({ dealId, deal }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
           <div style={{ fontSize: '16px', fontWeight: '600', color: '#fff' }}>Deal Documents</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{documents.length} document{documents.length !== 1 ? 's' : ''}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-faint)', marginTop: '4px' }}>{documents.length} document{documents.length !== 1 ? 's' : ''}</div>
         </div>
         <button onClick={() => setShowUploadModal(true)} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px' }}>
           <Plus size={16} color="#000" /> Upload Document
@@ -229,7 +229,7 @@ const DealDocumentsTab = ({ dealId, deal }) => {
                 <div style={{ fontSize: '24px', flexShrink: 0 }}>{catInfo.icon}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '4px' }}>{item.name}</div>
-                  <div style={{ fontSize: '11px', color: '#666', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-faint)', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                     <span>{catInfo.label}</span>
                     <span>{formatSize(item.fileSize)}</span>
                     <span>by {item.uploadedByName}</span>
@@ -242,7 +242,7 @@ const DealDocumentsTab = ({ dealId, deal }) => {
                 {item.requiresSignature && (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                     <span style={{
-                      fontSize: '10px', fontWeight: '700', textTransform: 'uppercase',
+                      fontSize: '11px', fontWeight: '700', textTransform: 'uppercase',
                       padding: '3px 10px', borderRadius: '10px',
                       color: item.signatureStatus === 'signed' ? '#00ff88' : '#ffaa00',
                       background: item.signatureStatus === 'signed' ? '#00ff8815' : '#ffaa0015'
@@ -251,7 +251,7 @@ const DealDocumentsTab = ({ dealId, deal }) => {
                     </span>
                     <button
                       onClick={() => markAsSigned(item)}
-                      style={{ background: 'none', border: '1px solid #333', color: '#0088ff', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '10px' }}
+                      style={{ background: 'none', border: '1px solid #333', color: '#0088ff', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
                     >
                       Sign
                     </button>

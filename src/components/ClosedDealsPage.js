@@ -134,7 +134,7 @@ const ClosedDealsPage = () => {
 
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
           <div className="card-surface hover-lift">
-            <div style={{ fontSize: '11px', color: '#666666', marginBottom: '8px', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginBottom: '8px', textTransform: 'uppercase' }}>
               Total Closed
             </div>
             <div style={{ fontSize: '32px', fontWeight: '700', color: '#00ff88' }}>
@@ -143,7 +143,7 @@ const ClosedDealsPage = () => {
           </div>
 
           <div className="card-surface hover-lift">
-            <div style={{ fontSize: '11px', color: '#666666', marginBottom: '8px', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginBottom: '8px', textTransform: 'uppercase' }}>
               Total Volume
             </div>
             <div style={{ fontSize: '32px', fontWeight: '700', color: '#0088ff' }}>
@@ -152,7 +152,7 @@ const ClosedDealsPage = () => {
           </div>
 
           <div className="card-surface hover-lift">
-            <div style={{ fontSize: '11px', color: '#666666', marginBottom: '8px', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginBottom: '8px', textTransform: 'uppercase' }}>
               Total Earnings
             </div>
             <div style={{ fontSize: '32px', fontWeight: '700', color: '#ffaa00' }}>

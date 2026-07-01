@@ -293,7 +293,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>From Date</label>
+                <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>From Date</label>
                 <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 42px', gap: '8px' }}>
                   <input
                     type="text"
@@ -339,7 +339,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                   </button>
                   {showFromCalendar && (
                     <div className="card-surface" style={{ position: 'absolute', top: '46px', right: 0, zIndex: 30, width: '260px' }}>
-                      <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '6px' }}>Choose From Date</label>
+                      <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '6px' }}>Choose From Date</label>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => setFromCalendarMonth(new Date(fromCalendarMonth.getFullYear(), fromCalendarMonth.getMonth() - 1, 1))}>{'<'}</button>
                         <button
@@ -380,7 +380,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                       )}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '6px' }}>
                         {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
-                          <div key={day} style={{ fontSize: '10px', color: '#888888', textAlign: 'center' }}>{day}</div>
+                          <div key={day} style={{ fontSize: '11px', color: '#888888', textAlign: 'center' }}>{day}</div>
                         ))}
                         {buildCalendarGrid(fromCalendarMonth).map((dateCell, idx) => {
                           if (!dateCell) return <div key={`from-empty-${idx}`} />;
@@ -427,7 +427,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                 </div>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>To Date</label>
+                <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>To Date</label>
                 <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 42px', gap: '8px' }}>
                   <input
                     type="text"
@@ -473,7 +473,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                   </button>
                   {showToCalendar && (
                     <div className="card-surface" style={{ position: 'absolute', top: '46px', right: 0, zIndex: 30, width: '260px' }}>
-                      <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '6px' }}>Choose To Date</label>
+                      <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '6px' }}>Choose To Date</label>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => setToCalendarMonth(new Date(toCalendarMonth.getFullYear(), toCalendarMonth.getMonth() - 1, 1))}>{'<'}</button>
                         <button
@@ -514,7 +514,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                       )}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '6px' }}>
                         {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
-                          <div key={day} style={{ fontSize: '10px', color: '#888888', textAlign: 'center' }}>{day}</div>
+                          <div key={day} style={{ fontSize: '11px', color: '#888888', textAlign: 'center' }}>{day}</div>
                         ))}
                         {buildCalendarGrid(toCalendarMonth).map((dateCell, idx) => {
                           if (!dateCell) return <div key={`to-empty-${idx}`} />;
@@ -561,7 +561,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                 </div>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>Month</label>
+                <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>Month</label>
                 <select
                   value={monthFilter}
                   onChange={(e) => setMonthFilter(e.target.value)}
@@ -576,7 +576,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>Year</label>
+                <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>Year</label>
                 <input
                   type="number"
                   min="2000"
@@ -594,7 +594,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
             <div style={{ fontSize: '11px', color: '#00ff88', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Service Filtering
             </div>
-            <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>Service Type</label>
+            <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>Service Type</label>
             <select
               value={serviceFilter}
               onChange={(e) => setServiceFilter(e.target.value)}
@@ -613,7 +613,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>City</label>
+                <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>City</label>
                 <input
                   type="text"
                   placeholder="City"
@@ -623,7 +623,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '10px', color: '#888888', marginBottom: '4px' }}>Zipcode</label>
+                <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>Zipcode</label>
                 <input
                   type="text"
                   placeholder="Zipcode"
@@ -695,7 +695,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                   <div style={{ fontWeight: '600' }}>
                     {displayName}
                     {lead.isSample && (
-                      <span style={{ marginLeft: '8px', fontSize: '10px', color: '#00ff88' }}>
+                      <span style={{ marginLeft: '8px', fontSize: '11px', color: '#00ff88' }}>
                         Sample
                       </span>
                     )}

@@ -307,7 +307,7 @@ const querySnapshot = isAdmin
                 border: '1px solid #1a1a1a',
                 padding: '30px',
                 textAlign: 'center',
-                color: '#666666',
+                color: 'var(--text-faint)',
                 borderRadius: '4px'
               }}>
                 No buyers found. Add one in the Contacts page first!
@@ -377,7 +377,7 @@ const querySnapshot = isAdmin
                 border: '1px solid #1a1a1a',
                 padding: '30px',
                 textAlign: 'center',
-                color: '#666666',
+                color: 'var(--text-faint)',
                 borderRadius: '4px'
               }}>
                 No sellers found. Add one in the Contacts page first!

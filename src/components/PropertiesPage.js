@@ -551,7 +551,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                 <span style={{ fontSize: '12px', fontWeight: '600', color: filterStatus === option.value ? '#000000' : '#ffffff' }}>
                   {option.label}
                 </span>
-                <span style={{ fontSize: '10px', fontWeight: '700', color: filterStatus === option.value ? '#000000' : '#888888', background: filterStatus === option.value ? 'rgba(0,0,0,0.2)' : '#1a1a1a', padding: '2px 6px', borderRadius: '8px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: filterStatus === option.value ? '#000000' : '#888888', background: filterStatus === option.value ? 'rgba(0,0,0,0.2)' : '#1a1a1a', padding: '2px 6px', borderRadius: '8px' }}>
                   {option.count}
                 </span>
               </div>
@@ -741,7 +741,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                   position: 'absolute',
                   top: '12px',
                   right: '12px',
-                  fontSize: '10px',
+                  fontSize: '11px',
                   fontWeight: '700',
                   color: '#000000',
                   background: getStatusColor(property.status),
@@ -825,7 +825,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                 </div>
 
                 {/* Property Type */}
-                <div style={{ fontSize: '11px', color: '#666666', marginBottom: '15px', textTransform: 'capitalize' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginBottom: '15px', textTransform: 'capitalize' }}>
                   {property.propertyType?.replace('-', ' ')}
                 </div>
 

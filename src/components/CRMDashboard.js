@@ -35,7 +35,7 @@ const BarChart = ({ data, title }) => {
               transition: 'height 0.5s ease',
               minHeight: '4px'
             }} />
-            <div style={{ fontSize: '10px', color: '#666', textAlign: 'center', wordBreak: 'break-word', lineHeight: '1.3' }}>{item.label}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-faint)', textAlign: 'center', wordBreak: 'break-word', lineHeight: '1.3' }}>{item.label}</div>
           </div>
         ))}
       </div>

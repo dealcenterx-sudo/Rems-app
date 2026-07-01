@@ -75,7 +75,7 @@ const CreateModal = ({ onClose, onCreate }) => {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div style={{ fontSize: '18px', fontWeight: '700', color: '#fff' }}>New Campaign</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#666', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-faint)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

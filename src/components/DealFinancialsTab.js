@@ -129,14 +129,14 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
         <label style={LABEL_STYLE}>{label}</label>
         {editing ? (
           <div style={{ position: 'relative' }}>
-            {prefix && <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#666', fontSize: '14px' }}>{prefix}</span>}
+            {prefix && <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)', fontSize: '14px' }}>{prefix}</span>}
             <input
               type={type}
               value={form[key]}
               onChange={(e) => setForm({ ...form, [key]: e.target.value })}
               style={{ ...FIELD_STYLE, paddingLeft: prefix ? '24px' : '12px' }}
             />
-            {suffix && <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#666', fontSize: '12px' }}>{suffix}</span>}
+            {suffix && <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)', fontSize: '12px' }}>{suffix}</span>}
           </div>
         ) : (
           <div style={{ fontSize: '16px', color: '#fff', fontWeight: '600' }}>
@@ -153,7 +153,7 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <div style={{ fontSize: '16px', fontWeight: '600', color: '#fff' }}>Deal Financials</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>All numbers visible to authorized parties</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-faint)', marginTop: '4px' }}>All numbers visible to authorized parties</div>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           {!editing ? (
@@ -190,7 +190,7 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
           { label: 'Est. Net to Seller', value: fmt(netToSeller), color: '#aa00ff' }
         ].map((card) => (
           <div key={card.label} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '16px' }}>
-            <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{card.label}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{card.label}</div>
             <div style={{ fontSize: '22px', fontWeight: '700', color: card.color }}>{card.value}</div>
           </div>
         ))}
@@ -280,7 +280,7 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
             </div>
 
             <div style={{ background: '#0a0a0a', borderRadius: '6px', padding: '14px', marginBottom: '20px', border: '1px solid #1a1a1a' }}>
-              <div style={{ fontSize: '11px', color: '#666', lineHeight: '1.5' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-faint)', lineHeight: '1.5' }}>
                 This will package the deal financials, property details, and buyer information and push it to the selected lender's portal for loan approval. The lender will receive an email with all conditional documents.
               </div>
             </div>

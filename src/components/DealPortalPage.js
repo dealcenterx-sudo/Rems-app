@@ -86,7 +86,7 @@ const DealPortalPage = ({ dealId, onBack }) => {
             <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>
               {deal.propertyAddress || 'Untitled Deal'}
             </div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-faint)', marginTop: '4px' }}>
               {deal.buyerName || 'No Buyer'} • {deal.sellerName || 'No Seller'}
               {deal.purchasePrice ? ` • $${Number(deal.purchasePrice).toLocaleString()}` : ''}
             </div>

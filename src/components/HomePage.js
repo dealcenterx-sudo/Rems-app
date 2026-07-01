@@ -354,7 +354,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
       <div className="section">
         <div className="section-title">Recent Tasks</div>
         {tasks.length === 0 ? (
-          <div className="card-surface" style={{ textAlign: 'center', color: '#666666' }}>
+          <div className="card-surface" style={{ textAlign: 'center', color: 'var(--text-faint)' }}>
             No tasks yet. Add one from the Tasks page!
           </div>
         ) : (

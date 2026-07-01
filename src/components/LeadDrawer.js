@@ -71,7 +71,7 @@ const Tab = ({ id, label, active, onClick, badge }) => (
     {badge > 0 && (
       <span style={{
         marginLeft: '6px', background: '#00ff88', color: '#000', borderRadius: '999px',
-        fontSize: '10px', fontWeight: '700', padding: '1px 6px'
+        fontSize: '11px', fontWeight: '700', padding: '1px 6px'
       }}>{badge}</span>
     )}
   </button>
@@ -480,7 +480,7 @@ const LeadDrawer = ({ leadId, onClose, onOpenFullDetail }) => {
                 onClick={onClose}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#666', fontSize: '20px', lineHeight: 1, padding: '4px'
+                  color: 'var(--text-faint)', fontSize: '20px', lineHeight: 1, padding: '4px'
                 }}
               >✕</button>
             </div>

@@ -187,7 +187,7 @@ const DealChatTab = ({ dealId, deal }) => {
                   </span>
                 </div>
                 {ch.description && (
-                  <div style={{ fontSize: '10px', color: '#555', marginTop: '2px', marginLeft: '22px' }}>{ch.description}</div>
+                  <div style={{ fontSize: '11px', color: '#555', marginTop: '2px', marginLeft: '22px' }}>{ch.description}</div>
                 )}
               </div>
             );
@@ -196,7 +196,7 @@ const DealChatTab = ({ dealId, deal }) => {
 
         {/* Online Parties */}
         <div style={{ borderTop: '1px solid #1a1a1a', padding: '12px' }}>
-          <div style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
             Participants ({parties.length})
           </div>
           <div style={{ maxHeight: '120px', overflowY: 'auto' }}>
@@ -216,19 +216,19 @@ const DealChatTab = ({ dealId, deal }) => {
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontSize: '15px', fontWeight: '600', color: '#fff' }}>{getActiveChannelName()}</div>
-            <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginTop: '2px' }}>
               {channels.find((c) => (c.channelId || c.id) === activeChannel)?.description || ''}
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span style={{ fontSize: '12px', color: '#666' }}>{parties.length} members</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-faint)' }}>{parties.length} members</span>
           </div>
         </div>
 
         {/* Messages */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
           {loadingMessages ? (
-            <div style={{ textAlign: 'center', color: '#666', padding: '40px' }}>Loading messages...</div>
+            <div style={{ textAlign: 'center', color: 'var(--text-faint)', padding: '40px' }}>Loading messages...</div>
           ) : messages.length === 0 ? (
             <div style={{ textAlign: 'center', color: '#444', padding: '60px 20px' }}>
               <div style={{ fontSize: '32px', marginBottom: '12px' }}>💬</div>
@@ -253,7 +253,7 @@ const DealChatTab = ({ dealId, deal }) => {
                         {getInitials(msg.senderName)}
                       </div>
                       <span style={{ fontSize: '13px', fontWeight: '600', color: isOwn ? '#00ff88' : '#0088ff' }}>{msg.senderName}</span>
-                      <span style={{ fontSize: '10px', color: '#555' }}>{formatTime(msg.createdAt)}</span>
+                      <span style={{ fontSize: '11px', color: '#555' }}>{formatTime(msg.createdAt)}</span>
                     </div>
                   )}
                   <div style={{ paddingLeft: '42px' }}>
@@ -348,7 +348,7 @@ const DealChatTab = ({ dealId, deal }) => {
                     );
                   })}
                 </div>
-                <div style={{ fontSize: '10px', color: '#555', marginTop: '6px' }}>Leave empty to allow all parties</div>
+                <div style={{ fontSize: '11px', color: '#555', marginTop: '6px' }}>Leave empty to allow all parties</div>
               </div>
             </div>
 

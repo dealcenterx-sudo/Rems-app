@@ -27,7 +27,7 @@ const TrendingIcon = ({ size = 24 }) => (
 
 // Deal status configuration
 const DEAL_STATUSES = {
-  'lead': { label: 'Lead', color: '#666666' },
+  'lead': { label: 'Lead', color: 'var(--text-faint)' },
   'qualified': { label: 'Qualified', color: '#888888' },
   'active-search': { label: 'Active Search', color: '#0088ff' },
   'offer-submitted': { label: 'Offer Submitted', color: '#ffaa00' },
@@ -152,7 +152,7 @@ const DealsDashboard = () => {
               <TrendingIcon size={20} />
             </div>
             <div>
-              <div style={{ fontSize: '11px', color: '#666666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Total Deals
               </div>
               <div style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff' }}>
@@ -181,7 +181,7 @@ const DealsDashboard = () => {
               <ClockIcon size={20} />
             </div>
             <div>
-              <div style={{ fontSize: '11px', color: '#666666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Active Deals
               </div>
               <div style={{ fontSize: '24px', fontWeight: '700', color: '#0088ff' }}>
@@ -210,7 +210,7 @@ const DealsDashboard = () => {
               ✓
             </div>
             <div>
-              <div style={{ fontSize: '11px', color: '#666666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Closed Deals
               </div>
               <div style={{ fontSize: '24px', fontWeight: '700', color: '#00ff88' }}>
@@ -239,7 +239,7 @@ const DealsDashboard = () => {
               <DollarIcon size={20} />
             </div>
             <div>
-              <div style={{ fontSize: '11px', color: '#666666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Total Value
               </div>
               <div style={{ fontSize: '24px', fontWeight: '700', color: '#ffaa00' }}>

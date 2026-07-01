@@ -25,7 +25,7 @@ export const LoadingOverlay = ({ message = 'Loading...' }) => (
     <LoadingSpinner size={50} />
     <div style={{
       fontSize: '14px',
-      color: '#666666',
+      color: 'var(--text-faint)',
       fontWeight: '500'
     }}>
       {message}

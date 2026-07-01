@@ -112,7 +112,7 @@ const DealPartiesTab = ({ dealId, deal }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <div style={{ fontSize: '16px', fontWeight: '600', color: '#fff' }}>Deal Parties</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{parties.length} participant{parties.length !== 1 ? 's' : ''} in this deal</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-faint)', marginTop: '4px' }}>{parties.length} participant{parties.length !== 1 ? 's' : ''} in this deal</div>
         </div>
         <button
           onClick={() => setShowInviteModal(true)}
@@ -140,7 +140,7 @@ const DealPartiesTab = ({ dealId, deal }) => {
               <div style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: group.color }} />
                 <span style={{ fontSize: '13px', fontWeight: '600', color: group.color }}>{group.label}</span>
-                <span style={{ fontSize: '11px', color: '#666' }}>({group.members.length})</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>({group.members.length})</span>
               </div>
               {group.members.map((party) => (
                 <div key={party.id} style={{ padding: '14px 16px', borderBottom: '1px solid #111', display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -164,7 +164,7 @@ const DealPartiesTab = ({ dealId, deal }) => {
                   {/* Status */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{
-                      fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px',
+                      fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px',
                       padding: '3px 10px', borderRadius: '10px',
                       color: party.status === 'joined' ? '#00ff88' : '#ffaa00',
                       background: party.status === 'joined' ? '#00ff8815' : '#ffaa0015'
@@ -283,7 +283,7 @@ const DealPartiesTab = ({ dealId, deal }) => {
             </div>
 
             <div style={{ marginTop: '16px', padding: '12px', background: '#0a0a0a', borderRadius: '6px', border: '1px solid #1a1a1a' }}>
-              <div style={{ fontSize: '11px', color: '#666', lineHeight: '1.5' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-faint)', lineHeight: '1.5' }}>
                 An email invitation will be sent with a link to join this deal portal. Once they create credentials, they'll have access to view deal details, chat, and documents based on their role.
               </div>
             </div>

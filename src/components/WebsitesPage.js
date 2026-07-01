@@ -99,7 +99,7 @@ const WebsitesPage = () => {
               </h4>
               <p style={{
                 fontSize: '12px',
-                color: '#666666',
+                color: 'var(--text-faint)',
                 margin: 0,
                 lineHeight: '1.5'
               }}>
