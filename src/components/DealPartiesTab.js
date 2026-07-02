@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { collection, addDoc, getDocs, query, where, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
+import ConfirmModal from './ConfirmModal';
 import { Plus, Users } from './Icons';
+import { logActivity } from '../utils/auditLog';
 
 const PARTY_ROLES = [
   { value: 'buyers-agent', label: "Buyer's Agent", color: '#0088ff' },
@@ -23,6 +25,7 @@ const DealPartiesTab = ({ dealId, deal }) => {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteForm, setInviteForm] = useState({ name: '', email: '', phone: '', role: 'buyers-agent', company: '' });
   const [sending, setSending] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState({ open: false, party: null });
 
   useEffect(() => {
     loadParties();
@@ -75,10 +78,15 @@ const DealPartiesTab = ({ dealId, deal }) => {
     setSending(false);
   };
 
-  const removeParty = async (partyId) => {
+  const removeParty = async () => {
+    const target = confirmRemove.party;
+    setConfirmRemove({ open: false, party: null });
+    if (!target?.id) return;
     try {
-      await deleteDoc(doc(db, 'deal-parties', partyId));
+      await deleteDoc(doc(db, 'deal-parties', target.id));
       toast.success('Party removed');
+      logActivity('deleted', 'deal-party', target.id,
+        `Party "${target.name || target.id}" removed from deal "${deal?.propertyAddress || dealId}"`);
       loadParties();
     } catch (err) {
       toast.error('Failed to remove party');
@@ -180,7 +188,7 @@ const DealPartiesTab = ({ dealId, deal }) => {
                       </button>
                     )}
                     <button
-                      onClick={() => removeParty(party.id)}
+                      onClick={() => setConfirmRemove({ open: true, party })}
                       style={{ background: 'none', border: '1px solid #331111', color: '#ff4444', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
                     >
                       Remove
@@ -290,6 +298,15 @@ const DealPartiesTab = ({ dealId, deal }) => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmRemove.open}
+        title="Remove party?"
+        message={`This removes "${confirmRemove.party?.name || 'this party'}" from the deal and revokes their portal presence. This action can't be undone.`}
+        confirmLabel="Remove"
+        onConfirm={removeParty}
+        onCancel={() => setConfirmRemove({ open: false, party: null })}
+      />
     </div>
   );
 };
