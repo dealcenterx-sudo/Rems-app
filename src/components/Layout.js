@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { auth } from '../firebase';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { auth, db } from '../firebase';
 import { signOut } from 'firebase/auth';
+import { collection, getDocs, query, where, limit, doc, updateDoc } from 'firebase/firestore';
 import { Bell, User, Search, Settings, LogOut } from './Icons';
 import { getNavItemsForRole } from './Icons';
 import useUserDoc from '../utils/useUserDoc';
@@ -66,9 +67,58 @@ const BottomNav = ({ activeTab, setActiveTab }) => {
 };
 
 // Top Bar Component
+const formatNotificationTime = (iso) => {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return '';
+  const diffMinutes = Math.floor((Date.now() - parsed.getTime()) / 60000);
+  if (diffMinutes < 1) return 'just now';
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffMinutes < 60 * 24) return `${Math.floor(diffMinutes / 60)}h ago`;
+  return parsed.toLocaleDateString();
+};
+
 const TopBar = ({ title, searchQuery, onSearchChange, showSearch }) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const notificationsRef = useRef(null);
+
+  const loadNotifications = useCallback(async () => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    try {
+      // Equality-only filter avoids composite index requirements; sort client-side.
+      const snap = await getDocs(
+        query(collection(db, 'notifications'), where('recipientId', '==', uid), limit(50))
+      );
+      const items = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+        .slice(0, 20);
+      setNotifications(items);
+      setUnreadCount(items.filter((n) => !n.read).length);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
+
+  const handleToggleNotifications = async () => {
+    const opening = !showNotifications;
+    setShowNotifications(opening);
+    if (!opening) return;
+    await loadNotifications();
+    // Mark everything read once seen; badge clears immediately.
+    setUnreadCount(0);
+    notifications
+      .filter((n) => !n.read)
+      .forEach((n) =>
+        updateDoc(doc(db, 'notifications', n.id), { read: true }).catch(() => {})
+      );
+  };
 
   const getCurrentDateTime = () => {
     const now = new Date();
@@ -116,16 +166,66 @@ const TopBar = ({ title, searchQuery, onSearchChange, showSearch }) => {
           <button
             type="button"
             className="btn-icon"
-            onClick={() => setShowNotifications((prev) => !prev)}
+            onClick={handleToggleNotifications}
             title="Notifications"
+            style={{ position: 'relative' }}
           >
-            <Bell size={18} color="#888888" />
+            <Bell size={18} color={unreadCount > 0 ? '#00ff88' : '#888888'} />
+            {unreadCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-4px',
+                minWidth: '16px',
+                height: '16px',
+                borderRadius: '8px',
+                background: 'var(--accent)',
+                color: '#000000',
+                fontSize: '10px',
+                fontWeight: '700',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 4px'
+              }}>
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
           {showNotifications && (
             <div className="notification-panel">
               <div className="notification-header">Notifications</div>
-              <div className="notification-empty">No notifications yet.</div>
-              <div className="notification-footer">You are all caught up.</div>
+              {notifications.length === 0 ? (
+                <div className="notification-empty">No notifications yet.</div>
+              ) : (
+                <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
+                  {notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      style={{
+                        padding: '10px 14px',
+                        borderBottom: '1px solid var(--border-subtle)',
+                        background: n.read ? 'transparent' : 'var(--accent-soft)'
+                      }}
+                    >
+                      <div style={{ fontSize: '12px', fontWeight: '600', color: '#ffffff' }}>
+                        {n.title}
+                      </div>
+                      {n.body && (
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                          {n.body}
+                        </div>
+                      )}
+                      <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginTop: '4px' }}>
+                        {formatNotificationTime(n.createdAt)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="notification-footer">
+                {unreadCount > 0 ? `${unreadCount} unread` : 'You are all caught up.'}
+              </div>
             </div>
           )}
         </div>

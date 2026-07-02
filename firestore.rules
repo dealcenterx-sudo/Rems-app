@@ -171,6 +171,16 @@ service cloud.firestore {
       allow delete: if isAdmin() || ownsResource();
     }
 
+    // ---------- notifications ----------
+    // Any signed-in user may create a notification but must stamp
+    // themselves as the actor; only the recipient (or admin) can read,
+    // mark read, or delete it.
+    match /notifications/{docId} {
+      allow create: if isSignedIn() && request.resource.data.actorId == request.auth.uid;
+      allow read, update, delete: if isAdmin() ||
+        (isSignedIn() && resource.data.recipientId == request.auth.uid);
+    }
+
     // ---------- activity log ----------
     // Append-only audit trail. Nobody edits or deletes history — not even
     // the admin. Entries must be written as the acting user.

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { collection, addDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
+import { notifyUsers, dealRecipients } from '../utils/notifications';
 
 const DEFAULT_CHANNELS = [
   { id: 'general', name: 'General', description: 'Main deal discussion for all parties', icon: '#', permanent: true },
@@ -100,6 +101,12 @@ const DealChatTab = ({ dealId, deal }) => {
         senderName: auth.currentUser?.displayName || auth.currentUser?.email || 'Unknown',
         senderEmail: auth.currentUser?.email || null,
         createdAt: new Date().toISOString()
+      });
+      notifyUsers(dealRecipients(deal), {
+        type: 'deal-message',
+        title: `New message on "${deal?.propertyAddress || 'a deal'}"`,
+        body: text.length > 120 ? `${text.slice(0, 120)}…` : text,
+        dealId
       });
       loadMessages(activeChannel);
     } catch (err) {

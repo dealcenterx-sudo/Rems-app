@@ -3,6 +3,7 @@ import { collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove, orderBy, 
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import { logActivity } from '../utils/auditLog';
+import { notifyUsers } from '../utils/notifications';
 
 const ROLES = ['agent', 'admin', 'buyer', 'seller'];
 
@@ -80,6 +81,24 @@ const UserManagement = () => {
         [field]: isAssigned ? arrayRemove(itemId) : arrayUnion(itemId),
         updatedAt: new Date().toISOString()
       });
+
+      if (field === 'assignedDeals') {
+        // Mirror onto the deal so portal actions can notify participants.
+        await updateDoc(doc(db, 'deals', itemId), {
+          participantIds: isAssigned ? arrayRemove(user.id) : arrayUnion(user.id),
+          updatedAt: new Date().toISOString()
+        }).catch((error) => console.error('Failed to mirror participantIds:', error));
+
+        if (!isAssigned) {
+          const deal = deals.find((d) => d.id === itemId);
+          notifyUsers([user.id], {
+            type: 'deal-shared',
+            title: 'A deal was shared with you',
+            body: deal?.propertyAddress ? `You now have portal access to "${deal.propertyAddress}".` : 'Open Deals to view it.',
+            dealId: itemId
+          });
+        }
+      }
       setUsers((prev) => prev.map((u) => {
         if (u.id !== user.id) return u;
         const current = Array.isArray(u[field]) ? u[field] : [];

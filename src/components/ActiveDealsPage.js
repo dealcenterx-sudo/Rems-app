@@ -14,6 +14,7 @@ import {
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import { logActivity } from '../utils/auditLog';
+import { notifyUsers, dealRecipients } from '../utils/notifications';
 import ConfirmModal from './ConfirmModal';
 import { isAdminUser } from '../utils/helpers';
 
@@ -125,6 +126,11 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
       logActivity('status_changed', 'deal', dealId,
         `Deal "${currentDeal?.propertyAddress || dealId}" marked ${getStatusLabel(newStatus)}`,
         { field: 'status', oldValue: previousStatus || null, newValue: newStatus });
+      notifyUsers(dealRecipients(currentDeal), {
+        type: 'deal-status',
+        title: `Deal "${currentDeal?.propertyAddress || dealId}" is now ${getStatusLabel(newStatus)}`,
+        dealId
+      });
     } catch (error) {
       console.error('Error updating deal:', error);
       toast.error('Error updating deal status');

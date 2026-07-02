@@ -6,6 +6,7 @@ import ConfirmModal from './ConfirmModal';
 import { Plus, FileText, Search } from './Icons';
 import { CLOUDINARY_UPLOAD_PRESET, CLOUDINARY_CLOUD_NAME } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
+import { notifyUsers, dealRecipients } from '../utils/notifications';
 
 const DOC_CATEGORIES = [
   { value: 'contract', label: 'Purchase Contract', icon: '📄' },
@@ -106,6 +107,12 @@ const DealDocumentsTab = ({ dealId, deal }) => {
       });
 
       toast.success('Document uploaded');
+      notifyUsers(dealRecipients(deal), {
+        type: 'deal-document',
+        title: `New document on "${deal?.propertyAddress || 'a deal'}"`,
+        body: uploadForm.name || selectedFile.name,
+        dealId
+      });
       setShowUploadModal(false);
       setSelectedFile(null);
       setUploadForm({ name: '', category: 'contract', notes: '', requiresSignature: false });
