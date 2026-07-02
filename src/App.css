@@ -247,6 +247,14 @@ body {
   cursor: pointer;
   transition: all var(--motion-fast) var(--ease-standard);
   position: relative;
+  /* Nav items are <button>s for keyboard access; neutralize UA styles */
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  font-size: inherit;
   overflow: hidden;
   white-space: nowrap;
 }
@@ -1258,6 +1266,13 @@ body {
   cursor: pointer;
   transition: all var(--motion-fast) var(--ease-standard);
   font-size: 14px;
+  /* Subnav items are <button>s for keyboard access; neutralize UA styles */
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  width: 100%;
+  text-align: left;
+  color: inherit;
   font-weight: 500;
   color: var(--text-muted);
 }
@@ -2596,6 +2611,12 @@ body {
   outline: none;
   box-shadow: var(--focus-ring);
   border-radius: var(--radius-sm);
+}
+
+.nav-item:focus-visible,
+.subnav-item:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 /* Settings two-pane layout — collapses to stacked nav on small screens */

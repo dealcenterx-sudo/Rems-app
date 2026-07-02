@@ -327,8 +327,9 @@ const handleSaveContact = async () => {
         <div className="subnav-title">Contacts</div>
         <div className="subnav-items">
           {contactViewTabs.map((tab) => (
-            <div
+            <button
               key={tab.id}
+              type="button"
               onClick={() => {
                 setSelectedViewTab(tab.id);
                 if (tab.id !== 'all' && tab.id !== 'add') {
@@ -336,10 +337,11 @@ const handleSaveContact = async () => {
                 }
               }}
               className={`subnav-item ${selectedViewTab === tab.id ? 'active' : ''}`}
+              aria-current={selectedViewTab === tab.id ? 'page' : undefined}
             >
               <Users size={18} color={selectedViewTab === tab.id ? '#00ff88' : '#888888'} />
               <span>{tab.label}</span>
-            </div>
+            </button>
           ))}
         </div>
       </div>

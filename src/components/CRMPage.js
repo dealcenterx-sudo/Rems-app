@@ -29,8 +29,9 @@ const CRMPage = ({ subTab, setSubTab, leadId, setLeadId, onOpenLead, onStartDeal
         <div className="subnav-title">CRM</div>
         <div className="subnav-items">
           {renderedItems.map((item) => (
-            <div
+            <button
               key={item.id}
+              type="button"
               onClick={() => {
                 setSubTab(item.id);
                 if (item.id !== 'lead-detail') {
@@ -38,10 +39,11 @@ const CRMPage = ({ subTab, setSubTab, leadId, setLeadId, onOpenLead, onStartDeal
                 }
               }}
               className={`subnav-item ${subTab === item.id ? 'active' : ''}`}
+              aria-current={subTab === item.id ? 'page' : undefined}
             >
               <item.icon size={18} color={subTab === item.id ? '#00ff88' : '#888888'} />
               <span>{item.label}</span>
-            </div>
+            </button>
           ))}
         </div>
       </div>

@@ -153,6 +153,14 @@ const DealDocumentsTab = ({ dealId, deal }) => {
         lastSignedAt: new Date().toISOString()
       });
       toast.success('Document signed');
+      logActivity('signed', 'deal-document', docItem.id,
+        `Document "${docItem.name || docItem.id}" signed on deal "${deal?.propertyAddress || dealId}"`);
+      notifyUsers(dealRecipients(deal), {
+        type: 'deal-signature',
+        title: `Document signed on "${deal?.propertyAddress || 'a deal'}"`,
+        body: `${currentUser} signed "${docItem.name || 'a document'}"`,
+        dealId
+      });
       loadDocuments();
     } catch (err) {
       toast.error('Failed to sign');

@@ -18,25 +18,29 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       </div>
       <div className="nav-items">
         {navItems.filter((item) => item.id !== 'settings').map((item) => (
-          <div
+          <button
             key={item.id}
+            type="button"
             onClick={() => setActiveTab(item.id)}
             className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
             title={item.label}
+            aria-current={activeTab === item.id ? 'page' : undefined}
           >
             <item.icon size={20} color={activeTab === item.id ? '#00ff88' : '#888888'} />
             <span>{item.label}</span>
-          </div>
+          </button>
         ))}
       </div>
-      <div
+      <button
+        type="button"
         onClick={() => setActiveTab('settings')}
         className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
         title="Settings"
+        aria-current={activeTab === 'settings' ? 'page' : undefined}
       >
         <Settings size={20} color={activeTab === 'settings' ? '#00ff88' : '#888888'} />
         <span>Settings</span>
-      </div>
+      </button>
 
     </div>
   );

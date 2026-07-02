@@ -4,11 +4,13 @@ import { db } from '../firebase';
 import { useToast } from './Toast';
 
 const ACTION_COLORS = {
+  created: 'var(--accent)',
   deleted: 'var(--danger)',
   status_changed: 'var(--info)',
   role_changed: 'var(--warning)',
   assigned: 'var(--accent)',
-  unassigned: 'var(--warning)'
+  unassigned: 'var(--warning)',
+  signed: 'var(--accent)'
 };
 
 const formatWhen = (iso) => {
