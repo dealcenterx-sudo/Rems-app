@@ -5,6 +5,7 @@ import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { Plus, Users } from './Icons';
 import { logActivity } from '../utils/auditLog';
+import { sendEmailViaApi } from '../utils/emailService';
 
 const PARTY_ROLES = [
   { value: 'buyers-agent', label: "Buyer's Agent", color: '#0088ff' },
@@ -67,7 +68,33 @@ const DealPartiesTab = ({ dealId, deal }) => {
         userId: null
       });
 
-      toast.success(`Invite sent to ${inviteForm.name}`);
+      const roleLabel = PARTY_ROLES.find((r) => r.value === inviteForm.role)?.label || inviteForm.role;
+      const address = deal?.propertyAddress || 'a real estate transaction';
+      const emailResult = await sendEmailViaApi({
+        to: inviteForm.email.toLowerCase().trim(),
+        subject: `You've been invited to collaborate on ${address}`,
+        text: [
+          `Hi ${inviteForm.name},`,
+          '',
+          `${auth.currentUser?.email || 'A REMS user'} invited you to the deal room for "${address}" as ${roleLabel}.`,
+          '',
+          'To get access:',
+          `1. Create your free account at ${window.location.origin} using this email address`,
+          '2. Reply to this email so the deal owner can grant you portal access',
+          '',
+          'The deal room includes shared documents, progress tracking, and a chat with all parties.',
+          '',
+          '— REMS by Deal Tech'
+        ].join('\n')
+      });
+
+      if (emailResult.ok) {
+        toast.success(`Invite email sent to ${inviteForm.name}`);
+      } else {
+        toast.info(`${inviteForm.name} added to the deal — invite email could not be delivered (${emailResult.reason})`);
+      }
+      logActivity('created', 'deal-party', null,
+        `Party "${inviteForm.name}" (${roleLabel}) invited to deal "${address}"`);
       setInviteForm({ name: '', email: '', phone: '', role: 'buyers-agent', company: '' });
       setShowInviteModal(false);
       loadParties();

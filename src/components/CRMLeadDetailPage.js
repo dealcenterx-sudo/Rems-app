@@ -18,6 +18,7 @@ import {
 } from '../utils/helpers';
 import { canUserAccess, getEditableFields } from '../utils/permissions';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
+import { sendEmailViaApi } from '../utils/emailService';
 import useUserDoc from '../utils/useUserDoc';
 
 const LeadPdfViewer = lazyWithReload(() => import('./LeadPdfViewer'));
@@ -648,23 +649,37 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
 
     setSendingEmail(true);
     try {
-      const webhookUrl = process.env.REACT_APP_CRM_EMAIL_WEBHOOK_URL;
-      if (webhookUrl) {
-        const response = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(messagePayload)
-        });
-        if (!response.ok) {
-          throw new Error('Webhook email send failed');
+      // Delivery order: platform email API → legacy webhook → mailto fallback.
+      let deliveredVia = 'api';
+      const apiResult = await sendEmailViaApi({
+        to: toValue,
+        cc: messagePayload.cc || undefined,
+        bcc: messagePayload.bcc || undefined,
+        subject: subjectValue,
+        text: finalBody
+      });
+
+      if (!apiResult.ok) {
+        const webhookUrl = process.env.REACT_APP_CRM_EMAIL_WEBHOOK_URL;
+        if (webhookUrl) {
+          const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(messagePayload)
+          });
+          if (!response.ok) {
+            throw new Error('Webhook email send failed');
+          }
+          deliveredVia = 'webhook';
+        } else {
+          const mailtoParams = new URLSearchParams();
+          if (messagePayload.cc) mailtoParams.set('cc', messagePayload.cc);
+          if (messagePayload.bcc) mailtoParams.set('bcc', messagePayload.bcc);
+          mailtoParams.set('subject', messagePayload.subject);
+          mailtoParams.set('body', messagePayload.body);
+          window.open(`mailto:${encodeURIComponent(messagePayload.to)}?${mailtoParams.toString()}`, '_blank', 'noopener');
+          deliveredVia = 'mailto';
         }
-      } else {
-        const mailtoParams = new URLSearchParams();
-        if (messagePayload.cc) mailtoParams.set('cc', messagePayload.cc);
-        if (messagePayload.bcc) mailtoParams.set('bcc', messagePayload.bcc);
-        mailtoParams.set('subject', messagePayload.subject);
-        mailtoParams.set('body', messagePayload.body);
-        window.open(`mailto:${encodeURIComponent(messagePayload.to)}?${mailtoParams.toString()}`, '_blank', 'noopener');
       }
 
       const existingHistory = Array.isArray(lead?.emailHistory) ? lead.emailHistory : [];
@@ -683,7 +698,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         source: 'email'
       });
 
-      toast.success(webhookUrl ? 'Email sent from CRM' : 'Email composer opened');
+      toast.success(deliveredVia === 'mailto' ? 'Email composer opened' : `Email sent to ${toValue}`);
       setShowEmailComposer(false);
     } catch (error) {
       console.error('Error sending CRM email:', error);

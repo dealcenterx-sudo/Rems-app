@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { db, auth } from '../firebase';
 import { collection, getDocs, query, where, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from './Toast';
+import { sendEmailViaApi } from '../utils/emailService';
 import { Search, Plus } from './Icons';
 
 const CRMEmailInboxPage = () => {
@@ -212,23 +213,37 @@ const CRMEmailInboxPage = () => {
 
     setSending(true);
     try {
-      const webhookUrl = process.env.REACT_APP_CRM_EMAIL_WEBHOOK_URL;
-      if (webhookUrl) {
-        const response = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(messagePayload)
-        });
-        if (!response.ok) {
-          throw new Error('Webhook email send failed');
+      // Delivery order: platform email API → legacy webhook → mailto fallback.
+      let deliveredVia = 'api';
+      const apiResult = await sendEmailViaApi({
+        to: toValue,
+        cc: messagePayload.cc || undefined,
+        bcc: messagePayload.bcc || undefined,
+        subject: subjectValue,
+        text: finalBody
+      });
+
+      if (!apiResult.ok) {
+        const webhookUrl = process.env.REACT_APP_CRM_EMAIL_WEBHOOK_URL;
+        if (webhookUrl) {
+          const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(messagePayload)
+          });
+          if (!response.ok) {
+            throw new Error('Webhook email send failed');
+          }
+          deliveredVia = 'webhook';
+        } else {
+          const mailtoParams = new URLSearchParams();
+          if (messagePayload.cc) mailtoParams.set('cc', messagePayload.cc);
+          if (messagePayload.bcc) mailtoParams.set('bcc', messagePayload.bcc);
+          mailtoParams.set('subject', messagePayload.subject);
+          mailtoParams.set('body', messagePayload.body);
+          window.open(`mailto:${encodeURIComponent(messagePayload.to)}?${mailtoParams.toString()}`, '_blank', 'noopener');
+          deliveredVia = 'mailto';
         }
-      } else {
-        const mailtoParams = new URLSearchParams();
-        if (messagePayload.cc) mailtoParams.set('cc', messagePayload.cc);
-        if (messagePayload.bcc) mailtoParams.set('bcc', messagePayload.bcc);
-        mailtoParams.set('subject', messagePayload.subject);
-        mailtoParams.set('body', messagePayload.body);
-        window.open(`mailto:${encodeURIComponent(messagePayload.to)}?${mailtoParams.toString()}`, '_blank', 'noopener');
       }
 
       const sentEntry = {
@@ -273,7 +288,11 @@ const CRMEmailInboxPage = () => {
       setActiveFolder('sent');
       setSelectedEmailId(sentEntry.id);
       setShowCompose(false);
-      toast.success(webhookUrl ? 'Email sent from CRM' : 'Email composer opened');
+      toast.success(
+        deliveredVia === 'mailto'
+          ? 'Email composer opened'
+          : `Email sent to ${toValue}`
+      );
     } catch (error) {
       console.error('Error sending CRM inbox email:', error);
       toast.error('Failed to send email');
