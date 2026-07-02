@@ -1,11 +1,12 @@
 // Shared Firebase Admin initialization for serverless functions.
 // Requires FIREBASE_SERVICE_ACCOUNT (the service account JSON) in env.
-const admin = require('firebase-admin');
+// firebase-admin v14 is fully modular — no legacy namespace API.
+const { initializeApp, cert, getApps } = require('firebase-admin/app');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+const { getAuth } = require('firebase-admin/auth');
 
-let initialized = false;
-
-const getAdmin = () => {
-  if (!initialized) {
+const init = () => {
+  if (getApps().length === 0) {
     const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
     if (!raw) {
       throw new Error('FIREBASE_SERVICE_ACCOUNT not configured');
@@ -15,12 +16,18 @@ const getAdmin = () => {
     if (typeof credentials.private_key === 'string') {
       credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
     }
-    admin.initializeApp({
-      credential: admin.credential.cert(credentials)
-    });
-    initialized = true;
+    initializeApp({ credential: cert(credentials) });
   }
-  return admin;
 };
 
-module.exports = { getAdmin };
+const getDb = () => {
+  init();
+  return getFirestore();
+};
+
+const getAuthAdmin = () => {
+  init();
+  return getAuth();
+};
+
+module.exports = { getDb, getAuthAdmin, FieldValue };

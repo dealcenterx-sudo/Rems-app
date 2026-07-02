@@ -1,6 +1,6 @@
 // Temporary diagnostics: reports which integration env vars are visible
 // to the runtime. Booleans, key names, and init errors only — never values.
-const { getAdmin } = require('./_lib/firebaseAdmin');
+const { getDb } = require('./_lib/firebaseAdmin');
 
 module.exports = async (req, res) => {
   const keys = Object.keys(process.env).filter((k) =>
@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
 
   let adminInit = 'ok';
   try {
-    getAdmin();
+    getDb();
   } catch (error) {
     adminInit = error.message || 'failed';
   }

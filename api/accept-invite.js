@@ -1,16 +1,18 @@
 // Consumes a deal-party invite token for the signed-in user: links their
 // account to the party record, grants deal portal access, notifies the
 // deal owner. The signed-in email must match the invited email.
-const { getAdmin } = require('./_lib/firebaseAdmin');
+const { getDb, getAuthAdmin, FieldValue } = require('./_lib/firebaseAdmin');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  let admin;
+  let db;
+  let authAdmin;
   try {
-    admin = getAdmin();
+    db = getDb();
+    authAdmin = getAuthAdmin();
   } catch (error) {
     return res.status(503).json({ error: 'Invite service not configured' });
   }
@@ -23,7 +25,7 @@ module.exports = async (req, res) => {
 
   let decoded;
   try {
-    decoded = await admin.auth().verifyIdToken(idToken);
+    decoded = await authAdmin.verifyIdToken(idToken);
   } catch (error) {
     return res.status(401).json({ error: 'Invalid auth token' });
   }
@@ -33,7 +35,6 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'inviteToken is required' });
   }
 
-  const db = admin.firestore();
   const now = new Date().toISOString();
 
   try {
@@ -68,11 +69,11 @@ module.exports = async (req, res) => {
       inviteToken: null
     });
     await db.collection('users').doc(decoded.uid).set(
-      { assignedDeals: admin.firestore.FieldValue.arrayUnion(dealId), updatedAt: now },
+      { assignedDeals: FieldValue.arrayUnion(dealId), updatedAt: now },
       { merge: true }
     );
     await db.collection('deals').doc(dealId).update({
-      participantIds: admin.firestore.FieldValue.arrayUnion(decoded.uid),
+      participantIds: FieldValue.arrayUnion(decoded.uid),
       updatedAt: now
     });
 

@@ -2,7 +2,7 @@
 // providers). Requires the shared secret in the x-api-key header.
 // POST JSON: { name, email, phone, serviceType, source, street, city,
 //              state, zipCode, propertyType, notes }
-const { getAdmin } = require('./_lib/firebaseAdmin');
+const { getDb, getAuthAdmin } = require('./_lib/firebaseAdmin');
 
 const ADMIN_EMAIL = 'dealcenterx@gmail.com';
 
@@ -19,9 +19,11 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: 'Invalid API key' });
   }
 
-  let admin;
+  let db;
+  let authAdmin;
   try {
-    admin = getAdmin();
+    db = getDb();
+    authAdmin = getAuthAdmin();
   } catch (error) {
     return res.status(503).json({ error: 'Lead intake not configured' });
   }
@@ -35,12 +37,11 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'At least one of name, email, or phone is required' });
   }
 
-  const db = admin.firestore();
   const now = new Date().toISOString();
 
   try {
     // Leads land in the admin's pipeline by default.
-    const owner = await admin.auth().getUserByEmail(ADMIN_EMAIL).catch(() => null);
+    const owner = await authAdmin.getUserByEmail(ADMIN_EMAIL).catch(() => null);
 
     const lead = {
       name: name || '',
