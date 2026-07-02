@@ -121,6 +121,15 @@ const FieldRow = ({ label, value, onSave, type = 'text', options }) => {
   return (
     <div
       onClick={() => setEditing(true)}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setEditing(true);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Edit ${label}`}
       style={{
         display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '14px',
         cursor: 'text', padding: '6px 8px', borderRadius: '6px',
@@ -128,9 +137,11 @@ const FieldRow = ({ label, value, onSave, type = 'text', options }) => {
       }}
       onMouseEnter={e => { e.currentTarget.style.background = '#1a1a1a'; }}
       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+      onFocus={e => { e.currentTarget.style.background = '#1a1a1a'; }}
+      onBlur={e => { e.currentTarget.style.background = 'transparent'; }}
     >
       <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
-      <div style={{ fontSize: '14px', color: value ? '#fff' : '#444' }}>{value || 'Click to edit…'}</div>
+      <div style={{ fontSize: '14px', color: value ? '#fff' : '#555' }}>{value || 'Click to edit…'}</div>
     </div>
   );
 };

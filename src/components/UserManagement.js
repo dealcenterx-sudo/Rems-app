@@ -87,7 +87,10 @@ const UserManagement = () => {
         await updateDoc(doc(db, 'deals', itemId), {
           participantIds: isAssigned ? arrayRemove(user.id) : arrayUnion(user.id),
           updatedAt: new Date().toISOString()
-        }).catch((error) => console.error('Failed to mirror participantIds:', error));
+        }).catch((error) => {
+          console.error('Failed to mirror participantIds:', error);
+          toast.error('Deal assignment saved, but portal notifications may not reach this user — toggle the deal off and on to retry.');
+        });
 
         if (!isAssigned) {
           const deal = deals.find((d) => d.id === itemId);
