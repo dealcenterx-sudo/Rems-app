@@ -170,5 +170,6 @@ export const escapeHtml = (value) => String(value || '')
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&#39;');
 
-export const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned';
-export const CLOUDINARY_CLOUD_NAME = 'djaq0av66';
+// Single source of truth for Cloudinary config lives in utils/cloudinary.js.
+// Re-exported here for existing imports.
+export { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from './cloudinary';

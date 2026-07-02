@@ -16,6 +16,7 @@ import {
   persistStoredSampleLead,
 } from '../utils/helpers';
 import { canUserAccess, getEditableFields } from '../utils/permissions';
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
 import useUserDoc from '../utils/useUserDoc';
 
 const LeadPdfViewer = React.lazy(() => import('./LeadPdfViewer'));
@@ -78,8 +79,6 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
     signatureText: ''
   });
 
-  const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned';
-  const CLOUDINARY_CLOUD_NAME = 'djaq0av66';
   const hasLinkedDeal = linkedDealCount > 0;
 
   const fetchLinkedDealCount = useCallback(async (targetLeadId) => {

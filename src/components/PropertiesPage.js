@@ -20,11 +20,9 @@ import { isAdminUser } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
 import { canUserManageProperty, getEditableFields } from '../utils/permissions';
 import useUserDoc from '../utils/useUserDoc';
-import { CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
 import useDebounce from '../utils/useDebounce';
 
-// Properties bucket uses its own Cloudinary cloud
-const PROPERTIES_CLOUD_NAME = 'djaq0av66';
 const PROPERTIES_PAGE_SIZE = 40;
 
 const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
@@ -211,7 +209,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
     try {
       const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${PROPERTIES_CLOUD_NAME}/image/upload`,
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
         {
           method: 'POST',
           body: formData
