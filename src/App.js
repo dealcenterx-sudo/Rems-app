@@ -11,6 +11,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 // Login - keep eager (needed before anything else)
 import LoginPage from './components/LoginPage';
+import InviteAcceptor from './components/InviteAcceptor';
 
 // Lazy-loaded pages (only downloaded when user navigates to them)
 const HomePage = lazyWithReload(() => import('./components/HomePage'));
@@ -159,6 +160,7 @@ function App() {
 
   return (
     <ToastProvider>
+      <InviteAcceptor onAccepted={handleOpenDealFromNotification} />
       <div className="App">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="main-container">
