@@ -154,8 +154,8 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content" style={{
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{
         border: '2px solid #0088ff',
         padding: '30px',
         maxWidth: '600px',

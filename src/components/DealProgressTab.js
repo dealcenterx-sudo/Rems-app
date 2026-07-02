@@ -315,8 +315,8 @@ const DealProgressTab = ({ dealId, deal }) => {
 
       {/* Add Custom Item Modal */}
       {showAddItem && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '460px', padding: '30px' }}>
+        <div className="modal-overlay" onClick={() => setShowAddItem(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '460px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Add Checklist Item</h2>
               <button onClick={() => setShowAddItem(false)} className="icon-button">×</button>

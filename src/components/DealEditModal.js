@@ -132,8 +132,8 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
   const quickActions = ['Call Buyer', 'Call Seller', 'Schedule Showing', 'Add Note'];
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content detail-modal-content">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content detail-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="detail-layout-topbar">
           <div className="detail-layout-title-wrap">
             <h2 className="detail-layout-title">Edit Deal</h2>

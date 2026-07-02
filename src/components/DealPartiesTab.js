@@ -203,8 +203,8 @@ const DealPartiesTab = ({ dealId, deal }) => {
 
       {/* Invite Modal */}
       {showInviteModal && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '500px', padding: '30px' }}>
+        <div className="modal-overlay" onClick={() => setShowInviteModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '24px' }}>
               <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Invite Party to Deal</h2>
               <button onClick={() => setShowInviteModal(false)} className="icon-button">×</button>

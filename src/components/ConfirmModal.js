@@ -1,4 +1,5 @@
 import React from 'react';
+import useEscapeKey from '../utils/useEscapeKey';
 
 const ConfirmModal = ({
   open,
@@ -10,12 +11,16 @@ const ConfirmModal = ({
   onConfirm,
   onCancel
 }) => {
+  // Escape and outside-click both mean "cancel" — the safe default.
+  useEscapeKey(onCancel, open);
+
   if (!open) return null;
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={onCancel}>
       <div
         className="modal-content"
+        onClick={(e) => e.stopPropagation()}
         style={{
           maxWidth: '460px',
           padding: '26px',

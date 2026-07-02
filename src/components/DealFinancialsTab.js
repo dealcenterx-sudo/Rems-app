@@ -272,8 +272,8 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
 
       {/* Push to Lender Modal */}
       {showPushModal && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '500px', padding: '30px' }}>
+        <div className="modal-overlay" onClick={() => setShowPushModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Push Deal to Lender</h2>
               <button onClick={() => setShowPushModal(false)} className="icon-button">×</button>

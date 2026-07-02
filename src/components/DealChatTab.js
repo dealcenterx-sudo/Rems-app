@@ -301,8 +301,8 @@ const DealChatTab = ({ dealId, deal }) => {
 
       {/* Create Channel Modal */}
       {showCreateChannel && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '460px', padding: '30px' }}>
+        <div className="modal-overlay" onClick={() => setShowCreateChannel(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '460px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Create Channel</h2>
               <button onClick={() => setShowCreateChannel(false)} className="icon-button">×</button>

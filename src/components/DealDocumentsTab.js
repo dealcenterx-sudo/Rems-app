@@ -308,8 +308,8 @@ const DealDocumentsTab = ({ dealId, deal }) => {
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '500px', padding: '30px' }}>
+        <div className="modal-overlay" onClick={() => setShowUploadModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Upload Document</h2>
               <button onClick={() => setShowUploadModal(false)} className="icon-button">×</button>

@@ -300,8 +300,8 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
 
       {/* Deal Detail Modal */}
       {showDetailModal && selectedDeal && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ padding: '30px', maxWidth: '600px' }}>
+        <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ padding: '30px', maxWidth: '600px' }}>
             <div className="modal-header" style={{ marginBottom: '24px' }}>
               <div>
                 <h2 style={{ fontSize: '20px', color: '#ffffff', marginBottom: '8px', fontWeight: '600' }}>Deal Details</h2>

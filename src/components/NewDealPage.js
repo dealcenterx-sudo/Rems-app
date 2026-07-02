@@ -5,6 +5,7 @@ import { useToast } from './Toast';
 import { BuyerIcon, SellerIcon, PropertyIcon, Plus } from './Icons';
 import { normalizeAddressValue } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
+import useEscapeKey from '../utils/useEscapeKey';
 
 // DEALS PAGE - New Deal (IMPROVED UX)
 const NewDealPage = () => {
@@ -21,6 +22,12 @@ const NewDealPage = () => {
   const [showPropertyModal, setShowPropertyModal] = useState(false);
   const [propertyInput, setPropertyInput] = useState('');
   const toast = useToast();
+
+  useEscapeKey(() => {
+    setShowBuyerModal(false);
+    setShowSellerModal(false);
+    setShowPropertyModal(false);
+  }, showBuyerModal || showSellerModal || showPropertyModal);
   // Load contacts and properties from Firebase
   React.useEffect(() => {
     const loadData = async () => {
@@ -293,8 +300,8 @@ const querySnapshot = isAdmin
 
       {/* Buyer Selection Modal */}
       {showBuyerModal && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ borderColor: '#0088ff', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
+        <div className="modal-overlay" onClick={() => setShowBuyerModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ borderColor: '#0088ff', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '20px', color: '#0088ff', margin: 0 }}>Select Buyer</h2>
               <button
@@ -363,8 +370,8 @@ const querySnapshot = isAdmin
 
       {/* Seller Selection Modal */}
       {showSellerModal && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ borderColor: '#00ff88', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
+        <div className="modal-overlay" onClick={() => setShowSellerModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ borderColor: '#00ff88', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '20px', color: '#00ff88', margin: 0 }}>Select Seller</h2>
               <button
@@ -428,8 +435,8 @@ const querySnapshot = isAdmin
 
       {/* Property Input Modal */}
       {showPropertyModal && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ borderColor: '#ffaa00', padding: '30px', maxWidth: '500px', width: '90%' }}>
+        <div className="modal-overlay" onClick={() => setShowPropertyModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ borderColor: '#ffaa00', padding: '30px', maxWidth: '500px', width: '90%' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '20px', color: '#ffaa00', margin: 0 }}>Enter Property Address</h2>
               <button
