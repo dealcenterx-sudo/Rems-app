@@ -18,11 +18,34 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test:ci
+        env:
+          CI: true
+
+      - name: Build
+        run: npm run build
+        env:
+          CI: false
+
       - name: Set git identity
         run: |
           git config user.name "Claude Code Bot"
           git config user.email "claude-bot@dealtech.ai"
 
+      # Only reached if lint, tests, and build all passed
       - name: Merge claude branch into main
         run: |
           git checkout main
