@@ -119,7 +119,7 @@ const DealPortalPage = ({ dealId, onBack }) => {
                 background: 'none',
                 border: 'none',
                 borderBottom: activeTab === tab.id ? '2px solid #00ff88' : '2px solid transparent',
-                color: activeTab === tab.id ? '#00ff88' : '#666',
+                color: activeTab === tab.id ? '#00ff88' : 'var(--text-muted)',
                 cursor: 'pointer',
                 fontSize: '13px',
                 fontWeight: activeTab === tab.id ? '600' : '400',
@@ -127,7 +127,7 @@ const DealPortalPage = ({ dealId, onBack }) => {
                 transition: 'all 0.2s'
               }}
             >
-              <tab.icon size={16} color={activeTab === tab.id ? '#00ff88' : '#666'} />
+              <tab.icon size={16} color={activeTab === tab.id ? '#00ff88' : '#8a8a8a'} />
               {tab.label}
             </button>
           ))}
