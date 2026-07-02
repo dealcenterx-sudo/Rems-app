@@ -22,6 +22,7 @@ const TasksPage = React.lazy(() => import('./components/TasksPage'));
 const DocumentsPage = React.lazy(() => import('./components/DocumentsPage'));
 const WebsitesPage = React.lazy(() => import('./components/WebsitesPage'));
 const SettingsPage = React.lazy(() => import('./components/SettingsPage'));
+const MyDealsPage = React.lazy(() => import('./components/MyDealsPage'));
 
 const PageLoader = () => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#00ff88', fontSize: '14px' }}>
@@ -147,7 +148,11 @@ function App() {
           />
         )}
         {activeTab === 'contacts' && <ContactsPage initialTab={contactsViewTab} companyId={companyId} globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
-        {activeTab === 'deals' && <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} companyId={companyId} />}
+        {activeTab === 'deals' && (
+          isExternalRole(userDoc?.role)
+            ? <MyDealsPage />
+            : <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} companyId={companyId} />
+        )}
         {activeTab === 'properties' && <PropertiesPage globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'crm' && (
           <CRMPage

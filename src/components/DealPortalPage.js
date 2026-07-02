@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Users, FileText, BarChart, Mail, CheckSquare } from './Icons';
+import { Users, FileText, BarChart, Mail, CheckSquare, isExternalRole } from './Icons';
+import useUserDoc from '../utils/useUserDoc';
 
 const DealPartiesTab = React.lazy(() => import('./DealPartiesTab'));
 const DealChatTab = React.lazy(() => import('./DealChatTab'));
@@ -18,9 +19,15 @@ const PORTAL_TABS = [
 ];
 
 const DealPortalPage = ({ dealId, onBack }) => {
+  const { userDoc } = useUserDoc();
   const [activeTab, setActiveTab] = useState('parties');
   const [deal, setDeal] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Financials holds agent tooling (commission, lender pushes) — internal only.
+  const portalTabs = isExternalRole(userDoc?.role)
+    ? PORTAL_TABS.filter((tab) => tab.id !== 'financials')
+    : PORTAL_TABS;
 
   useEffect(() => {
     if (!dealId) return;
@@ -107,7 +114,7 @@ const DealPortalPage = ({ dealId, onBack }) => {
 
         {/* Tab bar */}
         <div style={{ display: 'flex', gap: '0', overflowX: 'auto' }}>
-          {PORTAL_TABS.map((tab) => (
+          {portalTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -139,7 +146,9 @@ const DealPortalPage = ({ dealId, onBack }) => {
         <React.Suspense fallback={<div className="loading-container"><div className="loading-spinner" /></div>}>
           {activeTab === 'parties' && <DealPartiesTab dealId={dealId} deal={deal} />}
           {activeTab === 'chat' && <DealChatTab dealId={dealId} deal={deal} />}
-          {activeTab === 'financials' && <DealFinancialsTab dealId={dealId} deal={deal} onDealUpdate={setDeal} />}
+          {activeTab === 'financials' && !isExternalRole(userDoc?.role) && (
+            <DealFinancialsTab dealId={dealId} deal={deal} onDealUpdate={setDeal} />
+          )}
           {activeTab === 'documents' && <DealDocumentsTab dealId={dealId} deal={deal} />}
           {activeTab === 'progress' && <DealProgressTab dealId={dealId} deal={deal} />}
         </React.Suspense>

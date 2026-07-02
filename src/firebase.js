@@ -73,6 +73,7 @@ export const ensureUserExists = async (firebaseUser) => {
       ? 'admin'
       : (consumePendingSignupRole() || 'agent'),
     assignedProperties: [],
+    assignedDeals: [],
     companyId: null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),

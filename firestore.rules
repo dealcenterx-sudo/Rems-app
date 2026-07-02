@@ -46,12 +46,13 @@ service cloud.firestore {
       );
 
       // Users may update their own doc but cannot change role or
-      // assignedProperties — only the admin manages those.
+      // assignments — only the admin manages those.
       allow update: if isAdmin() || (
         isSignedIn() &&
         request.auth.uid == userId &&
         request.resource.data.role == resource.data.role &&
-        request.resource.data.assignedProperties == resource.data.assignedProperties
+        request.resource.data.assignedProperties == resource.data.assignedProperties &&
+        request.resource.data.get('assignedDeals', []) == resource.data.get('assignedDeals', [])
       );
 
       allow delete: if isAdmin();
@@ -72,9 +73,69 @@ service cloud.firestore {
     }
 
     match /deals/{docId} {
-      allow read, delete: if isAdmin() || ownsResource();
+      // Buyers/sellers assigned to a deal (users/{uid}.assignedDeals) may
+      // read it — the deal portal is shared with them, but never writable.
+      function isAssignedToDeal() {
+        return isSignedIn() &&
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          docId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('assignedDeals', []);
+      }
+
+      allow read: if isAdmin() || ownsResource() || isAssignedToDeal();
       allow create: if isAdmin() || createsAsSelf();
       allow update: if isAdmin() || (ownsResource() && keepsOwner());
+      allow delete: if isAdmin() || ownsResource();
+    }
+
+    // ---------- deal portal collections ----------
+    // All are keyed to a parent deal via a dealId field. Access follows the
+    // parent deal: owner, admin, or an assigned portal participant.
+
+    function canAccessDeal(dealId) {
+      return isAdmin() || (
+        isSignedIn() &&
+        exists(/databases/$(database)/documents/deals/$(dealId)) &&
+        (
+          get(/databases/$(database)/documents/deals/$(dealId)).data.userId == request.auth.uid ||
+          (
+            exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+            dealId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('assignedDeals', [])
+          )
+        )
+      );
+    }
+
+    match /deal-parties/{docId} {
+      allow read, update, delete: if canAccessDeal(resource.data.dealId);
+      allow create: if canAccessDeal(request.resource.data.dealId);
+    }
+
+    match /deal-channels/{docId} {
+      allow read, update, delete: if canAccessDeal(resource.data.dealId);
+      allow create: if canAccessDeal(request.resource.data.dealId);
+    }
+
+    match /deal-messages/{docId} {
+      allow read: if canAccessDeal(resource.data.dealId);
+      allow create: if canAccessDeal(request.resource.data.dealId);
+      // Messages are a record — no edits or deletes except by the admin.
+      allow update, delete: if isAdmin();
+    }
+
+    match /deal-documents/{docId} {
+      allow read, update, delete: if canAccessDeal(resource.data.dealId);
+      allow create: if canAccessDeal(request.resource.data.dealId);
+    }
+
+    match /deal-progress/{docId} {
+      allow read, update, delete: if canAccessDeal(resource.data.dealId);
+      allow create: if canAccessDeal(request.resource.data.dealId);
+    }
+
+    match /deal-lender-pushes/{docId} {
+      allow read: if canAccessDeal(resource.data.dealId);
+      allow create: if canAccessDeal(request.resource.data.dealId);
+      allow update, delete: if isAdmin();
     }
 
     match /properties/{docId} {

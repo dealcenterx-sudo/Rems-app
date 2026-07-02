@@ -229,7 +229,7 @@ export const NAV_ITEMS = [
 ];
 
 // Buyers and sellers get a client-facing shell, not the agent workspace.
-export const EXTERNAL_ROLE_NAV_IDS = ['home', 'properties', 'settings'];
+export const EXTERNAL_ROLE_NAV_IDS = ['home', 'deals', 'properties', 'settings'];
 
 export const isExternalRole = (role) => role === 'buyer' || role === 'seller';
 

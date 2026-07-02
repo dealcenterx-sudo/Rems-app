@@ -26,16 +26,20 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [savingUserId, setSavingUserId] = useState(null);
   const [expandedUserId, setExpandedUserId] = useState(null);
+  const [expandedSection, setExpandedSection] = useState('properties');
+  const [deals, setDeals] = useState([]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [usersSnap, propertiesSnap] = await Promise.all([
+      const [usersSnap, propertiesSnap, dealsSnap] = await Promise.all([
         getDocs(collection(db, 'users')),
-        getDocs(query(collection(db, 'properties'), orderBy('createdAt', 'desc'), limit(200)))
+        getDocs(query(collection(db, 'properties'), orderBy('createdAt', 'desc'), limit(200))),
+        getDocs(query(collection(db, 'deals'), orderBy('createdAt', 'desc'), limit(200)))
       ]);
       setUsers(usersSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setProperties(propertiesSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setDeals(dealsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (error) {
       console.error('Error loading users:', error);
       toast.error('Failed to load users');
@@ -65,30 +69,34 @@ const UserManagement = () => {
     }
   };
 
-  const handleToggleProperty = async (user, propertyId, isAssigned) => {
+  const handleToggleAssignment = async (user, field, itemId, isAssigned) => {
     setSavingUserId(user.id);
     try {
       await updateDoc(doc(db, 'users', user.id), {
-        assignedProperties: isAssigned ? arrayRemove(propertyId) : arrayUnion(propertyId),
+        [field]: isAssigned ? arrayRemove(itemId) : arrayUnion(itemId),
         updatedAt: new Date().toISOString()
       });
       setUsers((prev) => prev.map((u) => {
         if (u.id !== user.id) return u;
-        const current = Array.isArray(u.assignedProperties) ? u.assignedProperties : [];
+        const current = Array.isArray(u[field]) ? u[field] : [];
         return {
           ...u,
-          assignedProperties: isAssigned
-            ? current.filter((id) => id !== propertyId)
-            : [...current, propertyId]
+          [field]: isAssigned
+            ? current.filter((id) => id !== itemId)
+            : [...current, itemId]
         };
       }));
     } catch (error) {
-      console.error('Error updating assigned properties:', error);
-      toast.error('Failed to update property assignment');
+      console.error('Error updating assignment:', error);
+      toast.error('Failed to update assignment');
     } finally {
       setSavingUserId(null);
     }
   };
+
+  const dealLabel = (deal) =>
+    [deal.propertyAddress, deal.status ? `(${deal.status})` : '']
+      .filter(Boolean).join(' ') || `Deal ${deal.id.slice(0, 6)}`;
 
   if (loading) {
     return (
@@ -111,6 +119,7 @@ const UserManagement = () => {
         {users.map((user) => {
           const isSelf = user.id === auth.currentUser?.uid;
           const assigned = Array.isArray(user.assignedProperties) ? user.assignedProperties : [];
+          const assignedDeals = Array.isArray(user.assignedDeals) ? user.assignedDeals : [];
           const isExpanded = expandedUserId === user.id;
           const isSaving = savingUserId === user.id;
 
@@ -161,10 +170,16 @@ const UserManagement = () => {
                   </select>
 
                   <button
-                    onClick={() => setExpandedUserId(isExpanded ? null : user.id)}
+                    onClick={() => { setExpandedUserId(isExpanded && expandedSection === 'properties' ? null : user.id); setExpandedSection('properties'); }}
                     className="btn-secondary btn-sm"
                   >
-                    Properties ({assigned.length}) {isExpanded ? '▴' : '▾'}
+                    Properties ({assigned.length}) {isExpanded && expandedSection === 'properties' ? '▴' : '▾'}
+                  </button>
+                  <button
+                    onClick={() => { setExpandedUserId(isExpanded && expandedSection === 'deals' ? null : user.id); setExpandedSection('deals'); }}
+                    className="btn-secondary btn-sm"
+                  >
+                    Deals ({assignedDeals.length}) {isExpanded && expandedSection === 'deals' ? '▴' : '▾'}
                   </button>
                 </div>
               </div>
@@ -172,17 +187,20 @@ const UserManagement = () => {
               {isExpanded && (
                 <div style={{ marginTop: '15px', borderTop: '1px solid #1a1a1a', paddingTop: '15px' }}>
                   <div style={{ fontSize: '11px', color: '#888888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
-                    Assigned Properties
+                    {expandedSection === 'deals' ? 'Assigned Deals (deal portal access)' : 'Assigned Properties'}
                   </div>
-                  {properties.length === 0 ? (
-                    <div style={{ fontSize: '13px', color: 'var(--text-faint)' }}>No properties available</div>
+                  {(expandedSection === 'deals' ? deals : properties).length === 0 ? (
+                    <div style={{ fontSize: '13px', color: 'var(--text-faint)' }}>
+                      No {expandedSection === 'deals' ? 'deals' : 'properties'} available
+                    </div>
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '8px', maxHeight: '260px', overflowY: 'auto' }}>
-                      {properties.map((property) => {
-                        const isAssigned = assigned.includes(property.id);
+                      {(expandedSection === 'deals' ? deals : properties).map((item) => {
+                        const isDeals = expandedSection === 'deals';
+                        const isAssigned = (isDeals ? assignedDeals : assigned).includes(item.id);
                         return (
                           <label
-                            key={property.id}
+                            key={item.id}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
@@ -200,9 +218,14 @@ const UserManagement = () => {
                               type="checkbox"
                               checked={isAssigned}
                               disabled={isSaving}
-                              onChange={() => handleToggleProperty(user, property.id, isAssigned)}
+                              onChange={() => handleToggleAssignment(
+                                user,
+                                isDeals ? 'assignedDeals' : 'assignedProperties',
+                                item.id,
+                                isAssigned
+                              )}
                             />
-                            {propertyLabel(property)}
+                            {isDeals ? dealLabel(item) : propertyLabel(item)}
                           </label>
                         );
                       })}
