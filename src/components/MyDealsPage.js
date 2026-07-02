@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import lazyWithReload from '../utils/lazyWithReload';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import useUserDoc from '../utils/useUserDoc';
 
-const DealPortalPage = React.lazy(() => import('./DealPortalPage'));
+const DealPortalPage = lazyWithReload(() => import('./DealPortalPage'));
 
 const STATUS_COLORS = {
   new: '#ffaa00',

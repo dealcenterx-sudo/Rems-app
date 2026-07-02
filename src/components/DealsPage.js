@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import lazyWithReload from '../utils/lazyWithReload';
 import { FilePlus, BarChart, List, CheckSquare } from './Icons';
 
-const DealsDashboard = React.lazy(() => import('./DealsDashboard'));
-const ActiveDealsPage = React.lazy(() => import('./ActiveDealsPage'));
-const ClosedDealsPage = React.lazy(() => import('./ClosedDealsPage'));
-const NewDealPage = React.lazy(() => import('./NewDealPage'));
-const DealPortalPage = React.lazy(() => import('./DealPortalPage'));
+const DealsDashboard = lazyWithReload(() => import('./DealsDashboard'));
+const ActiveDealsPage = lazyWithReload(() => import('./ActiveDealsPage'));
+const ClosedDealsPage = lazyWithReload(() => import('./ClosedDealsPage'));
+const NewDealPage = lazyWithReload(() => import('./NewDealPage'));
+const DealPortalPage = lazyWithReload(() => import('./DealPortalPage'));
 
 const DealsPage = ({ subTab, setSubTab, notificationDeal }) => {
   const [portalDealId, setPortalDealId] = useState(null);

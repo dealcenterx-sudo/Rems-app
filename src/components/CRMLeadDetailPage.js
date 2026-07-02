@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import lazyWithReload from '../utils/lazyWithReload';
 import { db, auth } from '../firebase';
 import { collection, addDoc, getDocs, getDoc, query, doc, updateDoc, where } from 'firebase/firestore';
 import { useToast } from './Toast';
@@ -19,7 +20,7 @@ import { canUserAccess, getEditableFields } from '../utils/permissions';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
 import useUserDoc from '../utils/useUserDoc';
 
-const LeadPdfViewer = React.lazy(() => import('./LeadPdfViewer'));
+const LeadPdfViewer = lazyWithReload(() => import('./LeadPdfViewer'));
 
 const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
   const toast = useToast();

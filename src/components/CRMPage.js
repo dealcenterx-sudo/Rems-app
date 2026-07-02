@@ -1,13 +1,14 @@
 import React from 'react';
+import lazyWithReload from '../utils/lazyWithReload';
 import { BarChart, Users, TrendingUp, FileText, Mail, List } from './Icons';
 
-const CRMDashboard = React.lazy(() => import('./CRMDashboard'));
-const CRMLeadsPage = React.lazy(() => import('./CRMLeadsPage'));
-const CRMLeadDetailPage = React.lazy(() => import('./CRMLeadDetailPage'));
-const CRMCampaignsPage = React.lazy(() => import('./CRMCampaignsPage'));
-const CRMMessagesPage = React.lazy(() => import('./CRMMessagesPage'));
-const CRMEmailInboxPage = React.lazy(() => import('./CRMEmailInboxPage'));
-const CRMReportsPage = React.lazy(() => import('./CRMReportsPage'));
+const CRMDashboard = lazyWithReload(() => import('./CRMDashboard'));
+const CRMLeadsPage = lazyWithReload(() => import('./CRMLeadsPage'));
+const CRMLeadDetailPage = lazyWithReload(() => import('./CRMLeadDetailPage'));
+const CRMCampaignsPage = lazyWithReload(() => import('./CRMCampaignsPage'));
+const CRMMessagesPage = lazyWithReload(() => import('./CRMMessagesPage'));
+const CRMEmailInboxPage = lazyWithReload(() => import('./CRMEmailInboxPage'));
+const CRMReportsPage = lazyWithReload(() => import('./CRMReportsPage'));
 
 const CRMPage = ({ subTab, setSubTab, leadId, setLeadId, onOpenLead, onStartDeal }) => {
   const crmItems = [

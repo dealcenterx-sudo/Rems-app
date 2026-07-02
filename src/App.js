@@ -1,4 +1,5 @@
 import React, { Suspense, useEffect, useState } from 'react';
+import lazyWithReload from './utils/lazyWithReload';
 import './App.css';
 import { useUser } from './contexts/UserContext';
 import { isExternalRole, EXTERNAL_ROLE_NAV_IDS } from './components/Icons';
@@ -12,17 +13,17 @@ import ErrorBoundary from './components/ErrorBoundary';
 import LoginPage from './components/LoginPage';
 
 // Lazy-loaded pages (only downloaded when user navigates to them)
-const HomePage = React.lazy(() => import('./components/HomePage'));
-const ContactsPage = React.lazy(() => import('./components/ContactsPage'));
-const DealsPage = React.lazy(() => import('./components/DealsPage'));
-const PropertiesPage = React.lazy(() => import('./components/PropertiesPage'));
-const CRMPage = React.lazy(() => import('./components/CRMPage'));
-const AnalyticsDashboard = React.lazy(() => import('./components/AnalyticsDashboard'));
-const TasksPage = React.lazy(() => import('./components/TasksPage'));
-const DocumentsPage = React.lazy(() => import('./components/DocumentsPage'));
-const WebsitesPage = React.lazy(() => import('./components/WebsitesPage'));
-const SettingsPage = React.lazy(() => import('./components/SettingsPage'));
-const MyDealsPage = React.lazy(() => import('./components/MyDealsPage'));
+const HomePage = lazyWithReload(() => import('./components/HomePage'));
+const ContactsPage = lazyWithReload(() => import('./components/ContactsPage'));
+const DealsPage = lazyWithReload(() => import('./components/DealsPage'));
+const PropertiesPage = lazyWithReload(() => import('./components/PropertiesPage'));
+const CRMPage = lazyWithReload(() => import('./components/CRMPage'));
+const AnalyticsDashboard = lazyWithReload(() => import('./components/AnalyticsDashboard'));
+const TasksPage = lazyWithReload(() => import('./components/TasksPage'));
+const DocumentsPage = lazyWithReload(() => import('./components/DocumentsPage'));
+const WebsitesPage = lazyWithReload(() => import('./components/WebsitesPage'));
+const SettingsPage = lazyWithReload(() => import('./components/SettingsPage'));
+const MyDealsPage = lazyWithReload(() => import('./components/MyDealsPage'));
 
 const PageLoader = () => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#00ff88', fontSize: '14px' }}>
