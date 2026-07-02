@@ -4,6 +4,7 @@ import { updateProfile, updateEmail, updatePassword } from 'firebase/auth';
 import { useToast } from './Toast';
 import useUserDoc from '../utils/useUserDoc';
 import UserManagement from './UserManagement';
+import ActivityLogView from './ActivityLogView';
 
 // Icons
 const UserIcon = ({ size = 24 }) => (
@@ -159,9 +160,10 @@ const SettingsPage = () => {
     { id: 'security', label: 'Security', icon: LockIcon },
     { id: 'company', label: 'Company', icon: BuildingIcon },
     { id: 'notifications', label: 'Notifications', icon: BellIcon },
-    // Admin-only sections: user management and XML/API lead-routing config
+    // Admin-only sections: user management, audit trail, lead-routing config
     ...(isAdmin ? [
       { id: 'users', label: 'Users', icon: UserIcon },
+      { id: 'activity', label: 'Activity', icon: BellIcon },
       { id: 'connector', label: 'Connector', icon: ConnectorIcon }
     ] : [])
   ];
@@ -327,6 +329,16 @@ const SettingsPage = () => {
                 User Management
               </h3>
               <UserManagement />
+            </div>
+          )}
+
+          {/* Activity Log Section (admin only) */}
+          {activeSection === 'activity' && isAdmin && (
+            <div>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#ffffff', marginBottom: '20px' }}>
+                Activity Log
+              </h3>
+              <ActivityLogView />
             </div>
           )}
 

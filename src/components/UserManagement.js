@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove, orderBy, query, limit } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
+import { logActivity } from '../utils/auditLog';
 
 const ROLES = ['agent', 'admin', 'buyer', 'seller'];
 
@@ -61,6 +62,9 @@ const UserManagement = () => {
       });
       setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, role: newRole } : u)));
       toast.success(`${user.email} is now ${newRole}`);
+      logActivity('role_changed', 'user', user.id,
+        `Role of ${user.email} changed to ${newRole}`,
+        { field: 'role', oldValue: user.role || 'agent', newValue: newRole });
     } catch (error) {
       console.error('Error updating role:', error);
       toast.error('Failed to update role');
@@ -86,6 +90,9 @@ const UserManagement = () => {
             : [...current, itemId]
         };
       }));
+      logActivity(isAssigned ? 'unassigned' : 'assigned', 'user', user.id,
+        `${field === 'assignedDeals' ? 'Deal' : 'Property'} ${itemId} ${isAssigned ? 'removed from' : 'assigned to'} ${user.email}`,
+        { field, entityId: itemId });
     } catch (error) {
       console.error('Error updating assignment:', error);
       toast.error('Failed to update assignment');

@@ -17,6 +17,7 @@ import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { Users, Check } from './Icons';
 import { isAdminUser } from '../utils/helpers';
+import { logActivity } from '../utils/auditLog';
 import useDebounce from '../utils/useDebounce';
 
 // CONTACTS PAGE - WITH EDIT/DELETE
@@ -210,8 +211,11 @@ const handleSaveContact = async () => {
 
   const handleDeleteContact = async (contactId) => {
     try {
+      const target = contacts.find((c) => c.id === contactId);
       await deleteDoc(doc(db, 'contacts', contactId));
       toast.success('Contact deleted successfully!');
+      logActivity('deleted', 'contact', contactId,
+        `Contact "${[target?.firstName, target?.lastName].filter(Boolean).join(' ') || contactId}" deleted`);
       loadContacts(0, true);
     } catch (error) {
       console.error('Error deleting contact:', error);

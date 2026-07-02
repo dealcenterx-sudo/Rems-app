@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
+import { logActivity } from '../utils/auditLog';
 import ConfirmModal from './ConfirmModal';
 import { isAdminUser } from '../utils/helpers';
 
@@ -121,6 +122,9 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
         setSelectedDeal({ ...selectedDeal, status: newStatus });
       }
       toast.success(`Deal marked ${getStatusLabel(newStatus)}`);
+      logActivity('status_changed', 'deal', dealId,
+        `Deal "${currentDeal?.propertyAddress || dealId}" marked ${getStatusLabel(newStatus)}`,
+        { field: 'status', oldValue: previousStatus || null, newValue: newStatus });
     } catch (error) {
       console.error('Error updating deal:', error);
       toast.error('Error updating deal status');
@@ -145,10 +149,12 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
 
   const deleteDeal = async (dealId) => {
     try {
+      const target = deals.find((d) => d.id === dealId);
       await deleteDoc(doc(db, 'deals', dealId));
       loadDeals(0, true);
       setShowDetailModal(false);
       toast.success('Deal deleted successfully');
+      logActivity('deleted', 'deal', dealId, `Deal "${target?.propertyAddress || dealId}" deleted`);
     } catch (error) {
       console.error('Error deleting deal:', error);
       toast.error('Error deleting deal');

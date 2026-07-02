@@ -17,6 +17,7 @@ import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { isAdminUser } from '../utils/helpers';
+import { logActivity } from '../utils/auditLog';
 import { canUserManageProperty, getEditableFields } from '../utils/permissions';
 import useUserDoc from '../utils/useUserDoc';
 import { CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
@@ -301,9 +302,11 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
   const deleteProperty = async (propertyId) => {
     try {
+      const target = properties.find((p) => p.id === propertyId);
       await deleteDoc(doc(db, 'properties', propertyId));
       loadProperties(0, true);
       toast.success('Property deleted successfully');
+      logActivity('deleted', 'property', propertyId, `Property "${target?.address || propertyId}" deleted`);
     } catch (error) {
       console.error('Error deleting property:', error);
       toast.error('Error deleting property');

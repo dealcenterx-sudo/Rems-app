@@ -171,6 +171,15 @@ service cloud.firestore {
       allow delete: if isAdmin() || ownsResource();
     }
 
+    // ---------- activity log ----------
+    // Append-only audit trail. Nobody edits or deletes history — not even
+    // the admin. Entries must be written as the acting user.
+    match /activity_log/{docId} {
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
     // ---------- companies ----------
     match /companies/{companyId} {
       allow read: if isAdmin() ||
