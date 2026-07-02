@@ -179,9 +179,9 @@ const SettingsPage = () => {
       </div>
 
       {/* Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: '30px' }}>
+      <div className="settings-layout">
         {/* Sidebar Navigation */}
-        <div className="card-surface" style={{ height: 'fit-content' }}>
+        <div className="settings-nav card-surface" style={{ height: 'fit-content' }}>
           {sections.map(section => (
             <button
               key={section.id}

@@ -2330,6 +2330,12 @@ body {
     grid-template-columns: 1fr !important;
   }
 
+  /* Form/filter grids stack on phones; !important beats inline overrides */
+  .grid-two,
+  .grid-three {
+    grid-template-columns: 1fr !important;
+  }
+
   .table-header {
     display: none;
   }
@@ -2350,8 +2356,8 @@ body {
 
   .table-row > div::before {
     content: attr(data-label);
-    font-size: 10px;
-    color: #666666;
+    font-size: var(--font-xs);
+    color: var(--text-faint);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -2590,6 +2596,34 @@ body {
   outline: none;
   box-shadow: var(--focus-ring);
   border-radius: var(--radius-sm);
+}
+
+/* Settings two-pane layout — collapses to stacked nav on small screens */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 30px;
+}
+
+@media (max-width: 900px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .settings-nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 4px;
+  }
+
+  .settings-nav-item {
+    flex: 0 0 auto;
+    width: auto;
+    margin-bottom: 0;
+    white-space: nowrap;
+  }
 }
 
 .settings-nav-item span {
