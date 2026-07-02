@@ -227,3 +227,13 @@ export const NAV_ITEMS = [
   { id: 'websites', label: 'Websites', icon: Globe },
   { id: 'settings', label: 'Settings', icon: Settings }
 ];
+
+// Buyers and sellers get a client-facing shell, not the agent workspace.
+export const EXTERNAL_ROLE_NAV_IDS = ['home', 'properties', 'settings'];
+
+export const isExternalRole = (role) => role === 'buyer' || role === 'seller';
+
+export const getNavItemsForRole = (role) =>
+  isExternalRole(role)
+    ? NAV_ITEMS.filter((item) => EXTERNAL_ROLE_NAV_IDS.includes(item.id))
+    : NAV_ITEMS;

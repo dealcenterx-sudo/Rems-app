@@ -2,10 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { Bell, User, Search, Settings, LogOut } from './Icons';
-import { NAV_ITEMS } from './Icons';
+import { getNavItemsForRole } from './Icons';
+import useUserDoc from '../utils/useUserDoc';
 
 // Sidebar Component
 const Sidebar = ({ activeTab, setActiveTab }) => {
+  const { userDoc } = useUserDoc();
+  const navItems = getNavItemsForRole(userDoc?.role);
 
   return (
     <div className="sidebar">
@@ -13,7 +16,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         <img src="/dealcenter-logo.png" alt="DealCenter" className="logo-image" />
       </div>
       <div className="nav-items">
-        {NAV_ITEMS.slice(0, -1).map((item) => (
+        {navItems.filter((item) => item.id !== 'settings').map((item) => (
           <div
             key={item.id}
             onClick={() => setActiveTab(item.id)}
@@ -40,10 +43,13 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
 
 // Bottom Nav for Mobile
 const BottomNav = ({ activeTab, setActiveTab }) => {
+  const { userDoc } = useUserDoc();
+  const navItems = getNavItemsForRole(userDoc?.role);
+
   return (
     <div className="bottom-nav">
       <div className="bottom-nav-inner">
-        {NAV_ITEMS.map((item) => (
+        {navItems.map((item) => (
           <button
             key={item.id}
             type="button"

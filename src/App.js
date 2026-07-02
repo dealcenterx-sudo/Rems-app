@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import './App.css';
 import { useUser } from './contexts/UserContext';
+import { isExternalRole, EXTERNAL_ROLE_NAV_IDS } from './components/Icons';
 
 // Layout - keep eager (needed immediately)
 import { Sidebar, TopBar, BottomNav } from './components/Layout';
@@ -88,6 +89,13 @@ function App() {
   useEffect(() => {
     setGlobalSearch('');
   }, [activeTab]);
+
+  // Buyers/sellers only get client-facing tabs — covers deep links like ?tab=crm.
+  useEffect(() => {
+    if (isExternalRole(userDoc?.role) && !EXTERNAL_ROLE_NAV_IDS.includes(activeTab)) {
+      setActiveTab('home');
+    }
+  }, [userDoc, activeTab]);
 
   // eslint-disable-next-line no-unused-vars
   const handleCompanySetup = (newCompanyId) => {

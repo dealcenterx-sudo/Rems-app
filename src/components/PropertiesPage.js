@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import {
   collection,
   getDocs,
+  getDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -116,6 +117,26 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
     try {
       const isAdmin = isAdminUser();
       setLoading(true);
+
+      // Buyers/sellers own no properties — load the ones assigned to them
+      // on their user doc instead of the owner-scoped query.
+      if (userDoc && (userDoc.role === 'buyer' || userDoc.role === 'seller')) {
+        const assignedIds = Array.isArray(userDoc.assignedProperties)
+          ? userDoc.assignedProperties
+          : [];
+        const snapshots = await Promise.all(
+          assignedIds.map((id) => getDoc(doc(db, 'properties', id)).catch(() => null))
+        );
+        const assignedData = snapshots
+          .filter((snap) => snap?.exists())
+          .map((snap) => ({ id: snap.id, ...snap.data() }));
+        setProperties(assignedData);
+        setHasNextPage(false);
+        setPageIndex(0);
+        setLoading(false);
+        return;
+      }
+
       const dateSortDirection = sortBy === 'date-asc' ? 'asc' : 'desc';
       const constraints = [
         collection(db, 'properties'),
@@ -162,7 +183,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
       console.error('Error loading properties:', error);
       setLoading(false);
     }
-  }, [sortBy]);
+  }, [sortBy, userDoc]);
 
   useEffect(() => {
     loadProperties(0, true);

@@ -3,6 +3,8 @@ import { db, auth } from '../firebase';
 import { collection, getDocs, query, where, orderBy, getCountFromServer, limit } from 'firebase/firestore';
 import { UserPlus, FileText, ShoppingCart, Key } from './Icons';
 import { normalizeAddressValue, normalizePropertyTypeBucket, isAdminUser } from '../utils/helpers';
+import { isExternalRole } from './Icons';
+import useUserDoc from '../utils/useUserDoc';
 
 const HOME_KPI_CACHE_TTL_MS = 30_000;
 const HOME_KPI_CACHE_KEY = 'rems-home-dashboard-cache-v1';
@@ -33,6 +35,8 @@ const writeHomeKpiCache = (scope, payload) => {
 };
 
 const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProperties }) => {
+  const { userDoc } = useUserDoc();
+  const externalUser = isExternalRole(userDoc?.role);
   const [stats, setStats] = useState({
     totalContacts: 0,
     totalSellers: 0,
@@ -215,6 +219,12 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
   }, []);
 
   useEffect(() => {
+    // Buyers/sellers get the welcome view — skip the agent KPI queries entirely.
+    if (externalUser) {
+      setLoading(false);
+      return;
+    }
+
     const cacheScope = getHomeScope(isAdminUser(), auth.currentUser?.uid);
     const cached = readHomeKpiCache(cacheScope);
     if (cached) {
@@ -226,7 +236,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
     }
 
     loadDashboardData();
-  }, [loadDashboardData]);
+  }, [loadDashboardData, externalUser]);
 
   const quickLinks = [
     { label: 'New Seller', icon: UserPlus, color: '#00ff88', action: () => onNavigateToContacts('seller') },
@@ -241,6 +251,42 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
       <div className="page-content">
         <div className="loading-container">
           <div className="loading-spinner" />
+        </div>
+      </div>
+    );
+  }
+
+  if (externalUser) {
+    const isBuyer = userDoc?.role === 'buyer';
+    const assignedCount = Array.isArray(userDoc?.assignedProperties)
+      ? userDoc.assignedProperties.length
+      : 0;
+    const firstName = (userDoc?.displayName || '').split(' ')[0];
+
+    return (
+      <div className="page-content">
+        <div className="card-surface" style={{ maxWidth: '640px', margin: '40px auto', padding: '40px', textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>{isBuyer ? '🔑' : '🏡'}</div>
+          <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', marginBottom: '10px' }}>
+            Welcome{firstName ? `, ${firstName}` : ''}
+          </h2>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '24px' }}>
+            {isBuyer
+              ? 'Your agent will share properties with you here. When a property is assigned to you, it appears under Properties with full details and photos.'
+              : 'Track the properties your agent is handling for you. Listings assigned to you appear under Properties, where you can follow their status.'}
+          </p>
+          {assignedCount > 0 ? (
+            <button className="btn-primary" onClick={onNavigateToProperties}>
+              View Your {assignedCount} {assignedCount === 1 ? 'Property' : 'Properties'}
+            </button>
+          ) : (
+            <div className="empty-state-card" style={{ padding: '24px' }}>
+              <div className="empty-state-title">No properties shared yet</div>
+              <div className="empty-state-subtitle">
+                Your agent will assign properties to your account — check back soon.
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
