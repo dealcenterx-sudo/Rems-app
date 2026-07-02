@@ -28,6 +28,11 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
           >
             <item.icon size={20} color={activeTab === item.id ? '#00ff88' : '#888888'} />
             <span>{item.label}</span>
+            {item.soon && (
+              <span style={{ marginLeft: 'auto', fontSize: '9px', fontWeight: '700', color: 'var(--info)', border: '1px solid rgba(0,136,255,0.4)', borderRadius: '999px', padding: '2px 6px', letterSpacing: '0.5px' }}>
+                SOON
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -108,6 +113,9 @@ const TopBar = ({ title, searchQuery, onSearchChange, showSearch, onOpenDeal }) 
 
   useEffect(() => {
     loadNotifications();
+    // Keep the unread badge fresh while the tab sits open.
+    const interval = setInterval(loadNotifications, 60000);
+    return () => clearInterval(interval);
   }, [loadNotifications]);
 
   const handleToggleNotifications = async () => {

@@ -224,7 +224,7 @@ export const NAV_ITEMS = [
   { id: 'properties', label: 'Properties', icon: Building2 },
   { id: 'tasks', label: 'Tasks', icon: ClipboardCheck },
   { id: 'documents', label: 'Documents', icon: FolderIcon },
-  { id: 'websites', label: 'Websites', icon: Globe },
+  { id: 'websites', label: 'Websites', icon: Globe, soon: true },
   { id: 'settings', label: 'Settings', icon: Settings }
 ];
 

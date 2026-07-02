@@ -61,6 +61,24 @@ function App() {
     }
   }, []);
 
+  // Keep the URL in sync so a refresh returns you to where you were.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', activeTab);
+    if (activeTab === 'crm') url.searchParams.set('crmSubTab', crmSubTab);
+    else url.searchParams.delete('crmSubTab');
+    if (activeTab === 'deals') url.searchParams.set('dealsSubTab', dealsSubTab);
+    else url.searchParams.delete('dealsSubTab');
+    if (activeTab === 'contacts') url.searchParams.set('contactsViewTab', contactsViewTab);
+    else url.searchParams.delete('contactsViewTab');
+    if (activeTab === 'crm' && crmSubTab === 'lead-detail' && crmLeadId) {
+      url.searchParams.set('leadId', crmLeadId);
+    } else {
+      url.searchParams.delete('leadId');
+    }
+    window.history.replaceState(null, '', url.toString());
+  }, [activeTab, crmSubTab, dealsSubTab, contactsViewTab, crmLeadId]);
+
   const handleNavigateToContacts = (type) => {
     setContactsViewTab(type || 'all');
     setActiveTab('contacts');

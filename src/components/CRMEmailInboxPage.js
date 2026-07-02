@@ -327,6 +327,11 @@ const CRMEmailInboxPage = () => {
             </div>
           ) : (
             <div className="crm-email-list-surface">
+              {emails.length > 0 && emails.every((email) => String(email.id).startsWith('sample-')) && (
+                <div style={{ margin: '10px 12px 0', fontSize: '11px', fontWeight: '700', color: 'var(--warning)', background: 'rgba(255,170,0,0.08)', border: '1px solid rgba(255,170,0,0.35)', borderRadius: '6px', padding: '6px 10px' }}>
+                  SAMPLE DATA — these emails are examples and disappear once your leads have real email history
+                </div>
+              )}
               <div className="crm-email-list-head">
                 <div>Sender</div>
                 <div>Subject</div>

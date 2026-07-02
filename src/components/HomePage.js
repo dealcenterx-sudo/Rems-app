@@ -238,6 +238,9 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
     loadDashboardData();
   }, [loadDashboardData, externalUser]);
 
+  const isFirstRun = !loading &&
+    stats.totalContacts === 0 && stats.totalDeals === 0 && stats.totalTasks === 0;
+
   const quickLinks = [
     { label: 'New Seller', icon: UserPlus, color: '#00ff88', action: () => onNavigateToContacts('seller') },
     { label: 'New Buyer', icon: UserPlus, color: '#0088ff', action: () => onNavigateToContacts('buyer') },
@@ -294,6 +297,28 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
 
   return (
     <div className="page-content">
+      {isFirstRun && (
+        <div className="card-surface" style={{ marginBottom: '24px', padding: '28px', border: '1px solid var(--accent-border)' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff', margin: '0 0 6px 0' }}>
+            Welcome to REMS 👋
+          </h3>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 18px 0', lineHeight: 1.6 }}>
+            Your workspace is empty — here's the fastest way to get moving. Each step takes under a minute.
+          </p>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button className="btn-primary btn-sm" onClick={() => onNavigateToContacts('seller')}>
+              1. Add your first contact
+            </button>
+            <button className="btn-secondary btn-sm" onClick={onNavigateToProperties}>
+              2. Add a property
+            </button>
+            <button className="btn-secondary btn-sm" onClick={onNavigateToDealsNew}>
+              3. Create a deal
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="section">
         <div className="section-title">Quick Links</div>
         <div className="quick-links-grid">

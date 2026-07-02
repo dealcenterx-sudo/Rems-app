@@ -189,6 +189,8 @@ const CRMMessagesPage = () => {
     loadThreads();
   }, [loadThreads]);
 
+  const showingSamples = threads.length > 0 && threads.every((thread) => thread.id.startsWith('sample-'));
+
   const visibleThreads = threads.filter((thread) => {
     const haystack = `${thread.participant} ${thread.phone} ${thread.serviceType} ${thread.source} ${thread.preview}`.toLowerCase();
     return !searchTerm || haystack.includes(searchTerm.toLowerCase());
@@ -293,6 +295,11 @@ const CRMMessagesPage = () => {
             <div>
               <div className="crm-messages-sidebar-title">Messages</div>
               <div className="crm-messages-sidebar-copy">Conversation threads and SMS-style follow-up live here.</div>
+              {showingSamples && (
+                <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: '700', color: 'var(--warning)', background: 'rgba(255,170,0,0.08)', border: '1px solid rgba(255,170,0,0.35)', borderRadius: '6px', padding: '6px 10px' }}>
+                  SAMPLE DATA — these conversations are examples and disappear once you have real leads
+                </div>
+              )}
             </div>
             <button type="button" className="lead-action-btn" onClick={loadThreads}>
               Refresh
