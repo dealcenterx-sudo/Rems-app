@@ -8,19 +8,27 @@ All-in-one real estate platform supporting Buyers, Sellers, Agents, and Brokers.
 ## COLLECTIONS
 
 ### 1. **users** (Authentication & User Profiles)
+
+Documents are keyed by the Firebase Auth UID and auto-created on first
+sign-in by `ensureUserExists()` in `src/firebase.js`.
+
 ```javascript
 {
-  userId: "firebase_auth_uid",
+  userId: "firebase_auth_uid",       // same as the document ID
   email: "user@example.com",
+  displayName: "John Doe",
   role: "agent" | "admin" | "buyer" | "seller",
-  firstName: "John",
-  lastName: "Doe",
-  phone: "(555) 555-5555",
+  assignedProperties: ["property_doc_id"], // admin-managed; grants read/update
+  assignedDeals: ["deal_doc_id"],          // admin-managed; grants deal-portal access
   companyId: "company_doc_id", // optional
-  createdAt: "2026-01-27T12:00:00Z",
-  updatedAt: "2026-01-27T12:00:00Z"
+  createdAt: serverTimestamp,
+  updatedAt: serverTimestamp,
+  lastLoginAt: serverTimestamp
 }
 ```
+
+Only the admin may change `role`, `assignedProperties`, or `assignedDeals`
+(enforced in `firestore.rules`). Admin UI: Settings → Users.
 
 ### 2. **contacts** (Buyers, Sellers, Agents, Lenders, etc.)
 ```javascript
@@ -315,7 +323,40 @@ All-in-one real estate platform supporting Buyers, Sellers, Agents, and Brokers.
 }
 ```
 
-### 10. **activity_log** (Audit Trail)
+### 10. **Deal portal collections**
+
+The collaborative deal portal stores its data in six collections, each
+linked to a parent deal via a `dealId` field. Access follows the parent
+deal (owner, admin, or a user with the deal in `assignedDeals`) via the
+`canAccessDeal()` helper in `firestore.rules`.
+
+- `deal-parties` — people on the transaction (name, email, role, company)
+- `deal-channels` — chat channels per deal
+- `deal-messages` — chat messages (immutable except by admin)
+- `deal-documents` — uploaded transaction documents (Cloudinary URLs, signature tracking)
+- `deal-progress` — milestone/checklist items
+- `deal-lender-pushes` — lender data pushes (immutable except by admin)
+
+### 11. **activity_log** (Audit Trail)
+
+Implemented — append-only. Written by `logActivity()` in `src/utils/auditLog.js`;
+create-as-self only, admin-only reads, no updates or deletes for anyone.
+Viewer: Settings → Activity (admin).
+
+```javascript
+{
+  userId: "actor_auth_uid",
+  userEmail: "actor@example.com",
+  action: "created" | "deleted" | "status_changed" | "role_changed" | "assigned" | "unassigned",
+  entity: "deal" | "property" | "contact" | "document" | "deal-document" | "deal-party" | "user",
+  entityId: "related_doc_id",
+  description: "Deal \"123 Main St\" marked Closed",
+  changes: { field: "status", oldValue: "active", newValue: "closed" }, // nullable
+  createdAt: "2026-07-02T12:00:00Z"
+}
+```
+
+### (original draft below)
 ```javascript
 {
   id: "auto_generated",
