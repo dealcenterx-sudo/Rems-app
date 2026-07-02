@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { collection, getDocs, addDoc, updateDoc, doc, query, where } from 'firebase/firestore';
+import { db, auth } from '../firebase';
+import { useToast } from './Toast';
+import { isAdminUser } from '../utils/helpers';
 
 // ─── helpers ───────────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -158,14 +162,65 @@ const CampaignRow = ({ c, onStatusChange }) => {
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 const CRMCampaignsPage = () => {
-  const [campaigns, setCampaigns] = useState(SEED_CAMPAIGNS);
+  const toast = useToast();
+  const [campaigns, setCampaigns] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
 
-  const handleCreate = (c) => setCampaigns(prev => [c, ...prev]);
-  const handleStatusChange = (id, status) => setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status } : c));
+  const loadCampaigns = useCallback(async () => {
+    try {
+      const constraints = [collection(db, 'campaigns')];
+      if (!isAdminUser()) constraints.push(where('userId', '==', auth.currentUser?.uid));
+      const snap = await getDocs(query(...constraints));
+      const loaded = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      // Seeds are display samples shown only until real campaigns exist.
+      setCampaigns(loaded.length > 0 ? loaded : SEED_CAMPAIGNS.map((c) => ({ ...c, isSample: true })));
+    } catch (error) {
+      console.error('Error loading campaigns:', error);
+      setCampaigns(SEED_CAMPAIGNS.map((c) => ({ ...c, isSample: true })));
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCampaigns();
+  }, [loadCampaigns]);
+
+  const handleCreate = async (c) => {
+    try {
+      const { id, ...data } = c;
+      const ref = await addDoc(collection(db, 'campaigns'), {
+        ...data,
+        userId: auth.currentUser?.uid || null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      // Real campaigns replace the display samples.
+      setCampaigns(prev => [{ ...data, id: ref.id }, ...prev.filter((x) => !x.isSample)]);
+      toast.success('Campaign created');
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      toast.error('Failed to create campaign');
+    }
+  };
+
+  const handleStatusChange = async (id, status) => {
+    const target = campaigns.find((c) => c.id === id);
+    if (target?.isSample) {
+      toast.info('This is a sample campaign — create your own to track real status');
+      return;
+    }
+    try {
+      await updateDoc(doc(db, 'campaigns', id), { status, updatedAt: new Date().toISOString() });
+      setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status } : c));
+    } catch (error) {
+      console.error('Error updating campaign:', error);
+      toast.error('Failed to update campaign status');
+    }
+  };
 
   const filtered = campaigns.filter(c => {
     if (statusFilter !== 'all' && c.status !== statusFilter) return false;

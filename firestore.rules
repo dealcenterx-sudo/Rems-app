@@ -171,6 +171,13 @@ service cloud.firestore {
       allow delete: if isAdmin() || ownsResource();
     }
 
+    // ---------- campaigns ----------
+    match /campaigns/{docId} {
+      allow read, delete: if isAdmin() || ownsResource();
+      allow create: if isAdmin() || createsAsSelf();
+      allow update: if isAdmin() || (ownsResource() && keepsOwner());
+    }
+
     // ---------- notifications ----------
     // Any signed-in user may create a notification but must stamp
     // themselves as the actor; only the recipient (or admin) can read,

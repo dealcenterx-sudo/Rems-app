@@ -77,6 +77,28 @@ const AnalyticsDashboard = () => {
     }
   }, [getDateRangeBounds]);
 
+  const handleExportCSV = () => {
+    if (deals.length === 0 && properties.length === 0) {
+      toast.info('Nothing to export for the selected date range');
+      return;
+    }
+    const escape = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+    const rows = [
+      ['Type', 'Address', 'Status', 'Price', 'Buyer', 'Seller', 'Created'],
+      ...deals.map((d) => ['Deal', d.propertyAddress, d.status, d.purchasePrice, d.buyerName, d.sellerName, d.createdAt]),
+      ...properties.map((p) => ['Property', [p.address, p.city, p.state].filter(Boolean).join(', '), p.status, p.price, '', p.sellerName, p.createdAt])
+    ];
+    const csv = rows.map((row) => row.map(escape).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `rems-analytics-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${deals.length + properties.length} records`);
+  };
+
   const loadAllData = useCallback(async () => {
     try {
       setLoading(true);
@@ -585,10 +607,10 @@ const AnalyticsDashboard = () => {
       {/* Export Button */}
       <div style={{ marginTop: '30px', textAlign: 'center' }}>
         <button
-          onClick={() => toast.info('PDF export feature coming soon!')}
+          onClick={handleExportCSV}
           className="btn-secondary"
         >
-          📥 Export Report to PDF
+          📥 Export Report (CSV)
         </button>
       </div>
     </div>

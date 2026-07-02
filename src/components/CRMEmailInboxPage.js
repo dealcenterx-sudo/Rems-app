@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { db, auth } from '../firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from './Toast';
 import { Search, Plus } from './Icons';
 
@@ -242,6 +242,32 @@ const CRMEmailInboxPage = () => {
         sentAt: messagePayload.sentAt,
         unread: false
       };
+
+      // Persist to the matching lead's emailHistory so the sent email
+      // survives refresh (inbox is rebuilt from lead history).
+      try {
+        const isAdmin = auth.currentUser?.email === 'dealcenterx@gmail.com';
+        const matchConstraints = [collection(db, 'leads'), where('email', '==', toValue)];
+        if (!isAdmin) matchConstraints.splice(1, 0, where('userId', '==', auth.currentUser.uid));
+        const matchSnap = await getDocs(query(...matchConstraints));
+        if (!matchSnap.empty) {
+          await updateDoc(doc(db, 'leads', matchSnap.docs[0].id), {
+            emailHistory: arrayUnion({
+              direction: 'outbound',
+              to: messagePayload.to,
+              subject: messagePayload.subject,
+              body: messagePayload.body,
+              sentBy: messagePayload.sentBy,
+              sentAt: messagePayload.sentAt,
+              unread: false
+            }),
+            updatedAt: messagePayload.sentAt
+          });
+        }
+      } catch (persistError) {
+        console.error('Error saving sent email to lead history:', persistError);
+        toast.error('Email processed, but could not be saved to the lead history');
+      }
 
       setEmails((prev) => [sentEntry, ...prev]);
       setActiveFolder('sent');

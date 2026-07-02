@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { db, auth } from '../firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Search } from './Icons';
+import { useToast } from './Toast';
 
 const CRMMessagesPage = () => {
+  const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [threads, setThreads] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -242,7 +244,7 @@ const CRMMessagesPage = () => {
     )));
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     const nextBody = draftMessage.trim();
     if (!nextBody || !selectedThread) return;
 
@@ -253,6 +255,22 @@ const CRMMessagesPage = () => {
       body: nextBody,
       sentAt
     };
+
+    // Persist to the lead's smsHistory so the message survives refresh.
+    const leadId = selectedThread.id.startsWith('lead-thread-')
+      ? selectedThread.id.replace('lead-thread-', '')
+      : null;
+    if (leadId) {
+      try {
+        await updateDoc(doc(db, 'leads', leadId), {
+          smsHistory: arrayUnion({ id: nextMessage.id, direction: 'outbound', body: nextBody, sentAt }),
+          updatedAt: sentAt
+        });
+      } catch (error) {
+        console.error('Error saving message:', error);
+        toast.error('Message could not be saved — it may disappear on refresh');
+      }
+    }
 
     setThreads((prev) => sortThreadsByRecency(prev.map((thread) => (
       thread.id === selectedThread.id
