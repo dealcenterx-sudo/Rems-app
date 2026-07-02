@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, orderBy } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
+import ConfirmModal from './ConfirmModal';
 import { Plus, FileText, Search } from './Icons';
 import { CLOUDINARY_UPLOAD_PRESET, CLOUDINARY_CLOUD_NAME } from '../utils/helpers';
+import { logActivity } from '../utils/auditLog';
 
 const DOC_CATEGORIES = [
   { value: 'contract', label: 'Purchase Contract', icon: '📄' },
@@ -30,6 +32,7 @@ const DealDocumentsTab = ({ dealId, deal }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [filterCategory, setFilterCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, document: null });
 
   useEffect(() => {
     loadDocuments();
@@ -114,10 +117,15 @@ const DealDocumentsTab = ({ dealId, deal }) => {
     setUploading(false);
   };
 
-  const deleteDocument = async (docId) => {
+  const deleteDocument = async () => {
+    const target = confirmDelete.document;
+    setConfirmDelete({ open: false, document: null });
+    if (!target?.id) return;
     try {
-      await deleteDoc(doc(db, 'deal-documents', docId));
+      await deleteDoc(doc(db, 'deal-documents', target.id));
       toast.success('Document deleted');
+      logActivity('deleted', 'deal-document', target.id,
+        `Deal document "${target.name || target.id}" deleted from deal "${deal?.propertyAddress || dealId}"`);
       loadDocuments();
     } catch (err) {
       toast.error('Failed to delete');
@@ -271,7 +279,7 @@ const DealDocumentsTab = ({ dealId, deal }) => {
                     </a>
                   )}
                   <button
-                    onClick={() => deleteDocument(item.id)}
+                    onClick={() => setConfirmDelete({ open: true, document: item })}
                     style={{ background: 'none', border: '1px solid #331111', color: '#ff4444', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
                   >
                     Delete
@@ -373,6 +381,15 @@ const DealDocumentsTab = ({ dealId, deal }) => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Delete document?"
+        message={`This will permanently remove "${confirmDelete.document?.name || 'this document'}" from the deal. This action can't be undone.`}
+        confirmLabel="Delete"
+        onConfirm={deleteDocument}
+        onCancel={() => setConfirmDelete({ open: false, document: null })}
+      />
     </div>
   );
 };

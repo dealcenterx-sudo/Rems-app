@@ -4,6 +4,7 @@ import { collection, addDoc, getDocs, query, doc, updateDoc, where } from 'fireb
 import { useToast } from './Toast';
 import { BuyerIcon, SellerIcon, PropertyIcon, Plus } from './Icons';
 import { normalizeAddressValue } from '../utils/helpers';
+import { logActivity } from '../utils/auditLog';
 
 // DEALS PAGE - New Deal (IMPROVED UX)
 const NewDealPage = () => {
@@ -84,18 +85,19 @@ const querySnapshot = isAdmin
         );
       });
 
-      await addDoc(collection(db, 'deals'), {
-  buyerId: dealData.buyer,
-  buyerName: `${buyer.firstName} ${buyer.lastName}`,
-  sellerId: dealData.seller,
-  sellerName,
-  propertyId: matchedProperty?.id || null,
-  propertyType: matchedProperty?.propertyType || null,
-  propertyAddress: dealData.property,
-  status: 'new',
-  userId: auth.currentUser.uid,
-  createdAt: new Date().toISOString()
-});
+      const dealRef = await addDoc(collection(db, 'deals'), {
+        buyerId: dealData.buyer,
+        buyerName: `${buyer.firstName} ${buyer.lastName}`,
+        sellerId: dealData.seller,
+        sellerName,
+        propertyId: matchedProperty?.id || null,
+        propertyType: matchedProperty?.propertyType || null,
+        propertyAddress: dealData.property,
+        status: 'new',
+        userId: auth.currentUser.uid,
+        createdAt: new Date().toISOString()
+      });
+      logActivity('created', 'deal', dealRef.id, `Deal "${dealData.property}" created`);
 
       if (matchedProperty?.id) {
         await updateDoc(doc(db, 'properties', matchedProperty.id), {

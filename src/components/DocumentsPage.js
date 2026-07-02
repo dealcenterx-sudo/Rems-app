@@ -15,6 +15,7 @@ import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { isAdminUser } from '../utils/helpers';
+import { logActivity } from '../utils/auditLog';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
 import useDebounce from '../utils/useDebounce';
 
@@ -197,9 +198,11 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
 
   const deleteDocument = async (documentId) => {
     try {
+      const target = confirmDelete.document;
       await deleteDoc(doc(db, 'documents', documentId));
       loadDocuments(0, true);
       toast.success('Document deleted successfully');
+      logActivity('deleted', 'document', documentId, `Document "${target?.name || documentId}" deleted`);
     } catch (error) {
       console.error('Error deleting document:', error);
       toast.error('Error deleting document');
