@@ -14,11 +14,18 @@ const STATUS_COLORS = {
 
 // Client-facing deals list for buyers/sellers: shows deals assigned via
 // users/{uid}.assignedDeals and opens the shared deal portal.
-const MyDealsPage = () => {
+const MyDealsPage = ({ notificationDeal }) => {
   const { userDoc } = useUserDoc();
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [portalDealId, setPortalDealId] = useState(null);
+
+  // Notification click-through opens the referenced deal's portal.
+  useEffect(() => {
+    if (notificationDeal?.dealId) {
+      setPortalDealId(notificationDeal.dealId);
+    }
+  }, [notificationDeal]);
 
   useEffect(() => {
     const assignedIds = Array.isArray(userDoc?.assignedDeals) ? userDoc.assignedDeals : [];

@@ -39,6 +39,7 @@ function App() {
   const [globalSearch, setGlobalSearch] = useState('');
   const { user, userDoc, loading } = useUser();
   const [companyIdOverride, setCompanyIdOverride] = useState(null);
+  const [notificationDeal, setNotificationDeal] = useState(null);
   const companyId = companyIdOverride ?? userDoc?.companyId ?? null;
 
   useEffect(() => {
@@ -103,6 +104,16 @@ function App() {
     setCompanyIdOverride(newCompanyId);
   };
 
+  // Notification click-through: open the referenced deal's portal.
+  // Nonce lets the same deal be reopened from a second notification.
+  const handleOpenDealFromNotification = (dealId) => {
+    setNotificationDeal({ dealId, nonce: Date.now() });
+    if (!isExternalRole(userDoc?.role)) {
+      setDealsSubTab('portal');
+    }
+    setActiveTab('deals');
+  };
+
   if (loading) {
     return (
       <div style={{
@@ -137,6 +148,7 @@ function App() {
           searchQuery={globalSearch}
           onSearchChange={setGlobalSearch}
           showSearch={searchEnabledTabs.includes(activeTab)}
+          onOpenDeal={handleOpenDealFromNotification}
         />
         <ErrorBoundary>
         <Suspense fallback={<PageLoader />}>
@@ -150,8 +162,8 @@ function App() {
         {activeTab === 'contacts' && <ContactsPage initialTab={contactsViewTab} companyId={companyId} globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'deals' && (
           isExternalRole(userDoc?.role)
-            ? <MyDealsPage />
-            : <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} companyId={companyId} />
+            ? <MyDealsPage notificationDeal={notificationDeal} />
+            : <DealsPage subTab={dealsSubTab} setSubTab={setDealsSubTab} companyId={companyId} notificationDeal={notificationDeal} />
         )}
         {activeTab === 'properties' && <PropertiesPage globalSearch={globalSearch} onSearchChange={setGlobalSearch} />}
         {activeTab === 'crm' && (

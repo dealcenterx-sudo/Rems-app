@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FilePlus, BarChart, List, CheckSquare } from './Icons';
 
 const DealsDashboard = React.lazy(() => import('./DealsDashboard'));
@@ -7,8 +7,17 @@ const ClosedDealsPage = React.lazy(() => import('./ClosedDealsPage'));
 const NewDealPage = React.lazy(() => import('./NewDealPage'));
 const DealPortalPage = React.lazy(() => import('./DealPortalPage'));
 
-const DealsPage = ({ subTab, setSubTab }) => {
+const DealsPage = ({ subTab, setSubTab, notificationDeal }) => {
   const [portalDealId, setPortalDealId] = useState(null);
+
+  // Notification click-through opens the referenced deal's portal.
+  useEffect(() => {
+    if (notificationDeal?.dealId) {
+      setPortalDealId(notificationDeal.dealId);
+      setSubTab('portal');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notificationDeal]);
 
   const handleOpenPortal = (dealId) => {
     setPortalDealId(dealId);

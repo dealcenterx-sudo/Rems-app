@@ -77,7 +77,7 @@ const formatNotificationTime = (iso) => {
   return parsed.toLocaleDateString();
 };
 
-const TopBar = ({ title, searchQuery, onSearchChange, showSearch }) => {
+const TopBar = ({ title, searchQuery, onSearchChange, showSearch, onOpenDeal }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -202,10 +202,20 @@ const TopBar = ({ title, searchQuery, onSearchChange, showSearch }) => {
                   {notifications.map((n) => (
                     <div
                       key={n.id}
+                      onClick={n.dealId && onOpenDeal ? () => { setShowNotifications(false); onOpenDeal(n.dealId); } : undefined}
+                      onKeyDown={n.dealId && onOpenDeal ? (e) => {
+                        if (e.key === 'Enter') {
+                          setShowNotifications(false);
+                          onOpenDeal(n.dealId);
+                        }
+                      } : undefined}
+                      role={n.dealId && onOpenDeal ? 'button' : undefined}
+                      tabIndex={n.dealId && onOpenDeal ? 0 : undefined}
                       style={{
                         padding: '10px 14px',
                         borderBottom: '1px solid var(--border-subtle)',
-                        background: n.read ? 'transparent' : 'var(--accent-soft)'
+                        background: n.read ? 'transparent' : 'var(--accent-soft)',
+                        cursor: n.dealId && onOpenDeal ? 'pointer' : 'default'
                       }}
                     >
                       <div style={{ fontSize: '12px', fontWeight: '600', color: '#ffffff' }}>
