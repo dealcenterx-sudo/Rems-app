@@ -112,7 +112,54 @@ Deferred to future milestone:
 
 ## Traceability
 
-(Filled by roadmap — maps each requirement to its phase)
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| AUDIT-01 | Phase 1 | Pending |
+| AUDIT-02 | Phase 1 | Pending |
+| AUDIT-03 | Phase 1 | Pending |
+| AUDIT-04 | Phase 1 | Pending |
+| HYG-01 | Phase 1 | Pending |
+| HYG-02 | Phase 1 | Pending |
+| HYG-03 | Phase 1 | Pending |
+| HYG-04 | Phase 1 | Pending |
+| HYG-05 | Phase 1 | Pending |
+| TEST-01 | Phase 2 | Pending |
+| TEST-02 | Phase 2 | Pending |
+| TEST-03 | Phase 2 | Pending |
+| TEST-04 | Phase 8 | Pending |
+| OBS-01 | Phase 3 | Pending |
+| OBS-02 | Phase 3 | Pending |
+| OBS-03 | Phase 3 | Pending |
+| SEC-01 | Phase 4 | Pending |
+| SEC-02 | Phase 4 | Pending |
+| SEC-03 | Phase 4 | Pending |
+| SEC-04 | Phase 6 | Pending |
+| SEC-05 | Phase 6 | Pending |
+| DATA-01 | Phase 5 | Pending |
+| DATA-02 | Phase 5 | Pending |
+| DATA-03 | Phase 5 | Pending |
+| INFRA-01 | Phase 8 | Pending |
+| INFRA-02 | Phase 5 | Pending |
+| INFRA-03 | Phase 5 | Pending |
+| UI-01 | Phase 7 | Pending |
+| UI-02 | Phase 7 | Pending |
+| UI-03 | Phase 7 | Pending |
+| UI-04 | Phase 7 | Pending |
+| UI-05 | Phase 7 | Pending |
+| UI-06 | Phase 7 | Pending |
+| COPY-01 | Phase 7 | Pending |
+| COPY-02 | Phase 7 | Pending |
+| COPY-03 | Phase 7 | Pending |
+| A11Y-01 | Phase 7 | Pending |
+| A11Y-02 | Phase 7 | Pending |
+| A11Y-03 | Phase 7 | Pending |
+| LAND-01 | Phase 8 | Pending |
+| LAND-02 | Phase 8 | Pending |
+| LAND-03 | Phase 8 | Pending |
+| LAND-04 | Phase 8 | Pending |
+| POLISH-01 | Phase 8 | Pending |
+
+**Coverage:** 44/44 v1 requirements mapped. Cross-phase note: INFRA-01 groundwork (CSP Report-Only) ships in Phase 5; the requirement completes with enforcement in Phase 8. AUDIT-03 (changelog) is scaffolded in Phase 1 and maintained every phase.
 
 ---
 *Requirements defined: 2026-07-06 — from user brief + codebase map + domain research*
