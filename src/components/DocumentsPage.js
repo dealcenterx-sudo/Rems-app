@@ -14,9 +14,11 @@ import {
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
+import { FileText } from './Icons';
+import PageState from './PageState';
 import { isAdminUser } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
-import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET, deleteFromCloudinary } from '../utils/cloudinary';
 import useDebounce from '../utils/useDebounce';
 
 const DOCUMENTS_PAGE_SIZE = 30;
@@ -199,6 +201,9 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   const deleteDocument = async (documentId) => {
     try {
       const target = confirmDelete.document;
+      if (target?.publicId) {
+        await deleteFromCloudinary(target.publicId, 'raw');
+      }
       await deleteDoc(doc(db, 'documents', documentId));
       loadDocuments(0, true);
       toast.success('Document deleted successfully');
@@ -336,11 +341,19 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
       </div>
 
       {filteredDocuments.length === 0 ? (
-        <div className="empty-state-card">
-          <div className="empty-state-icon">📁</div>
-          <div className="empty-state-title">No documents found</div>
-          <div className="empty-state-subtitle">Upload your first document to get started</div>
-        </div>
+        <PageState
+          icon={FileText}
+          eyebrow="Documents"
+          title="No documents found"
+          message={documents.length === 0
+            ? 'Upload contracts, disclosures, and supporting files to keep records organized.'
+            : 'Try another category or adjust your search.'}
+          actions={documents.length === 0 && (
+            <button onClick={() => setShowUploadModal(true)} className="btn-primary">
+              Upload document
+            </button>
+          )}
+        />
       ) : (
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
           {filteredDocuments.map((document) => (

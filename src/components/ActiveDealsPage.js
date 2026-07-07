@@ -16,6 +16,8 @@ import { useToast } from './Toast';
 import { logActivity } from '../utils/auditLog';
 import { notifyUsers, dealRecipients } from '../utils/notifications';
 import ConfirmModal from './ConfirmModal';
+import { FileText } from './Icons';
+import PageState from './PageState';
 import { isAdminUser } from '../utils/helpers';
 
 const DEALS_PAGE_SIZE = 36;
@@ -244,11 +246,12 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
 
       {/* Deals Grid */}
       {deals.length === 0 ? (
-        <div className="empty-state-card">
-          <div className="empty-state-icon">💼</div>
-          <div className="empty-state-title">No {filterStatus === 'all' ? '' : getStatusLabel(filterStatus)} deals found</div>
-          <div className="empty-state-subtitle">Create a new deal from the Deals → New Deal page</div>
-        </div>
+        <PageState
+          icon={FileText}
+          eyebrow="Deals"
+          title={filterStatus === 'all' ? 'No deals found' : `No ${getStatusLabel(filterStatus).toLowerCase()} deals found`}
+          message="Create a new deal from the Deals > New Deal page."
+        />
       ) : (
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
           {deals.map((deal) => (

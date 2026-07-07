@@ -1,0 +1,209 @@
+import { readFileSync } from 'node:fs';
+import {
+  assertFails,
+  assertSucceeds,
+  initializeTestEnvironment
+} from '@firebase/rules-unit-testing';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc
+} from 'firebase/firestore';
+import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
+
+let testEnv;
+
+const projectId = 'rems-rules-test';
+
+const authedDb = (uid, claims = {}) =>
+  testEnv.authenticatedContext(uid, claims).firestore();
+
+const seed = async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+
+    await setDoc(doc(db, 'users/admin-uid'), {
+      userId: 'admin-uid',
+      email: 'admin@example.com',
+      role: 'admin',
+      assignedProperties: [],
+      assignedDeals: []
+    });
+    await setDoc(doc(db, 'users/agent-a'), {
+      userId: 'agent-a',
+      email: 'agent@example.com',
+      role: 'agent',
+      assignedProperties: ['prop-assigned'],
+      assignedDeals: ['deal-assigned']
+    });
+    await setDoc(doc(db, 'users/other-user'), {
+      userId: 'other-user',
+      email: 'other@example.com',
+      role: 'agent',
+      assignedProperties: [],
+      assignedDeals: []
+    });
+    await setDoc(doc(db, 'users/admin-email-agent'), {
+      userId: 'admin-email-agent',
+      email: 'dealcenterx@gmail.com',
+      role: 'agent',
+      assignedProperties: [],
+      assignedDeals: []
+    });
+
+    await setDoc(doc(db, 'contacts/contact-owned'), {
+      userId: 'agent-a',
+      firstName: 'Owned'
+    });
+    await setDoc(doc(db, 'contacts/contact-other'), {
+      userId: 'other-user',
+      firstName: 'Other'
+    });
+
+    await setDoc(doc(db, 'properties/prop-owned'), {
+      userId: 'agent-a',
+      status: 'active'
+    });
+    await setDoc(doc(db, 'properties/prop-assigned'), {
+      userId: 'other-user',
+      status: 'active'
+    });
+
+    await setDoc(doc(db, 'deals/deal-owned'), {
+      userId: 'agent-a',
+      status: 'active'
+    });
+    await setDoc(doc(db, 'deals/deal-assigned'), {
+      userId: 'other-user',
+      status: 'active'
+    });
+    await setDoc(doc(db, 'deals/deal-other'), {
+      userId: 'other-user',
+      status: 'active'
+    });
+
+    await setDoc(doc(db, 'deal-messages/message-assigned'), {
+      dealId: 'deal-assigned',
+      body: 'Existing message'
+    });
+
+    await setDoc(doc(db, 'activity_log/log-1'), {
+      userId: 'agent-a',
+      action: 'created'
+    });
+  });
+};
+
+beforeAll(async () => {
+  testEnv = await initializeTestEnvironment({
+    projectId,
+    firestore: {
+      host: '127.0.0.1',
+      port: 8080,
+      rules: readFileSync('firestore.rules', 'utf8')
+    }
+  });
+});
+
+beforeEach(async () => {
+  await testEnv.clearFirestore();
+  await seed();
+});
+
+afterAll(async () => {
+  await testEnv.cleanup();
+});
+
+describe('userId-scoped business collections', () => {
+  it('allows owners to read and create their own contacts but denies other users records', async () => {
+    const db = authedDb('agent-a', { email: 'agent@example.com' });
+
+    await assertSucceeds(getDoc(doc(db, 'contacts/contact-owned')));
+    await assertFails(getDoc(doc(db, 'contacts/contact-other')));
+    await assertSucceeds(setDoc(doc(db, 'contacts/contact-new'), {
+      userId: 'agent-a',
+      firstName: 'New'
+    }));
+    await assertFails(setDoc(doc(db, 'contacts/contact-forged'), {
+      userId: 'other-user',
+      firstName: 'Forged'
+    }));
+  });
+
+  it('allows admin role documents to read and delete any scoped record', async () => {
+    const db = authedDb('admin-uid', { email: 'admin@example.com' });
+
+    await assertSucceeds(getDoc(doc(db, 'contacts/contact-other')));
+    await assertSucceeds(deleteDoc(doc(db, 'contacts/contact-other')));
+  });
+
+  it('does not grant admin access from the admin email without an admin role document', async () => {
+    const db = authedDb('admin-email-agent', { email: 'dealcenterx@gmail.com' });
+
+    await assertFails(getDoc(doc(db, 'contacts/contact-other')));
+    await assertFails(deleteDoc(doc(db, 'contacts/contact-other')));
+  });
+});
+
+describe('assignment-based access', () => {
+  it('allows assigned users to read and update assigned properties without deleting them', async () => {
+    const db = authedDb('agent-a', { email: 'agent@example.com' });
+
+    await assertSucceeds(getDoc(doc(db, 'properties/prop-assigned')));
+    await assertSucceeds(updateDoc(doc(db, 'properties/prop-assigned'), {
+      status: 'pending',
+      userId: 'other-user'
+    }));
+    await assertFails(deleteDoc(doc(db, 'properties/prop-assigned')));
+  });
+
+  it('allows assigned deal reads and deal-portal access but keeps assigned users read-only on deals', async () => {
+    const db = authedDb('agent-a', { email: 'agent@example.com' });
+
+    await assertSucceeds(getDoc(doc(db, 'deals/deal-assigned')));
+    await assertFails(updateDoc(doc(db, 'deals/deal-assigned'), {
+      status: 'closed',
+      userId: 'other-user'
+    }));
+    await assertSucceeds(getDoc(doc(db, 'deal-messages/message-assigned')));
+    await assertSucceeds(addDoc(collection(db, 'deal-messages'), {
+      dealId: 'deal-assigned',
+      body: 'Portal message'
+    }));
+    await assertFails(addDoc(collection(db, 'deal-messages'), {
+      dealId: 'deal-other',
+      body: 'No access'
+    }));
+  });
+});
+
+describe('activity_log append-only behavior', () => {
+  it('allows users to append their own activity and denies forged entries', async () => {
+    const db = authedDb('agent-a', { email: 'agent@example.com' });
+
+    await assertSucceeds(addDoc(collection(db, 'activity_log'), {
+      userId: 'agent-a',
+      action: 'updated'
+    }));
+    await assertFails(addDoc(collection(db, 'activity_log'), {
+      userId: 'other-user',
+      action: 'forged'
+    }));
+  });
+
+  it('allows admin reads but denies edits and deletes for everyone', async () => {
+    const adminDb = authedDb('admin-uid', { email: 'admin@example.com' });
+    const agentDb = authedDb('agent-a', { email: 'agent@example.com' });
+
+    await assertSucceeds(getDoc(doc(adminDb, 'activity_log/log-1')));
+    await assertFails(getDoc(doc(agentDb, 'activity_log/log-1')));
+    await assertFails(updateDoc(doc(adminDb, 'activity_log/log-1'), {
+      action: 'edited'
+    }));
+    await assertFails(deleteDoc(doc(adminDb, 'activity_log/log-1')));
+  });
+});

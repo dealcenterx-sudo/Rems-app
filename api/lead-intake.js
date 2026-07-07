@@ -3,10 +3,11 @@
 // POST JSON: { name, email, phone, serviceType, source, street, city,
 //              state, zipCode, propertyType, notes }
 const { getDb, getAuthAdmin } = require('./_lib/firebaseAdmin');
+const { ADMIN_EMAIL } = require('./_lib/config');
+const { leadIntakeSchema, validateBody } = require('./_lib/validate');
+const { withSentry } = require('./_lib/withSentry');
 
-const ADMIN_EMAIL = 'dealcenterx@gmail.com';
-
-module.exports = async (req, res) => {
+const handler = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -28,14 +29,13 @@ module.exports = async (req, res) => {
     return res.status(503).json({ error: 'Lead intake not configured' });
   }
 
+  const input = validateBody(req, res, leadIntakeSchema);
+  if (!input) return;
+
   const {
     name, email, phone, serviceType, source,
     street, city, state, zipCode, propertyType, notes
-  } = req.body || {};
-
-  if (!name && !email && !phone) {
-    return res.status(400).json({ error: 'At least one of name, email, or phone is required' });
-  }
+  } = input;
 
   const now = new Date().toISOString();
 
@@ -85,3 +85,5 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Failed to create lead' });
   }
 };
+
+module.exports = withSentry(handler);

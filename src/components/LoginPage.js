@@ -40,7 +40,7 @@ const friendlyAuthError = (err) => {
   return err?.message || 'Something went wrong. Please try again.';
 };
 
-const LoginPage = ({ onLoginSuccess }) => {
+const LoginPage = ({ onLoginSuccess, embedded = false }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignup, setIsSignup] = useState(false);
@@ -104,9 +104,8 @@ const LoginPage = ({ onLoginSuccess }) => {
     }
   };
 
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#000000', padding: '20px' }}>
-      <div style={{ background: '#0a0a0a', border: '2px solid #1a1a1a', borderRadius: '8px', padding: '40px', maxWidth: '450px', width: '100%' }}>
+  const card = (
+      <div className={embedded ? 'public-auth-card' : undefined} style={{ background: '#0a0a0a', border: '2px solid #1a1a1a', borderRadius: '8px', padding: embedded ? '30px' : '40px', maxWidth: '450px', width: '100%' }}>
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
           <div style={{ width: '60px', height: '60px', background: '#00ff88', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '28px', fontWeight: '700', color: '#000000', margin: '0 auto 20px' }}>R</div>
           <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', marginBottom: '8px', letterSpacing: '-0.5px' }}>
@@ -249,6 +248,13 @@ const LoginPage = ({ onLoginSuccess }) => {
           Secured with Firebase Authentication · Your data is encrypted in transit
         </div>
       </div>
+  );
+
+  if (embedded) return card;
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#000000', padding: '20px' }}>
+      {card}
     </div>
   );
 };

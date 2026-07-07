@@ -1,4 +1,5 @@
 import { canUserAccess, canUserManageProperty, getEditableFields, canEditField, ALL_FIELDS } from './permissions';
+import { ADMIN_EMAIL } from '../config';
 
 // helpers.js pulls auth from firebase; keep the SDK out of unit tests
 jest.mock('../firebase', () => ({
@@ -6,7 +7,7 @@ jest.mock('../firebase', () => ({
   db: {}
 }));
 
-const admin = { userId: 'admin-1', email: 'dealcenterx@gmail.com', role: 'admin', assignedProperties: [] };
+const admin = { userId: 'admin-1', email: ADMIN_EMAIL, role: 'admin', assignedProperties: [] };
 const agent = { userId: 'agent-1', email: 'agent@example.com', role: 'agent', assignedProperties: ['prop-9'] };
 const buyer = { userId: 'buyer-1', email: 'buyer@example.com', role: 'buyer', assignedProperties: ['prop-9'] };
 

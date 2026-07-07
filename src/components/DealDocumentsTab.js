@@ -5,6 +5,7 @@ import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { Plus, FileText, Search } from './Icons';
 import { CLOUDINARY_UPLOAD_PRESET, CLOUDINARY_CLOUD_NAME } from '../utils/helpers';
+import { deleteFromCloudinary } from '../utils/cloudinary';
 import { logActivity } from '../utils/auditLog';
 import { notifyUsers, dealRecipients } from '../utils/notifications';
 
@@ -97,6 +98,8 @@ const DealDocumentsTab = ({ dealId, deal }) => {
         signatureStatus: uploadForm.requiresSignature ? 'pending' : null,
         signedBy: [],
         fileUrl,
+        publicId: data.public_id || null,
+        resourceType: data.resource_type || 'raw',
         fileType,
         fileSize,
         fileName: selectedFile.name,
@@ -129,6 +132,9 @@ const DealDocumentsTab = ({ dealId, deal }) => {
     setConfirmDelete({ open: false, document: null });
     if (!target?.id) return;
     try {
+      if (target.publicId) {
+        await deleteFromCloudinary(target.publicId, target.resourceType || 'raw');
+      }
       await deleteDoc(doc(db, 'deal-documents', target.id));
       toast.success('Document deleted');
       logActivity('deleted', 'deal-document', target.id,

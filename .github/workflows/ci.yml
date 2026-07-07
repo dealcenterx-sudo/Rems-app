@@ -22,8 +22,17 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
       - name: Install dependencies
         run: npm ci
+
+      - name: Check constants
+        run: npm run check:constants
 
       - name: Lint
         run: npm run lint
@@ -32,6 +41,12 @@ jobs:
         run: npm run test:ci
         env:
           CI: true
+
+      - name: API tests
+        run: npm run test:api
+
+      - name: Firestore rules tests
+        run: npm run test:rules
 
       - name: Build
         run: npm run build

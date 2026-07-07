@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Users, FileText, BarChart, Mail, CheckSquare, isExternalRole } from './Icons';
+import { AlertCircle, Users, FileText, BarChart, Mail, CheckSquare, isExternalRole } from './Icons';
+import { LoadingOverlay } from './Loading';
+import PageState from './PageState';
 import useUserDoc from '../utils/useUserDoc';
 
 const DealPartiesTab = React.lazy(() => import('./DealPartiesTab'));
@@ -23,6 +25,7 @@ const DealPortalPage = ({ dealId, onBack }) => {
   const [activeTab, setActiveTab] = useState('parties');
   const [deal, setDeal] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   // Financials holds agent tooling (commission, lender pushes) — internal only.
   const portalTabs = isExternalRole(userDoc?.role)
@@ -33,12 +36,14 @@ const DealPortalPage = ({ dealId, onBack }) => {
     if (!dealId) return;
     const loadDeal = async () => {
       try {
+        setLoadError('');
         const snap = await getDoc(doc(db, 'deals', dealId));
         if (snap.exists()) {
           setDeal({ id: snap.id, ...snap.data() });
         }
       } catch (err) {
         console.error('Error loading deal:', err);
+        setLoadError('Could not load this deal. Go back to the deals list and try again.');
       }
       setLoading(false);
     };
@@ -48,7 +53,7 @@ const DealPortalPage = ({ dealId, onBack }) => {
   if (loading) {
     return (
       <div className="page-content">
-        <div className="loading-container"><div className="loading-spinner" /></div>
+        <LoadingOverlay message="Loading deal portal" />
       </div>
     );
   }
@@ -56,24 +61,28 @@ const DealPortalPage = ({ dealId, onBack }) => {
   if (!dealId) {
     return (
       <div className="page-content">
-        <div className="empty-state-card">
-          <div className="empty-state-icon">🤝</div>
-          <div className="empty-state-title">No Deal Selected</div>
-          <div className="empty-state-subtitle">Select a deal from Active Deals to open the collaborative portal</div>
-          <button onClick={onBack} className="btn-primary" style={{ marginTop: '16px' }}>Go to Active Deals</button>
-        </div>
+        <PageState
+          icon={Users}
+          eyebrow="Deal portal"
+          title="No deal selected"
+          message="Select a deal from Active Deals to open the collaborative portal."
+          actions={<button onClick={onBack} className="btn-primary">Go to active deals</button>}
+        />
       </div>
     );
   }
 
-  if (!deal) {
+  if (loadError || !deal) {
     return (
       <div className="page-content">
-        <div className="empty-state-card">
-          <div className="empty-state-icon">🚫</div>
-          <div className="empty-state-title">Deal not found</div>
-          <button onClick={onBack} className="btn-primary" style={{ marginTop: '16px' }}>Back to Deals</button>
-        </div>
+        <PageState
+          tone={loadError ? 'error' : 'warning'}
+          icon={AlertCircle}
+          eyebrow="Deal portal"
+          title={loadError ? 'Could not load this deal' : 'Deal not found'}
+          message={loadError || 'This deal may have been deleted or is no longer assigned to you.'}
+          actions={<button onClick={onBack} className="btn-primary">Back to deals</button>}
+        />
       </div>
     );
   }
@@ -113,10 +122,13 @@ const DealPortalPage = ({ dealId, onBack }) => {
         </div>
 
         {/* Tab bar */}
-        <div style={{ display: 'flex', gap: '0', overflowX: 'auto' }}>
+        <div role="tablist" aria-label="Deal portal sections" style={{ display: 'flex', gap: '0', overflowX: 'auto' }}>
           {portalTabs.map((tab) => (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`deal-portal-panel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               style={{
                 display: 'flex',
@@ -142,8 +154,13 @@ const DealPortalPage = ({ dealId, onBack }) => {
       </div>
 
       {/* Tab content */}
-      <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
-        <React.Suspense fallback={<div className="loading-container"><div className="loading-spinner" /></div>}>
+      <div
+        id={`deal-portal-panel-${activeTab}`}
+        role="tabpanel"
+        aria-label={`${portalTabs.find((tab) => tab.id === activeTab)?.label || 'Deal'} panel`}
+        style={{ padding: '24px', overflowY: 'auto', flex: 1 }}
+      >
+        <React.Suspense fallback={<LoadingOverlay message="Loading portal section" />}>
           {activeTab === 'parties' && <DealPartiesTab dealId={dealId} deal={deal} />}
           {activeTab === 'chat' && <DealChatTab dealId={dealId} deal={deal} />}
           {activeTab === 'financials' && !isExternalRole(userDoc?.role) && (

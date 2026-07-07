@@ -415,7 +415,7 @@ buyerId, status, createdAt (desc)
 
 ```javascript
 // Users can only read/write their own data
-// Admin can read all data (dealcenterx@gmail.com)
+// Admin-role users can read all data
 // Company members can see each other's data (if companyId matches)
 ```
 

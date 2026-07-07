@@ -1,10 +1,11 @@
 // Vercel serverless function: authenticated email sending via Resend.
 // Requires RESEND_API_KEY (and optionally EMAIL_FROM) in Vercel env vars.
 
-// Firebase public web API key — used only to validate caller ID tokens.
-const FIREBASE_API_KEY = 'AIzaSyCI2EX7aR0ZphG36_IlUQqt0nFozedj5pI';
+const { FIREBASE_API_KEY } = require('./_lib/config');
+const { sendEmailSchema, validateBody } = require('./_lib/validate');
+const { withSentry } = require('./_lib/withSentry');
 
-module.exports = async (req, res) => {
+const handler = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -43,10 +44,10 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: 'Auth verification failed' });
   }
 
-  const { to, subject, text, html, cc, bcc } = req.body || {};
-  if (!to || !subject || !(text || html)) {
-    return res.status(400).json({ error: 'to, subject, and text or html are required' });
-  }
+  const input = validateBody(req, res, sendEmailSchema);
+  if (!input) return;
+
+  const { to, subject, text, html, cc, bcc } = input;
 
   const payload = {
     from: process.env.EMAIL_FROM || 'REMS <onboarding@resend.dev>',
@@ -77,3 +78,5 @@ module.exports = async (req, res) => {
     return res.status(502).json({ error: 'Email provider unreachable' });
   }
 };
+
+module.exports = withSentry(handler);

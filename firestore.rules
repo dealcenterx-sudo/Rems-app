@@ -9,14 +9,11 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Admin check: role on the user doc, with the admin email as fallback
-    // so the admin is never locked out before their doc has role: 'admin'.
+    // Admin check: role on the user doc. Do not grant admin by email alone.
     function isAdmin() {
-      return isSignedIn() && (
-        request.auth.token.email == 'dealcenterx@gmail.com' ||
+      return isSignedIn() &&
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
-      );
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
     }
 
     // Record ownership via the userId field used across all collections.

@@ -1,8 +1,39 @@
-// Temporary diagnostics: reports which integration env vars are visible
-// to the runtime. Booleans, key names, and init errors only — never values.
+// Diagnostics endpoint. Public callers get a bare status; admin callers with a
+// valid Firebase ID token get integration config presence and init status.
 const { getDb } = require('./_lib/firebaseAdmin');
+const { ADMIN_EMAIL, FIREBASE_API_KEY } = require('./_lib/config');
+const { withSentry } = require('./_lib/withSentry');
 
-module.exports = async (req, res) => {
+const handler = async (req, res) => {
+  const bare = { status: 'ok' };
+
+  const authHeader = req.headers.authorization || '';
+  const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!idToken) {
+    return res.status(200).json(bare);
+  }
+
+  let user = null;
+  try {
+    const lookup = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken })
+      }
+    );
+    if (lookup.ok) {
+      user = (await lookup.json()).users?.[0] || null;
+    }
+  } catch {
+    return res.status(200).json(bare);
+  }
+
+  if (!user || user.email !== ADMIN_EMAIL || !user.emailVerified) {
+    return res.status(200).json(bare);
+  }
+
   const keys = Object.keys(process.env).filter((k) =>
     /RESEND|FIREBASE|LEAD|EMAIL/i.test(k)
   );
@@ -15,6 +46,7 @@ module.exports = async (req, res) => {
   }
 
   return res.status(200).json({
+    status: 'ok',
     resendConfigured: Boolean(process.env.RESEND_API_KEY),
     firebaseAdminConfigured: Boolean(process.env.FIREBASE_SERVICE_ACCOUNT),
     leadIntakeConfigured: Boolean(process.env.LEAD_INTAKE_KEY),
@@ -22,3 +54,5 @@ module.exports = async (req, res) => {
     matchingKeyNames: keys
   });
 };
+
+module.exports = withSentry(handler);

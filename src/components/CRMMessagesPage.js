@@ -3,6 +3,7 @@ import { db, auth } from '../firebase';
 import { collection, getDocs, query, where, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Search } from './Icons';
 import { useToast } from './Toast';
+import { ADMIN_EMAIL } from '../config';
 
 const CRMMessagesPage = () => {
   const toast = useToast();
@@ -140,7 +141,7 @@ const CRMMessagesPage = () => {
   const loadThreads = useCallback(async () => {
     setLoading(true);
     try {
-      const isAdmin = auth.currentUser?.email === 'dealcenterx@gmail.com';
+      const isAdmin = auth.currentUser?.email === ADMIN_EMAIL;
       const leadsQuery = isAdmin
         ? query(collection(db, 'leads'))
         : query(collection(db, 'leads'), where('userId', '==', auth.currentUser.uid));

@@ -1,4 +1,6 @@
 // Cloudinary Configuration
+import { auth } from '../firebase';
+
 export const CLOUDINARY_CLOUD_NAME = 'dcirl3j3v';
 export const CLOUDINARY_UPLOAD_PRESET = 'rems_unsigned'; // We'll create this in Cloudinary
 
@@ -41,10 +43,24 @@ export const uploadMultipleToCloudinary = async (files, folder = 'properties') =
   return Promise.all(uploadPromises);
 };
 
-// Delete image from Cloudinary (requires server-side with API secret)
-// For now, we'll just remove from our database
-export const deleteFromCloudinary = async (publicId) => {
-  console.warn('Delete requires server-side implementation with API secret');
-  // TODO: Implement server-side delete endpoint
+export const deleteFromCloudinary = async (publicId, resourceType = 'image') => {
+  if (!publicId) return true;
+  const token = await auth.currentUser?.getIdToken();
+  if (!token) {
+    throw new Error('Sign in again to delete media');
+  }
+
+  const response = await fetch('/api/delete-media', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ publicId, resourceType })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.error || 'Media delete failed');
+  }
   return true;
 };

@@ -2,8 +2,10 @@
 // account to the party record, grants deal portal access, notifies the
 // deal owner. The signed-in email must match the invited email.
 const { getDb, getAuthAdmin, FieldValue } = require('./_lib/firebaseAdmin');
+const { acceptInviteSchema, validateBody } = require('./_lib/validate');
+const { withSentry } = require('./_lib/withSentry');
 
-module.exports = async (req, res) => {
+const handler = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -30,10 +32,9 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: 'Invalid auth token' });
   }
 
-  const { inviteToken } = req.body || {};
-  if (!inviteToken) {
-    return res.status(400).json({ error: 'inviteToken is required' });
-  }
+  const input = validateBody(req, res, acceptInviteSchema);
+  if (!input) return;
+  const { inviteToken } = input;
 
   const now = new Date().toISOString();
 
@@ -104,3 +105,5 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Failed to accept invite' });
   }
 };
+
+module.exports = withSentry(handler);

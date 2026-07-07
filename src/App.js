@@ -10,7 +10,7 @@ import { ToastProvider } from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Login - keep eager (needed before anything else)
-import LoginPage from './components/LoginPage';
+import PublicLandingPage from './components/PublicLandingPage';
 import InviteAcceptor from './components/InviteAcceptor';
 
 // Lazy-loaded pages (only downloaded when user navigates to them)
@@ -153,7 +153,7 @@ function App() {
 
   if (!user && process.env.REACT_APP_DEV_BYPASS !== 'true') {
     // UserContext's auth listener picks up the new session and re-renders.
-    return <LoginPage onLoginSuccess={() => {}} />;
+    return <PublicLandingPage onLoginSuccess={() => {}} />;
   }
 
   const searchEnabledTabs = ['contacts', 'properties', 'tasks', 'documents'];

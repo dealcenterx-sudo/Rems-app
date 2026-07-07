@@ -1,7 +1,8 @@
 import React from 'react';
 
-export const LoadingSpinner = ({ size = 40, color = '#0088ff' }) => (
+export const LoadingSpinner = ({ size = 40, color = '#00ff88' }) => (
   <div
+    aria-hidden="true"
     style={{
       width: size,
       height: size,
@@ -14,14 +15,18 @@ export const LoadingSpinner = ({ size = 40, color = '#0088ff' }) => (
 );
 
 export const LoadingOverlay = ({ message = 'Loading...' }) => (
-  <div style={{
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '60px',
-    gap: '20px'
-  }}>
+  <div
+    role="status"
+    aria-live="polite"
+    style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '60px',
+      gap: '20px'
+    }}
+  >
     <LoadingSpinner size={50} />
     <div style={{
       fontSize: '14px',

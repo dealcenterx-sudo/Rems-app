@@ -6,6 +6,7 @@ import { BuyerIcon, SellerIcon, PropertyIcon, Plus } from './Icons';
 import { normalizeAddressValue } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
 import useEscapeKey from '../utils/useEscapeKey';
+import { ADMIN_EMAIL } from '../config';
 
 // DEALS PAGE - New Deal (IMPROVED UX)
 const NewDealPage = () => {
@@ -32,7 +33,7 @@ const NewDealPage = () => {
   React.useEffect(() => {
     const loadData = async () => {
       try {
-const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+const isAdmin = auth.currentUser.email === ADMIN_EMAIL;
 
 const querySnapshot = isAdmin
   ? await getDocs(collection(db, 'contacts'))

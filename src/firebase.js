@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getStorage } from "firebase/storage";
+import { ADMIN_EMAIL, SELF_SERVICE_ROLES } from './config';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCI2EX7aR0ZphG36_IlUQqt0nFozedj5pI",
@@ -22,11 +23,6 @@ export const auth = getAuth(app);
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 
-const ADMIN_EMAIL = 'dealcenterx@gmail.com';
-
-// Roles a user may pick for themselves at signup. Admin is never
-// self-service — Firestore rules also reject role: 'admin' on create.
-const SELF_SERVICE_ROLES = ['agent', 'buyer', 'seller'];
 const PENDING_ROLE_KEY = 'rems-pending-signup-role';
 
 /** Called by the signup form before auth, so ensureUserExists can apply the chosen role. */

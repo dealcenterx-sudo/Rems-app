@@ -4,6 +4,7 @@ import { collection, getDocs, query, where, doc, updateDoc, arrayUnion } from 'f
 import { useToast } from './Toast';
 import { sendEmailViaApi } from '../utils/emailService';
 import { Search, Plus } from './Icons';
+import { ADMIN_EMAIL } from '../config';
 
 const CRMEmailInboxPage = () => {
   const toast = useToast();
@@ -70,7 +71,7 @@ const CRMEmailInboxPage = () => {
     {
       id: 'sample-sent-1',
       folder: 'sent',
-      from: auth.currentUser?.email || 'dealcenterx@gmail.com',
+      from: auth.currentUser?.email || ADMIN_EMAIL,
       to: 'buyer@example.com',
       subject: 'Introductory investment overview',
       snippet: 'Thanks for connecting. Sharing a summary of available opportunities.',
@@ -83,7 +84,7 @@ const CRMEmailInboxPage = () => {
   const loadEmails = useCallback(async () => {
     setLoading(true);
     try {
-      const isAdmin = auth.currentUser?.email === 'dealcenterx@gmail.com';
+      const isAdmin = auth.currentUser?.email === ADMIN_EMAIL;
       const leadsQuery = isAdmin
         ? query(collection(db, 'leads'))
         : query(collection(db, 'leads'), where('userId', '==', auth.currentUser.uid));
@@ -261,7 +262,7 @@ const CRMEmailInboxPage = () => {
       // Persist to the matching lead's emailHistory so the sent email
       // survives refresh (inbox is rebuilt from lead history).
       try {
-        const isAdmin = auth.currentUser?.email === 'dealcenterx@gmail.com';
+        const isAdmin = auth.currentUser?.email === ADMIN_EMAIL;
         const matchConstraints = [collection(db, 'leads'), where('email', '==', toValue)];
         if (!isAdmin) matchConstraints.splice(1, 0, where('userId', '==', auth.currentUser.uid));
         const matchSnap = await getDocs(query(...matchConstraints));

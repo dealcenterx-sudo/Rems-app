@@ -4,6 +4,7 @@ import { db, auth } from '../firebase';
 import { isAdminUser } from '../utils/helpers';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useToast } from './Toast';
+import { captureError } from '../utils/observability';
 
 const AnalyticsDashboard = () => {
   const toast = useToast();
@@ -60,7 +61,14 @@ const AnalyticsDashboard = () => {
       return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
     } catch (error) {
       if ((error?.code === 'failed-precondition') || /index/i.test(String(error?.message || ''))) {
-        setQueryError(`Fallback mode active for ${collectionName}: using in-memory date filtering.`);
+        setQueryError(`Analytics is using a slower fallback for ${collectionName} while indexes finish. Results remain available.`);
+        captureError(error, {
+          feature: 'analytics-index-fallback',
+          collectionName,
+          hasStartBound: Boolean(start),
+          hasEndBound: Boolean(end),
+          userScoped: userFilter.length > 0
+        });
         // Equality-only query needs no composite index; filter and sort locally.
         const snapshot = await getDocs(query(...getArgs(false, false)));
         return sortByCreatedAtDesc(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })))
@@ -308,7 +316,7 @@ const AnalyticsDashboard = () => {
           Date Range
         </label>
         {queryError && (
-          <div style={{ color: '#ffaa00', fontSize: '12px', marginBottom: '12px' }}>
+          <div className="status-banner status-banner-warning" role="status" style={{ marginBottom: '12px' }}>
             {queryError}
           </div>
         )}

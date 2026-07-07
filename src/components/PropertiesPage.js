@@ -16,11 +16,13 @@ import {
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
+import { Building2 } from './Icons';
+import PageState from './PageState';
 import { isAdminUser } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
 import { canUserManageProperty, getEditableFields } from '../utils/permissions';
 import useUserDoc from '../utils/useUserDoc';
-import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../utils/cloudinary';
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET, deleteFromCloudinary } from '../utils/cloudinary';
 import useDebounce from '../utils/useDebounce';
 
 const PROPERTIES_PAGE_SIZE = 40;
@@ -301,6 +303,11 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   const deleteProperty = async (propertyId) => {
     try {
       const target = properties.find((p) => p.id === propertyId);
+      const imageDeletes = (target?.images || [])
+        .map((image) => image.publicId)
+        .filter(Boolean)
+        .map((publicId) => deleteFromCloudinary(publicId, 'image'));
+      await Promise.all(imageDeletes);
       await deleteDoc(doc(db, 'properties', propertyId));
       loadProperties(0, true);
       toast.success('Property deleted successfully');
@@ -720,36 +727,34 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
       {/* Properties Grid */}
       {filteredAndSortedProperties.length === 0 ? (
         properties.length === 0 && getActiveFiltersCount() === 0 && !searchTerm ? (
-          <div className="empty-state-card">
-            <div className="empty-state-icon">🏠</div>
-            <div className="empty-state-title">No properties yet</div>
-            <div className="empty-state-subtitle" style={{ marginBottom: canAddProperty ? '20px' : 0 }}>
-              {canAddProperty
-                ? 'Add your first property to start building your inventory'
-                : 'Properties assigned to you will appear here'}
-            </div>
-            {canAddProperty && (
+          <PageState
+            icon={Building2}
+            eyebrow="Properties"
+            title="No properties yet"
+            message={canAddProperty
+              ? 'Add your first property to start building your inventory.'
+              : 'Properties assigned to you will appear here.'}
+            actions={canAddProperty && (
               <button onClick={() => openModal()} className="btn-primary">
-                + Add Property
+                Add property
               </button>
             )}
-          </div>
+          />
         ) : (
-          <div className="empty-state-card">
-            <div className="empty-state-icon">🏠</div>
-            <div className="empty-state-title">No properties match your filters</div>
-            <div className="empty-state-subtitle" style={{ marginBottom: '20px' }}>
-              Try adjusting your search criteria
-            </div>
-            {getActiveFiltersCount() > 0 && (
+          <PageState
+            icon={Building2}
+            eyebrow="Properties"
+            title="No properties match your filters"
+            message="Try adjusting your search criteria."
+            actions={getActiveFiltersCount() > 0 && (
               <button
                 onClick={clearAllFilters}
                 className="btn-primary"
               >
-                Clear Filters
+                Clear filters
               </button>
             )}
-          </div>
+          />
         )
       ) : (
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import DealEditModal from './DealEditModal';
+import { ADMIN_EMAIL } from '../config';
 
 // Simple icon components for dashboard
 const DollarIcon = ({ size = 24 }) => (
@@ -58,7 +59,7 @@ const DealsDashboard = () => {
 
   const loadDeals = async () => {
     try {
-      const isAdmin = auth.currentUser.email === 'dealcenterx@gmail.com';
+      const isAdmin = auth.currentUser.email === ADMIN_EMAIL;
 
       const dealsQuery = isAdmin
         ? query(collection(db, 'deals'), orderBy('createdAt', 'desc'))

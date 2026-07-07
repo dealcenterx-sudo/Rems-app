@@ -1,7 +1,5 @@
 import { auth } from '../firebase';
-
-// Centralised admin check — change this constant to update across the whole app
-const ADMIN_EMAIL = 'dealcenterx@gmail.com';
+import { ADMIN_EMAIL } from '../config';
 
 /**
  * Returns true if the given Firebase user (or auth.currentUser) is the admin.
@@ -161,7 +159,7 @@ export const persistStoredSampleLead = (updates = {}) => {
   return nextLead;
 };
 
-export const isAdmin = () => auth.currentUser?.email === 'dealcenterx@gmail.com';
+export const isAdmin = () => auth.currentUser?.email === ADMIN_EMAIL;
 
 export const escapeHtml = (value) => String(value || '')
   .replace(/&/g, '&amp;')

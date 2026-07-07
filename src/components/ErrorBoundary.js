@@ -1,4 +1,7 @@
 import React from 'react';
+import { captureError } from '../utils/observability';
+import { AlertCircle } from './Icons';
+import PageState from './PageState';
 
 /**
  * Catches unexpected render-time errors anywhere in its subtree so the whole
@@ -15,7 +18,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, info) {
-    // In production you'd ship this to Sentry / Datadog etc.
+    captureError(error, { componentStack: info.componentStack });
     console.error('[ErrorBoundary]', error, info.componentStack);
   }
 
@@ -24,40 +27,19 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '40vh',
-          gap: '16px',
-          color: '#888888',
-          fontFamily: 'IBM Plex Mono, monospace',
-          padding: '40px'
-        }}>
-          <div style={{ fontSize: '32px' }}>⚠️</div>
-          <div style={{ color: '#ff3333', fontSize: '16px', fontWeight: 600 }}>
-            Something went wrong
-          </div>
-          <div style={{ fontSize: '13px', maxWidth: '480px', textAlign: 'center', color: '#555555' }}>
-            {this.state.error?.message || 'An unexpected error occurred.'}
-          </div>
-          <button
-            onClick={this.handleReset}
-            style={{
-              marginTop: '8px',
-              padding: '10px 24px',
-              background: 'transparent',
-              border: '1px solid #00ff88',
-              borderRadius: '6px',
-              color: '#00ff88',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontFamily: 'inherit'
-            }}
-          >
-            Try again
-          </button>
+        <div className="page-content" style={{ minHeight: '100%', display: 'grid', placeItems: 'center' }}>
+          <PageState
+            tone="error"
+            icon={AlertCircle}
+            eyebrow="Unexpected error"
+            title="Something went wrong"
+            message={this.state.error?.message || 'Refresh the page or try again.'}
+            actions={(
+              <button onClick={this.handleReset} className="btn-primary">
+                Try again
+              </button>
+            )}
+          />
         </div>
       );
     }

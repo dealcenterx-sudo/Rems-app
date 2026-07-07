@@ -15,7 +15,8 @@ import {
 } from 'firebase/firestore';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
-import { Users, Check } from './Icons';
+import { Search, Users, Check } from './Icons';
+import PageState from './PageState';
 import { isAdminUser } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
 import useDebounce from '../utils/useDebounce';
@@ -486,17 +487,19 @@ const handleSaveContact = async () => {
                   <div className="loading-spinner" />
                 </div>
               ) : contacts.length === 0 ? (
-                <div className="empty-state-card">
-                  <div className="empty-state-icon">👥</div>
-                  <div className="empty-state-title">No contacts yet</div>
-                  <div className="empty-state-subtitle">Use Add Contact to create your first record.</div>
-                </div>
+                <PageState
+                  icon={Users}
+                  eyebrow="Contacts"
+                  title="No contacts yet"
+                  message="Add your first buyer, seller, agent, lender, or investor record."
+                />
               ) : filteredContacts.length === 0 ? (
-                <div className="empty-state-card">
-                  <div className="empty-state-icon">🔍</div>
-                  <div className="empty-state-title">No contacts in this subtab</div>
-                  <div className="empty-state-subtitle">Try another subtab or adjust your search.</div>
-                </div>
+                <PageState
+                  icon={Search}
+                  eyebrow="Contacts"
+                  title="No contacts match this view"
+                  message="Try another subtab or adjust your search."
+                />
               ) : (
                 <div className="tasks-table">
                   <div className="table-header" style={{ gridTemplateColumns: '200px 120px 150px 180px 120px 150px' }}>
