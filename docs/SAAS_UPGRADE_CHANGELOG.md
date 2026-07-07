@@ -383,7 +383,7 @@ Phase 5 makes non-admin query behavior less fragile and starts infrastructure ha
 
 - Removed the Firestore rules admin email fallback.
 - Updated `isAdmin()` in `firestore.rules` to grant admin access only from `users/{uid}.role == "admin"`.
-- Added a rules regression test that an account using `dealcenterx@gmail.com` without an admin role document does not receive admin access.
+- Added a rules regression test that an account using the admin email (`ADMIN_EMAIL`) without an admin role document does not receive admin access.
 - Updated config comments and docs that previously described the rules email fallback.
 - Recorded that production admin role data was confirmed by the user before making the rules change.
 
@@ -405,7 +405,7 @@ Phase 6 moves Firestore enforcement to durable role-document authorization. Emai
 
 - `sed -n ...` reads over `firestore.rules`, Firestore rules tests, Phase 6 plan, and schema docs.
 - `rg -n "dealcenterx|ADMIN_EMAIL|admin email|isAdmin|role.*admin|request\\.auth\\.token\\.email" firestore.rules tests/rules docs src api`
-- `rg -n "firestore\\.rules.*ADMIN_EMAIL|manually synced|admin email fallback|request\\.auth\\.token\\.email|dealcenterx@gmail.com|Admin can read all data" firestore.rules docs src/config.js api/_lib/config.js tests/rules`
+- `rg -n "firestore\\.rules.*ADMIN_EMAIL|manually synced|admin email fallback|request\\.auth\\.token\\.email|<admin-email>|Admin can read all data" firestore.rules docs src/config.js api/_lib/config.js tests/rules` (admin-email literal redacted here to keep docs greppable-clean)
 - `npm run test:rules`
 - `npm run check:constants`
 - `npm run test:api`
