@@ -33,7 +33,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Repo no longer contains `rems-project-source-2026-04-09/` or its `.zip` (plain `git rm`, no history rewrite), and `screenshot.js` lives in `scripts/` with parameterized paths (or is removed as obsolete)
   4. An unauthenticated call to `api/health.js` learns nothing about env/infra — an admin auth token is required
   5. A CI grep check proves the admin email literal appears only in `src/config.js`, `api/_lib/config.js`, and `firestore.rules` (manually synced), and `api/send-email.js` reads its Firebase API key from an environment variable
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 01-01-PLAN.md — Config centralization (admin email + roles single-sourced) + Firebase API-key env-var move + CI grep proof (HYG-04, HYG-05)
+- [ ] 01-02-PLAN.md — Repo hygiene (archive + screenshot.js removal, puppeteer uninstall) + api/health.js auth-gating with D-07 traffic-check (HYG-01, HYG-02, HYG-03)
+- [ ] 01-03-PLAN.md — Audit, upgrade plan, changelog, and environment docs recording finished Phase 1 state (AUDIT-01, AUDIT-02, AUDIT-03, AUDIT-04)
 
 ### Phase 2: Test Scaffolding
 **Goal**: The two riskiest change surfaces — Firestore rules (deployed by manual Console paste, invisible to CI) and serverless handlers — are covered by characterization tests of current behavior before any phase changes them
@@ -121,7 +124,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Audit, Repo Hygiene & Config Centralization | 0/TBD | Not started | - |
+| 1. Audit, Repo Hygiene & Config Centralization | 0/3 | Planned | - |
 | 2. Test Scaffolding | 0/TBD | Not started | - |
 | 3. Observability | 0/TBD | Not started | - |
 | 4. Serverless Hardening | 0/TBD | Not started | - |
