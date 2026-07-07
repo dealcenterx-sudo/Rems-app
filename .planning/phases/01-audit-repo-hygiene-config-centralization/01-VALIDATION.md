@@ -64,8 +64,8 @@ created: 2026-07-06
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Unauthenticated `/api/health` returns 401 in production | HYG-04 | Deployed Vercel endpoint | `curl -s -o /dev/null -w "%{http_code}" https://rems-app.vercel.app/api/health` → expect 401 |
-| Vercel log check for `/api/health` traffic before gating (D-07) | HYG-04 | Requires Vercel dashboard access | User checks Vercel logs for external health-check consumers before the gating change ships |
+| Unauthenticated `/api/health` returns a bare, non-revealing body in production | HYG-03 | Deployed Vercel endpoint | `curl -s https://rems-app.vercel.app/api/health` → HTTP 200 with body exactly `{"status":"ok"}` and no env/infra fields (D-06: no 401/403 differential) |
+| Vercel log check for `/api/health` traffic before gating (D-07) | HYG-03 | Requires Vercel dashboard access | User checks Vercel logs for external health-check consumers before the gating change ships |
 
 ---
 

@@ -476,9 +476,11 @@ git rm screenshot.js
 | A4 | The brief's 8 named phase titles match the deliverable areas listed in PROJECT.md Active requirements | AUDIT-02 | SAAS_UPGRADE_PLAN.md maps the wrong names; must be confirmed with user (Open Question #1) |
 | A5 | `REACT_APP_DEV_BYPASS` is unset in Vercel production builds | Audit finding #4 | If set, production skips the client auth gate (rules still enforce data access, but the app shell renders unauthenticated) — the audit finding should ask the user to confirm |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **What are the brief's literal 8 phase names for `docs/SAAS_UPGRADE_PLAN.md`?**
+> Resolution paths: Q1 → blocking human-verify checkpoint in plan 01-03 (confirm/correct the 8 phase names before the doc is written); Q2 → resolved yes, `npm uninstall puppeteer` folded into plan 01-02 Task 1; Q3 → blocking human-verify checkpoint in plan 01-02 (D-07 Vercel traffic check before the health-gating deploy). Q1 and Q3 are external-input questions unresolvable at research time; both are gated by checkpoints so no unresolved assumption reaches execution.
+
+1. **What are the brief's literal 8 phase names for `docs/SAAS_UPGRADE_PLAN.md`?** *(Resolved via 01-03 checkpoint.)*
    - What we know: ROADMAP.md fixes the execution order and states the mapping is written in Phase 1; CONTEXT.md says the mapping itself is "a roadmap-level decision already made, not open for redesign."
    - What's unclear: the original brief's phase titles are not preserved in `.planning/` (PROJECT.md lists ~12 deliverable areas, not 8 named phases).
    - Recommendation: planner adds a task step that asks the user to paste/confirm the brief's 8 phase names before that doc is written (a natural fit alongside the D-07 pause), or drafts a reconstruction from PROJECT.md's Active list for the user to approve.
