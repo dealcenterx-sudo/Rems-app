@@ -13,7 +13,7 @@ Upgrade a live, auto-deploying real estate CRM from "functional app" to professi
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Audit, Repo Hygiene & Config Centralization** - Audit deliverables in docs/, archive/diagnostics cleanup, admin email + constants centralized with CI grep proof
+- [x] **Phase 1: Audit, Repo Hygiene & Config Centralization** - Audit deliverables in docs/, archive/diagnostics cleanup, admin email + constants centralized with CI grep proof (completed 2026-07-07)
 - [ ] **Phase 2: Test Scaffolding** - Emulator-backed Firestore rules tests and API handler tests wired into CI, outside CRA's Jest
 - [ ] **Phase 3: Observability** - Sentry client + serverless error capture and web-vitals, verified with a real production error
 - [ ] **Phase 4: Serverless Hardening** - Zod validation with log-then-enforce rollout, auth audit, documented trust boundaries, Cloudinary delete
@@ -37,7 +37,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. An unauthenticated call to `api/health.js` learns nothing about env/infra — an admin auth token is required
   5. A CI grep check proves the admin email literal appears only in `src/config.js`, `api/_lib/config.js`, and `firestore.rules` (manually synced), and `api/send-email.js` reads its Firebase API key from an environment variable
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 **Wave 1**
 
 - [x] 01-01-PLAN.md — Config centralization (admin email + roles single-sourced) + Firebase API-key env-var move + CI grep proof (HYG-04, HYG-05)
@@ -48,7 +48,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-03-PLAN.md — Audit, upgrade plan, changelog, and environment docs recording finished Phase 1 state (AUDIT-01, AUDIT-02, AUDIT-03, AUDIT-04)
+- [x] 01-03-PLAN.md — Audit, upgrade plan, changelog, and environment docs recording finished Phase 1 state (AUDIT-01, AUDIT-02, AUDIT-03, AUDIT-04)
 
 ### Phase 2: Test Scaffolding
 
@@ -157,7 +157,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Audit, Repo Hygiene & Config Centralization | 2/3 | In Progress|  |
+| 1. Audit, Repo Hygiene & Config Centralization | 3/3 | Complete   | 2026-07-07 |
 | 2. Test Scaffolding | 0/TBD | Not started | - |
 | 3. Observability | 0/TBD | Not started | - |
 | 4. Serverless Hardening | 0/TBD | Not started | - |

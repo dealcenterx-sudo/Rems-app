@@ -7,10 +7,10 @@
 
 ### Audit & Documentation
 
-- [ ] **AUDIT-01**: Reviewer can read a complete SaaS Readiness Audit at `docs/SAAS_READINESS_AUDIT.md` (exec summary, stack, product purpose, user flows, weaknesses by area, risk-ranked findings Critical→Low, roadmap, safe execution plan, Definition of Done)
-- [ ] **AUDIT-02**: Reviewer can read an 8-phase upgrade plan at `docs/SAAS_UPGRADE_PLAN.md` with goal, files affected, tasks, risks, acceptance criteria, and verification commands per phase
-- [ ] **AUDIT-03**: Reviewer can trace every shipped change in a running changelog at `docs/SAAS_UPGRADE_CHANGELOG.md` (what/why/files/commands/results/risks per phase)
-- [ ] **AUDIT-04**: Operator can find all required environment variables documented by name (never value) with purpose and where they're consumed
+- [x] **AUDIT-01**: Reviewer can read a complete SaaS Readiness Audit at `docs/SAAS_READINESS_AUDIT.md` (exec summary, stack, product purpose, user flows, weaknesses by area, risk-ranked findings Critical→Low, roadmap, safe execution plan, Definition of Done)
+- [x] **AUDIT-02**: Reviewer can read an 8-phase upgrade plan at `docs/SAAS_UPGRADE_PLAN.md` with goal, files affected, tasks, risks, acceptance criteria, and verification commands per phase
+- [x] **AUDIT-03**: Reviewer can trace every shipped change in a running changelog at `docs/SAAS_UPGRADE_CHANGELOG.md` (what/why/files/commands/results/risks per phase)
+- [x] **AUDIT-04**: Operator can find all required environment variables documented by name (never value) with purpose and where they're consumed
 
 ### Repo Hygiene
 
@@ -114,10 +114,10 @@ Deferred to future milestone:
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUDIT-01 | Phase 1 | Pending |
-| AUDIT-02 | Phase 1 | Pending |
-| AUDIT-03 | Phase 1 | Pending |
-| AUDIT-04 | Phase 1 | Pending |
+| AUDIT-01 | Phase 1 | Complete |
+| AUDIT-02 | Phase 1 | Complete |
+| AUDIT-03 | Phase 1 | Complete |
+| AUDIT-04 | Phase 1 | Complete |
 | HYG-01 | Phase 1 | Complete |
 | HYG-02 | Phase 1 | Complete |
 | HYG-03 | Phase 1 | Complete |
