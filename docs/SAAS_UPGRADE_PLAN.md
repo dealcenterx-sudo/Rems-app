@@ -6,6 +6,10 @@ This plan uses the roadmap phase names in `.planning/ROADMAP.md` as the authorit
 
 Each phase should leave `main` shippable. Each phase also updates `docs/SAAS_UPGRADE_CHANGELOG.md` before handoff.
 
+**The brief's eight named phases** map onto this execution order exactly as follows (user-confirmed): (1) Audit, Repo Hygiene & Config Centralization, (2) Test Scaffolding, (3) Observability, (4) Serverless Hardening, (5) Data Reliability & Infrastructure Headers, (6) Firestore Rules Hardening, (7) UI/UX, Copy & Accessibility, (8) Landing Page, Trust & Final Polish. The mapping order is a settled roadmap-level decision, not open for redesign.
+
+**Implementation status.** Phase 1 is **complete and verified this session**. The code for **Phases 2–8 was shipped ahead of schedule in a single bulk commit (`dd6364a`) and is deployed**, but each of those phases still requires its own verification under this milestone's phase-by-phase process — independent review, production smoke tests, manual Firebase publishes (rules/indexes), and configured-secret checks — before it can be considered done. See `docs/SAAS_READINESS_AUDIT.md` for the per-finding Status and `docs/SAAS_UPGRADE_CHANGELOG.md` for what shipped per phase. Maintaining that changelog and the audit's Status column is a standing task for every phase.
+
 ---
 
 ## Phase 1 - Audit, Repo Hygiene & Config Centralization

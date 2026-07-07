@@ -87,6 +87,8 @@ Phase 1 creates the reviewer-facing source of truth before deeper SaaS hardening
 - Ignored source snapshot artifacts were removed from the local workspace.
 - `screenshot.js` was removed from tracked source.
 - `puppeteer` was removed from `devDependencies`; it was only used by the deleted screenshot script.
+- **D-07 traffic check resolved (approved — no external consumers):** no external `/api/health` detail-parsing consumers were observed; the detailed diagnostics are now admin-gated; the gate is deployed and verified in production returning bare `{"status":"ok"}` (HTTP 200), so simple up/down monitors are unaffected. Recorded as an audit finding.
+- **`REACT_APP_DEV_BYPASS` confirmed:** documented in `docs/ENVIRONMENT.md` as a security-relevant build-time client auth-gate bypass (`src/App.js`); user confirmed it is unset in production (Firestore rules enforce data access regardless).
 - `npm run lint` passed.
 - `npm run test:ci` passed: 3 suites, 29 tests.
 - `npm run build` passed. CRA emitted a Node/toolchain deprecation warning for `fs.F_OK`, but compiled successfully.
@@ -95,10 +97,10 @@ Phase 1 creates the reviewer-facing source of truth before deeper SaaS hardening
 
 ### Remaining Risks
 
-- `/api/health` traffic check in Vercel logs is still pending before final health endpoint rollout.
-- Production status of `REACT_APP_DEV_BYPASS`, Firestore backup posture, and Firebase API key restrictions is unverified.
-- Production `/api/health` behavior was not curl-verified because this branch is not deployed yet.
+- Firestore backup/export posture is unverified (recorded as an Open audit finding).
+- Firebase web API key Google Cloud API restrictions are unverified (the key is a public identifier; restriction is a hardening recommendation, not a secret-exposure fix).
 - Dependency audit debt remains and should be handled in a dedicated dependency/security phase rather than forced into this hygiene change.
+- Phases 2–8 code shipped in bulk commit `dd6364a` still requires per-phase GSD verification before those findings move from "pending verification" to "Fixed."
 
 ---
 
