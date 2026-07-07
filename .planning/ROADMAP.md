@@ -37,10 +37,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. An unauthenticated call to `api/health.js` learns nothing about env/infra — an admin auth token is required
   5. A CI grep check proves the admin email literal appears only in `src/config.js`, `api/_lib/config.js`, and `firestore.rules` (manually synced), and `api/send-email.js` reads its Firebase API key from an environment variable
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Config centralization (admin email + roles single-sourced) + Firebase API-key env-var move + CI grep proof (HYG-04, HYG-05)
+- [x] 01-01-PLAN.md — Config centralization (admin email + roles single-sourced) + Firebase API-key env-var move + CI grep proof (HYG-04, HYG-05)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -157,7 +157,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Audit, Repo Hygiene & Config Centralization | 0/3 | Planned | - |
+| 1. Audit, Repo Hygiene & Config Centralization | 1/3 | In Progress|  |
 | 2. Test Scaffolding | 0/TBD | Not started | - |
 | 3. Observability | 0/TBD | Not started | - |
 | 4. Serverless Hardening | 0/TBD | Not started | - |

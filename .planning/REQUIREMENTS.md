@@ -17,8 +17,8 @@
 - [ ] **HYG-01**: Repo no longer contains `rems-project-source-2026-04-09/` or its `.zip` (plain `git rm`, no history rewrite)
 - [ ] **HYG-02**: `screenshot.js` is relocated to `scripts/` with paths parameterized (or removed if obsolete)
 - [ ] **HYG-03**: `api/health.js` requires an admin auth token — unauthenticated callers learn nothing about env/infra
-- [ ] **HYG-04**: Admin email and shared constants live in one place (`src/config.js` client, `api/_lib/config.js` server); a CI grep proves the literal appears only in config files (+ firestore.rules, manually synced)
-- [ ] **HYG-05**: Hardcoded Firebase API key in `api/send-email.js` reads from an environment variable instead
+- [x] **HYG-04**: Admin email and shared constants live in one place (`src/config.js` client, `api/_lib/config.js` server); a CI grep proves the literal appears only in config files (+ firestore.rules, manually synced)
+- [x] **HYG-05**: Hardcoded Firebase API key in `api/send-email.js` reads from an environment variable instead
 
 ### Testing & QA
 
@@ -121,8 +121,8 @@ Deferred to future milestone:
 | HYG-01 | Phase 1 | Pending |
 | HYG-02 | Phase 1 | Pending |
 | HYG-03 | Phase 1 | Pending |
-| HYG-04 | Phase 1 | Pending |
-| HYG-05 | Phase 1 | Pending |
+| HYG-04 | Phase 1 | Complete |
+| HYG-05 | Phase 1 | Complete |
 | TEST-01 | Phase 2 | Pending |
 | TEST-02 | Phase 2 | Pending |
 | TEST-03 | Phase 2 | Pending |
