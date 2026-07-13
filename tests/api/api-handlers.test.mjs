@@ -541,6 +541,54 @@ describe('api/delete-media', () => {
       invalidate: true
     });
   });
+
+  it('returns 200 when Cloudinary reports not found (idempotent)', async () => {
+    process.env.CLOUDINARY_API_KEY = 'cloudinary-key';
+    process.env.CLOUDINARY_API_SECRET = 'cloudinary-secret';
+    const destroy = vi.fn(async () => ({ result: 'not found' }));
+    const config = vi.fn();
+    mockCloudinary({
+      config,
+      uploader: { destroy }
+    });
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ users: [{ localId: 'user-1', email: 'agent@example.com' }] })
+    })));
+    const handler = loadHandler('delete-media');
+
+    const result = await invoke(handler, {
+      headers: { authorization: 'Bearer valid-token' },
+      body: { publicId: 'properties/image-1', resourceType: 'image' }
+    });
+
+    expect(result.status).toBe(200);
+    expect(result.body).toEqual({ ok: true, result: 'not found' });
+  });
+
+  it('returns 502 when Cloudinary rejects the delete', async () => {
+    process.env.CLOUDINARY_API_KEY = 'cloudinary-key';
+    process.env.CLOUDINARY_API_SECRET = 'cloudinary-secret';
+    const destroy = vi.fn(async () => ({ result: 'error' }));
+    const config = vi.fn();
+    mockCloudinary({
+      config,
+      uploader: { destroy }
+    });
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ users: [{ localId: 'user-1', email: 'agent@example.com' }] })
+    })));
+    const handler = loadHandler('delete-media');
+
+    const result = await invoke(handler, {
+      headers: { authorization: 'Bearer valid-token' },
+      body: { publicId: 'properties/image-1', resourceType: 'image' }
+    });
+
+    expect(result.status).toBe(502);
+    expect(result.body.error).toBe('Media provider rejected the delete');
+  });
 });
 
 describe('api/csp-report', () => {
