@@ -132,8 +132,8 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
   const quickActions = ['Call Buyer', 'Call Seller', 'Schedule Showing', 'Add Note'];
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content detail-modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal-content detail-modal-content">
         <div className="detail-layout-topbar">
           <div className="detail-layout-title-wrap">
             <h2 className="detail-layout-title">Edit Deal</h2>
@@ -187,8 +187,9 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
               <div className="lead-panel-title">Core Details</div>
               <div className="lead-field-stack">
                 <div className="lead-field">
-                  <label>Property Address *</label>
+                  <label htmlFor="dealedit-propertyAddress">Property Address *</label>
                   <input
+                    id="dealedit-propertyAddress"
                     type="text"
                     placeholder="123 Main St, Los Angeles, CA 90001"
                     value={formData.propertyAddress}
@@ -196,16 +197,18 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
                   />
                 </div>
                 <div className="lead-field">
-                  <label>Contract Date</label>
+                  <label htmlFor="dealedit-contractDate">Contract Date</label>
                   <input
+                    id="dealedit-contractDate"
                     type="date"
                     value={formData.contractDate}
                     onChange={(e) => setFormData({ ...formData, contractDate: e.target.value })}
                   />
                 </div>
                 <div className="lead-field">
-                  <label>Expected Close Date</label>
+                  <label htmlFor="dealedit-expectedCloseDate">Expected Close Date</label>
                   <input
+                    id="dealedit-expectedCloseDate"
                     type="date"
                     value={formData.expectedCloseDate}
                     onChange={(e) => setFormData({ ...formData, expectedCloseDate: e.target.value })}
@@ -243,8 +246,9 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
               <div className="lead-panel-title">Financials</div>
               <div className="grid-two" style={{ display: 'grid', gap: '12px' }}>
                 <div className="lead-field">
-                  <label>Purchase Price</label>
+                  <label htmlFor="dealedit-purchasePrice">Purchase Price</label>
                   <input
+                    id="dealedit-purchasePrice"
                     type="number"
                     placeholder="750000"
                     value={formData.purchasePrice}
@@ -252,8 +256,9 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
                   />
                 </div>
                 <div className="lead-field">
-                  <label>Offer Price</label>
+                  <label htmlFor="dealedit-offerPrice">Offer Price</label>
                   <input
+                    id="dealedit-offerPrice"
                     type="number"
                     placeholder="735000"
                     value={formData.offerPrice}
@@ -261,8 +266,9 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
                   />
                 </div>
                 <div className="lead-field">
-                  <label>Commission %</label>
+                  <label htmlFor="dealedit-commissionPercent">Commission %</label>
                   <input
+                    id="dealedit-commissionPercent"
                     type="number"
                     step="0.1"
                     value={formData.commissionPercent}
@@ -270,8 +276,9 @@ const DealEditModal = ({ deal, onClose, onUpdate }) => {
                   />
                 </div>
                 <div className="lead-field">
-                  <label>Your Split %</label>
+                  <label htmlFor="dealedit-commissionSplit">Your Split %</label>
                   <input
+                    id="dealedit-commissionSplit"
                     type="number"
                     value={formData.commissionSplit}
                     onChange={(e) => setFormData({ ...formData, commissionSplit: e.target.value })}

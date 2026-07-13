@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { db } from '../firebase';
 import {
   collection, doc, getDoc, getDocs, addDoc, updateDoc, query, orderBy
@@ -81,8 +81,13 @@ const Tab = ({ id, label, active, onClick, badge }) => (
 const FieldRow = ({ label, value, onSave, type = 'text', options }) => {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value || '');
+  const editRef = useRef(null);
 
   useEffect(() => { setDraft(value || ''); }, [value]);
+
+  // Managed focus: focus the revealed control when entering edit mode
+  // (replaces autoFocus for a11y — jsx-a11y/no-autofocus).
+  useEffect(() => { if (editing) editRef.current?.focus(); }, [editing]);
 
   const commit = () => {
     if (draft !== value) onSave(draft);
@@ -95,22 +100,22 @@ const FieldRow = ({ label, value, onSave, type = 'text', options }) => {
         <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
         {options ? (
           <select
+            ref={editRef}
             value={draft}
             onChange={e => setDraft(e.target.value)}
             onBlur={commit}
-            autoFocus
             style={inputStyle}
           >
             {options.map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         ) : (
           <input
+            ref={editRef}
             type={type}
             value={draft}
             onChange={e => setDraft(e.target.value)}
             onBlur={commit}
             onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false); }}
-            autoFocus
             style={inputStyle}
           />
         )}
@@ -430,6 +435,7 @@ const LeadDrawer = ({ leadId, onClose, onOpenFullDetail }) => {
     <>
       {/* Backdrop */}
       <div
+        role="presentation"
         onClick={onClose}
         style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',

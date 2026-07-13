@@ -28,7 +28,11 @@ const ConfirmModal = ({
   if (!open) return null;
 
   return (
-    <div className="modal-overlay" onClick={onCancel}>
+    <div
+      className="modal-overlay"
+      role="presentation"
+      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+    >
       <div
         ref={modalRef}
         className="modal-content"
@@ -36,7 +40,6 @@ const ConfirmModal = ({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={messageId}
-        onClick={(e) => e.stopPropagation()}
         style={{
           maxWidth: '460px',
           padding: '26px',

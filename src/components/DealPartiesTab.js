@@ -231,8 +231,8 @@ const DealPartiesTab = ({ dealId, deal }) => {
 
       {/* Invite Modal */}
       {showInviteModal && (
-        <div className="modal-overlay" onClick={() => setShowInviteModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px', padding: '30px' }}>
+        <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setShowInviteModal(false); }}>
+          <div className="modal-content" style={{ maxWidth: '500px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '24px' }}>
               <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Invite Party to Deal</h2>
               <button onClick={() => setShowInviteModal(false)} className="icon-button">×</button>
@@ -241,8 +241,9 @@ const DealPartiesTab = ({ dealId, deal }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Role */}
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Role</label>
+                <label htmlFor="dealparty-role" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Role</label>
                 <select
+                  id="dealparty-role"
                   value={inviteForm.role}
                   onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
                   className="form-input"
@@ -256,8 +257,9 @@ const DealPartiesTab = ({ dealId, deal }) => {
 
               {/* Name */}
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Name *</label>
+                <label htmlFor="dealparty-name" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Name *</label>
                 <input
+                  id="dealparty-name"
                   type="text"
                   value={inviteForm.name}
                   onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
@@ -269,8 +271,9 @@ const DealPartiesTab = ({ dealId, deal }) => {
 
               {/* Email */}
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email Address *</label>
+                <label htmlFor="dealparty-email" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email Address *</label>
                 <input
+                  id="dealparty-email"
                   type="email"
                   value={inviteForm.email}
                   onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
@@ -282,8 +285,9 @@ const DealPartiesTab = ({ dealId, deal }) => {
 
               {/* Phone */}
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phone</label>
+                <label htmlFor="dealparty-phone" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phone</label>
                 <input
+                  id="dealparty-phone"
                   type="tel"
                   value={inviteForm.phone}
                   onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
@@ -295,8 +299,9 @@ const DealPartiesTab = ({ dealId, deal }) => {
 
               {/* Company */}
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Company / Firm</label>
+                <label htmlFor="dealparty-company" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Company / Firm</label>
                 <input
+                  id="dealparty-company"
                   type="text"
                   value={inviteForm.company}
                   onChange={(e) => setInviteForm({ ...inviteForm, company: e.target.value })}

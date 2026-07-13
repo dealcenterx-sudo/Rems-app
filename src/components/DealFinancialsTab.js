@@ -214,9 +214,10 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
           {renderField('Loan Amount', 'loanAmount', { prefix: '$' })}
           {renderField('Interest Rate', 'interestRate', { suffix: '%' })}
           <div>
-            <label style={LABEL_STYLE}>Loan Type</label>
+            <label style={LABEL_STYLE} htmlFor="dealfin-loanType">Loan Type</label>
             {editing ? (
               <select
+                id="dealfin-loanType"
                 value={form.loanType}
                 onChange={(e) => setForm({ ...form, loanType: e.target.value })}
                 style={FIELD_STYLE}
@@ -243,12 +244,12 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '20px' }}>
           {renderField("Buyer's Agent %", 'buyerAgentCommission', { suffix: '%' })}
           <div>
-            <label style={LABEL_STYLE}>Buyer Agent Amount</label>
+            <div style={LABEL_STYLE}>Buyer Agent Amount</div>
             <div style={{ fontSize: '16px', color: '#0088ff', fontWeight: '600' }}>{fmt(buyerCommAmt)}</div>
           </div>
           {renderField("Seller's Agent %", 'sellerAgentCommission', { suffix: '%' })}
           <div>
-            <label style={LABEL_STYLE}>Seller Agent Amount</label>
+            <div style={LABEL_STYLE}>Seller Agent Amount</div>
             <div style={{ fontSize: '16px', color: '#00ff88', fontWeight: '600' }}>{fmt(sellerCommAmt)}</div>
           </div>
         </div>
@@ -272,8 +273,8 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
 
       {/* Push to Lender Modal */}
       {showPushModal && (
-        <div className="modal-overlay" onClick={() => setShowPushModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px', padding: '30px' }}>
+        <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setShowPushModal(false); }}>
+          <div className="modal-content" style={{ maxWidth: '500px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Push Deal to Lender</h2>
               <button onClick={() => setShowPushModal(false)} className="icon-button">×</button>
@@ -287,11 +288,12 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={LABEL_STYLE}>Select Lender *</label>
+                <label style={LABEL_STYLE} htmlFor="dealfin-selectLender">Select Lender *</label>
                 {lenderParties.length === 0 ? (
                   <div style={{ fontSize: '13px', color: '#ff4444' }}>No lenders added to this deal. Add a lender in the Parties tab first.</div>
                 ) : (
                   <select
+                    id="dealfin-selectLender"
                     value={selectedLender}
                     onChange={(e) => setSelectedLender(e.target.value)}
                     style={FIELD_STYLE}
@@ -304,8 +306,9 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
                 )}
               </div>
               <div>
-                <label style={LABEL_STYLE}>Note to Lender</label>
+                <label style={LABEL_STYLE} htmlFor="dealfin-pushNote">Note to Lender</label>
                 <textarea
+                  id="dealfin-pushNote"
                   value={pushNote}
                   onChange={(e) => setPushNote(e.target.value)}
                   placeholder="Any additional notes for the lender..."

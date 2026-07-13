@@ -230,7 +230,11 @@ const DealProgressTab = ({ dealId, deal }) => {
               return (
                 <div
                   key={item.key}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={!!isCompleted}
                   onClick={() => toggleItem(item.key, item.label)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleItem(item.key, item.label); } }}
                   style={{
                     padding: '12px 16px',
                     borderBottom: '1px solid #111',
@@ -278,7 +282,11 @@ const DealProgressTab = ({ dealId, deal }) => {
             {phaseCustom.map((item) => (
               <div
                 key={item.id}
+                role="button"
+                tabIndex={0}
+                aria-pressed={!!item.completed}
                 onClick={() => toggleCustomItem(item)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCustomItem(item); } }}
                 style={{
                   padding: '12px 16px',
                   borderBottom: '1px solid #111',
@@ -315,16 +323,17 @@ const DealProgressTab = ({ dealId, deal }) => {
 
       {/* Add Custom Item Modal */}
       {showAddItem && (
-        <div className="modal-overlay" onClick={() => setShowAddItem(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '460px', padding: '30px' }}>
+        <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setShowAddItem(false); }}>
+          <div className="modal-content" style={{ maxWidth: '460px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Add Checklist Item</h2>
               <button onClick={() => setShowAddItem(false)} className="icon-button">×</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Label *</label>
+                <label htmlFor="dealprog-label" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Label *</label>
                 <input
+                  id="dealprog-label"
                   type="text"
                   value={newItemForm.label}
                   onChange={(e) => setNewItemForm({ ...newItemForm, label: e.target.value })}
@@ -333,8 +342,9 @@ const DealProgressTab = ({ dealId, deal }) => {
                 />
               </div>
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phase</label>
+                <label htmlFor="dealprog-phase" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phase</label>
                 <select
+                  id="dealprog-phase"
                   value={newItemForm.phase}
                   onChange={(e) => setNewItemForm({ ...newItemForm, phase: e.target.value })}
                   style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
@@ -345,8 +355,9 @@ const DealProgressTab = ({ dealId, deal }) => {
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</label>
+                <label htmlFor="dealprog-description" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</label>
                 <input
+                  id="dealprog-description"
                   type="text"
                   value={newItemForm.description}
                   onChange={(e) => setNewItemForm({ ...newItemForm, description: e.target.value })}

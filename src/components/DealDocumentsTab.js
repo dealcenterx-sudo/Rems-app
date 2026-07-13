@@ -314,8 +314,8 @@ const DealDocumentsTab = ({ dealId, deal }) => {
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <div className="modal-overlay" onClick={() => setShowUploadModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px', padding: '30px' }}>
+        <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setShowUploadModal(false); }}>
+          <div className="modal-content" style={{ maxWidth: '500px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Upload Document</h2>
               <button onClick={() => setShowUploadModal(false)} className="icon-button">×</button>
@@ -324,8 +324,9 @@ const DealDocumentsTab = ({ dealId, deal }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* File Input */}
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>File *</label>
+                <label htmlFor="dealdoc-file" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>File *</label>
                 <input
+                  id="dealdoc-file"
                   ref={fileInputRef}
                   type="file"
                   onChange={handleFileSelect}
@@ -348,8 +349,9 @@ const DealDocumentsTab = ({ dealId, deal }) => {
               </div>
 
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Document Name</label>
+                <label htmlFor="dealdoc-name" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Document Name</label>
                 <input
+                  id="dealdoc-name"
                   type="text"
                   value={uploadForm.name}
                   onChange={(e) => setUploadForm({ ...uploadForm, name: e.target.value })}
@@ -359,8 +361,9 @@ const DealDocumentsTab = ({ dealId, deal }) => {
               </div>
 
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Category</label>
+                <label htmlFor="dealdoc-category" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Category</label>
                 <select
+                  id="dealdoc-category"
                   value={uploadForm.category}
                   onChange={(e) => setUploadForm({ ...uploadForm, category: e.target.value })}
                   style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
@@ -372,8 +375,9 @@ const DealDocumentsTab = ({ dealId, deal }) => {
               </div>
 
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Notes</label>
+                <label htmlFor="dealdoc-notes" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Notes</label>
                 <textarea
+                  id="dealdoc-notes"
                   value={uploadForm.notes}
                   onChange={(e) => setUploadForm({ ...uploadForm, notes: e.target.value })}
                   placeholder="Optional notes about this document..."

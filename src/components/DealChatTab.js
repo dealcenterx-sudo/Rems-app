@@ -177,7 +177,10 @@ const DealChatTab = ({ dealId, deal }) => {
             return (
               <div
                 key={chId}
+                role="button"
+                tabIndex={0}
                 onClick={() => setActiveChannel(chId)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveChannel(chId); } }}
                 style={{
                   padding: '10px 12px',
                   borderRadius: '6px',
@@ -301,8 +304,8 @@ const DealChatTab = ({ dealId, deal }) => {
 
       {/* Create Channel Modal */}
       {showCreateChannel && (
-        <div className="modal-overlay" onClick={() => setShowCreateChannel(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '460px', padding: '30px' }}>
+        <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setShowCreateChannel(false); }}>
+          <div className="modal-content" style={{ maxWidth: '460px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Create Channel</h2>
               <button onClick={() => setShowCreateChannel(false)} className="icon-button">×</button>
@@ -310,8 +313,9 @@ const DealChatTab = ({ dealId, deal }) => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Channel Name *</label>
+                <label htmlFor="dealchat-channelName" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Channel Name *</label>
                 <input
+                  id="dealchat-channelName"
                   type="text"
                   value={newChannelForm.name}
                   onChange={(e) => setNewChannelForm({ ...newChannelForm, name: e.target.value })}
@@ -320,8 +324,9 @@ const DealChatTab = ({ dealId, deal }) => {
                 />
               </div>
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</label>
+                <label htmlFor="dealchat-channelDescription" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</label>
                 <input
+                  id="dealchat-channelDescription"
                   type="text"
                   value={newChannelForm.description}
                   onChange={(e) => setNewChannelForm({ ...newChannelForm, description: e.target.value })}
@@ -330,7 +335,7 @@ const DealChatTab = ({ dealId, deal }) => {
                 />
               </div>
               <div>
-                <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Assign Roles (who can see this)</label>
+                <div style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Assign Roles (who can see this)</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {ROLE_OPTIONS.map((role) => {
                     const selected = newChannelForm.assignedRoles.includes(role);
