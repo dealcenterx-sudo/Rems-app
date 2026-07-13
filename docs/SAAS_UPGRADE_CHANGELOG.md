@@ -583,3 +583,52 @@ Phase 8 makes REMS understandable to outside evaluators before login without wea
 - Sentry client/server capture requires configured DSNs and a production smoke event.
 - Local rules tests still need Java 21+ or CI to verify the emulator suite.
 - Dependency audit debt remains and should be handled in a dedicated dependency/security modernization phase.
+
+---
+
+## Phase 3 - Observability Verification (AUDIT-03) (2026-07-13)
+
+### What
+
+- Added GSD verification coverage for the observability wiring originally shipped in bulk commit `dd6364a`; no production source was modified in this pass.
+- Added three net-new test files that characterize the shipped Sentry wiring:
+  - `src/utils/observability.test.js` — client DSN gating, `captureError`→`Sentry.captureException` bridge, and `captureWebVital`→`Sentry.captureMessage` forwarding (OBS-01, OBS-03).
+  - `src/components/ErrorBoundary.test.js` — `componentDidCatch`→`captureError({ componentStack })` bridge and the recovery fallback UI (OBS-01).
+  - `tests/api/withSentry.test.mjs` — serverless `withSentry` no-DSN pass-through and capture-then-flush-before-respond on an uncaught throw (OBS-02).
+- Logged the OBS-02 handled-500s Sentry blind spot as a Medium finding in `docs/SAAS_READINESS_AUDIT.md`, routed forward to Phase 5 / DATA-02.
+- Recorded the event-landing half of OBS-01/02/03 as human-verify checkpoints pending a live DSN + production deploy (see Results).
+
+### Why
+
+Phase 3's automatable gate proves the observability code-wiring half of OBS-01/02/03 as regression-guarded tests, without pretending a real event can land in Sentry from this environment. The live event-landing half legitimately requires a provisioned DSN in Vercel and a production deploy, so it is delegated to human-verify checkpoints exactly as Phase 1/2 delegated DSN/deploy-gated and Java-21 emulator items.
+
+### Files Modified
+
+- `src/utils/observability.test.js` (created in 03-01)
+- `src/components/ErrorBoundary.test.js` (created in 03-01)
+- `tests/api/withSentry.test.mjs` (created in 03-02)
+- `docs/SAAS_READINESS_AUDIT.md` (OBS-02 gap finding, 03-02)
+- `docs/SAAS_UPGRADE_CHANGELOG.md`
+
+### Commands Run
+
+- `npm run test:ci`
+- `npm run test:api`
+- `npm run lint`
+- `npm run build`
+
+### Results
+
+- Code-wiring half of OBS-01, OBS-02, and OBS-03 is verified automatically:
+  - `npm run test:ci` green: 42 tests across 5 suites (29 pre-existing + 13 new client/error-boundary tests).
+  - `npm run test:api` green: 27 tests (23 pre-existing + 4 new `withSentry` tests).
+- The OBS-02 wrapper only reports UNCAUGHT throws; handled 500s are intentionally NOT reported. That blind spot is logged in `docs/SAAS_READINESS_AUDIT.md` and routed to Phase 5 / DATA-02 (loud-not-silent).
+- Event-landing half (the "appears in Sentry" success criteria) is DEFERRED to human-verify post-deploy: it requires the operator to set the required env vars in Vercel and deploy, then trigger (1) a client error, (2) an uncaught serverless throw, and (3) web-vitals, confirming each Issue in the Sentry project.
+- Required env var NAMES only (values never recorded): `REACT_APP_SENTRY_DSN` (build-time client — CRA inlines it at build; runtime-only will not enable the client) and `SENTRY_DSN` (runtime server for the serverless functions).
+
+### Remaining Risks
+
+- Event-landing verification of OBS-01/02/03 is pending until a Sentry DSN is provisioned in Vercel and production is deployed; the automatable gate above passes independently of that.
+- Handled-500s serverless errors remain unreported until the Phase 5 / DATA-02 follow-up instruments handler catch paths.
+- No source-map upload yet; production Sentry events may show minified frames until a later step adds it.
+- Dependency audit debt remains outside this verification pass.
