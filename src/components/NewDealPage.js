@@ -6,6 +6,7 @@ import { BuyerIcon, SellerIcon, PropertyIcon, Plus } from './Icons';
 import { normalizeAddressValue } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
 import useEscapeKey from '../utils/useEscapeKey';
+import { LoadingButton } from './Loading';
 import { ADMIN_EMAIL } from '../config';
 
 // DEALS PAGE - New Deal (IMPROVED UX)
@@ -267,12 +268,13 @@ const querySnapshot = isAdmin
           right: '30px',
           zIndex: 999
         }}>
-    <button
+    <LoadingButton
       onClick={handleSaveDeal}
-      disabled={saving}
+      loading={saving}
+      pendingLabel="Creating deal…"
       style={{
-        background: '#00ff88',
-        color: '#000000',
+        background: 'var(--accent)',
+        color: 'var(--surface-0)',
         border: 'none',
         padding: '18px 40px',
         fontSize: '15px',
@@ -282,6 +284,7 @@ const querySnapshot = isAdmin
         fontFamily: 'inherit',
         textTransform: 'uppercase',
         letterSpacing: '1px',
+        // Decorative accent glow — alpha variant of --accent, no byte-identical token (D-16).
         boxShadow: '0 4px 20px rgba(0, 255, 136, 0.4)',
         transition: 'all 0.2s'
       }}
@@ -294,8 +297,8 @@ const querySnapshot = isAdmin
         e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 255, 136, 0.4)';
       }}
     >
-      {saving ? 'Creating Deal...' : '✓ Create Deal'}
-    </button>
+      ✓ Create Deal
+    </LoadingButton>
   </div>
 )}
 

@@ -38,6 +38,8 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [confirmDelete, setConfirmDelete] = useState({ open: false, deal: null });
   const [confirmClose, setConfirmClose] = useState({ open: false, dealId: null });
+  const [closing, setClosing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const pageCursorsRef = useRef(pageCursors);
 
   useEffect(() => {
@@ -166,8 +168,19 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
 
   const confirmCloseDeal = async () => {
     const dealId = confirmClose.dealId;
-    setConfirmClose({ open: false, dealId: null });
-    if (dealId) await updateDealStatus(dealId, 'closed');
+    if (!dealId) {
+      setConfirmClose({ open: false, dealId: null });
+      return;
+    }
+    // Keep the modal open with a pending confirm button while the write is in
+    // flight (D-14); close it once the (optimistic) status change settles.
+    setClosing(true);
+    try {
+      await updateDealStatus(dealId, 'closed');
+    } finally {
+      setClosing(false);
+      setConfirmClose({ open: false, dealId: null });
+    }
   };
 
   const deleteDeal = async (dealId) => {
@@ -200,8 +213,13 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
 
   const confirmDeleteDeal = async () => {
     if (!confirmDelete.deal?.id) return;
-    await deleteDeal(confirmDelete.deal.id);
-    setConfirmDelete({ open: false, deal: null });
+    setDeleting(true);
+    try {
+      await deleteDeal(confirmDelete.deal.id);
+    } finally {
+      setDeleting(false);
+      setConfirmDelete({ open: false, deal: null });
+    }
   };
 
   const getStatusColor = (status) => {
@@ -432,6 +450,8 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
         confirmLabel="Close Deal"
         cancelLabel="Not Yet"
         danger={false}
+        confirming={closing}
+        pendingLabel="Closing…"
         onConfirm={confirmCloseDeal}
         onCancel={() => setConfirmClose({ open: false, dealId: null })}
       />
@@ -443,6 +463,8 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
         confirmLabel="Delete"
         cancelLabel="Cancel"
         danger
+        confirming={deleting}
+        pendingLabel="Deleting…"
         onConfirm={confirmDeleteDeal}
         onCancel={() => setConfirmDelete({ open: false, deal: null })}
       />
