@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 5
-current_phase_name: Data Reliability & Infrastructure Headers
-status: verifying
+current_phase: 06
+current_phase_name: Firestore Rules Hardening
+status: executing
 stopped_at: Finalized 04-03-PLAN.md — changelog complete; both external-half checkpoints DEFERRED post-deploy (human_needed). Close via /gsd-verify-work 4 after deploy with Cloudinary creds + SENTRY_DSN
-last_updated: "2026-07-13T07:41:43.268Z"
+last_updated: "2026-07-13T08:14:22.093Z"
 last_activity: 2026-07-13
-last_activity_desc: Phase 04 complete, transitioned to Phase 5
+last_activity_desc: Phase 06 execution started
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 15
+  completed_plans: 13
   percent: 50
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** The product must feel and function like a serious production SaaS — every major flow polished, secured server-side, and explainable — without breaking any current production workflow.
-**Current focus:** Phase 04 — Serverless Hardening
+**Current focus:** Phase 06 — Firestore Rules Hardening
 
 ## Current Position
 
-Phase: 5 — Data Reliability & Infrastructure Headers
-Plan: Not started
-Status: Code-wiring of SEC-01/02/03 verified (test:api 41, test:ci 42). Two external halves DEFERRED post-deploy — real Cloudinary delete (CLOUDINARY_API_KEY/SECRET) + log-then-enforce Sentry-watched soak (SENTRY_DSN). Close via /gsd-verify-work 4 after a deploy with creds + DSN.
-Last activity: 2026-07-13 — Phase 04 complete, transitioned to Phase 5
+Phase: 06 (Firestore Rules Hardening) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-07-13 — Phase 06 execution started
 
 Progress: [█████░░░░░] 50%
 
@@ -69,6 +69,7 @@ Progress: [█████░░░░░] 50%
 | Phase 04 P01 | 5m | 2 tasks | 2 files |
 | Phase 04 P02 | 1min | 2 tasks | 2 files |
 | Phase 04 P03 | ~10min | 1 tasks | 1 files |
+| Phase 06 P01 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,7 @@ Recent decisions affecting current work:
 - [Phase 04]: Plan 04-01: accept-path written as direct schema unit tests; no log-then-enforce toggle added (SEC-01 enforce-only)
 - [Phase ?]: csp-report documented as intentional low-risk open beacon (SEC-02); trust-boundary doc coverage machine-checked by a completeness audit test
 - [Phase 04]: Plan 04-03 changelog (AUDIT-03): SEC-01/02/03 code-wiring green (test:api 41, test:ci 42); two external halves DEFERRED post-deploy — SEC-03 real Cloudinary delete (CLOUDINARY_API_KEY/SECRET) and SEC-01 Sentry-watched validation soak (SENTRY_DSN, enforce-only by decision)
+- [Phase ?]: SEC-04 (06-01): Removed firestore.rules match /{document=**} admin write catch-all; deletion is the only correct fix under Firestore OR-semantics so activity_log append-only now holds against admin. Emulator 15/15 green; live Console publish deferred to 06-03.
 
 ### Pending Todos
 
@@ -115,6 +117,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T06:27:16.564Z
+Last session: 2026-07-13T08:13:49.996Z
 Stopped at: Finalized 04-03-PLAN.md — changelog complete; both external-half checkpoints DEFERRED post-deploy (human_needed). Close via /gsd-verify-work 4 after deploy with Cloudinary creds + SENTRY_DSN
 Resume file: None
