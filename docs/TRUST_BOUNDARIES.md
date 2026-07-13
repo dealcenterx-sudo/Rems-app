@@ -30,6 +30,9 @@ Serverless handlers under `api/` are the boundary for privileged third-party ope
 | `api/lead-intake.js` | `x-api-key` matching `LEAD_INTAKE_KEY`. | Creates leads and admin notifications through Firebase Admin. | Missing config returns 503; invalid key returns 401; malformed payload returns 400. |
 | `api/delete-media.js` | Firebase ID token verified through Identity Toolkit. | Deletes Cloudinary media with Admin API credentials. | Missing/invalid auth returns 401; malformed payload returns 400; missing Cloudinary secrets returns 503; provider rejection returns 502. |
 | `api/health.js` | None for public status; admin Firebase token for details. | Reports integration diagnostics only to admin. | Public/non-admin callers receive only `{ "status": "ok" }`. |
+| `api/csp-report.js` | None by design — browsers post CSP Report-Only violations credential-less. | Logs/forwards the violation report (no business-data mutation). | Non-POST returns 405; all valid reports return 204. |
+
+`api/csp-report.js` is intentionally unauthenticated: browsers send CSP violation beacons without credentials, and the endpoint only records the report (never writes business data), so requiring a token would silently drop all reports. This mirrors the CSP spec and is a deliberate, low-risk open beacon. `api/lead-intake.js` (shared secret) and `api/csp-report.js` (open beacon) are the only two endpoints that do not verify a Firebase ID token; both auth postures are documented above.
 
 ## Firestore Rules
 
