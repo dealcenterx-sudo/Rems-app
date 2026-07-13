@@ -11,14 +11,16 @@ export const isAdminUser = (user = null) => {
 };
 
 export const normalizeAddressValue = (value = '') =>
-  value
+  (value || '')
     .toLowerCase()
     .replace(/[^\w\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
 export const normalizePropertyTypeBucket = (propertyType = '') => {
-  const type = propertyType.toLowerCase().replace(/\s+/g, '-');
+  // Coerce null (not just undefined) — Firestore docs can store propertyType: null,
+  // and the `= ''` default only applies to undefined args.
+  const type = (propertyType || '').toLowerCase().replace(/\s+/g, '-');
   if (type === 'single-family') return 'single-family';
   if (type === 'multi-family' || type === 'multifamily') return 'multi-family';
   if (type === 'commercial') return 'commercial';
