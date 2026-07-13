@@ -44,6 +44,19 @@ body {
   --danger-hover: #ff4d4d;
   --danger-soft: rgba(255, 51, 51, 0.08);
 
+  /* Token migration Pass 1 — exact-match, byte-identical tokens (RC-01, D-17).
+     Values MUST equal the hex they later replace so computed styles are
+     unchanged by construction. No consumers yet; consolidation/recolor is Pass 2. */
+  --white: #ffffff;
+  --text-muted-2: #888888;
+  --skeleton-highlight: #1a1a1a;
+  --gray-111: #111111;
+  --gray-333: #333333;
+  --gray-444: #444444;
+  --gray-555: #555555;
+  --gray-666: #666666;
+  --danger-alt: #ff4444;
+
   /* Type scale — 11px is the floor for any UI text */
   --font-xs: 11px;
   --font-sm: 12px;
