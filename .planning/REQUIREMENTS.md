@@ -22,7 +22,7 @@
 
 ### Testing & QA
 
-- [ ] **TEST-01**: Developer can run `npm run test:rules` — emulator-backed characterization tests cover userId scoping, admin override, assignedProperties/assignedDeals, deal-portal `canAccessDeal()` inheritance, and activity_log append-only behavior
+- [x] **TEST-01**: Developer can run `npm run test:rules` — emulator-backed characterization tests cover userId scoping, admin override, assignedProperties/assignedDeals, deal-portal `canAccessDeal()` inheritance, and activity_log append-only behavior
 - [x] **TEST-02**: Developer can run `npm run test:api` — handler tests cover auth validation, payload validation, and error paths for send-email, accept-invite, and lead-intake
 - [ ] **TEST-03**: CI runs rules + API suites alongside existing lint → test → build, without disturbing CRA's Jest setup
 - [ ] **TEST-04**: Lint, test, and build status is known, passing, and documented at milestone end
@@ -123,7 +123,7 @@ Deferred to future milestone:
 | HYG-03 | Phase 1 | Complete |
 | HYG-04 | Phase 1 | Complete |
 | HYG-05 | Phase 1 | Complete |
-| TEST-01 | Phase 2 | Pending |
+| TEST-01 | Phase 2 | Complete |
 | TEST-02 | Phase 2 | Complete |
 | TEST-03 | Phase 2 | Pending |
 | TEST-04 | Phase 8 | Pending |
