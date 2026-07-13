@@ -159,8 +159,8 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{
+    <div className="modal-overlay" role="presentation" onClick={onClose}>
+      <div className="modal-content" role="presentation" onClick={(e) => e.stopPropagation()} style={{
         border: '2px solid #0088ff',
         padding: '30px',
         maxWidth: '600px',
@@ -178,8 +178,9 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <div className="form-field">
-            <label>Task Title *</label>
+            <label htmlFor="task-title">Task Title *</label>
             <input
+              id="task-title"
               type="text"
               placeholder="e.g., Follow up on offer"
               value={formData.title}
@@ -188,8 +189,9 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
           </div>
 
           <div className="form-field">
-            <label>Description</label>
+            <label htmlFor="task-description">Description</label>
             <textarea
+              id="task-description"
               placeholder="Add details about this task..."
               value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
@@ -210,8 +212,9 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
 
           <div className="grid-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
             <div className="form-field">
-              <label>Type</label>
+              <label htmlFor="task-type">Type</label>
               <select
+                id="task-type"
                 value={formData.type}
                 onChange={(e) => setFormData({...formData, type: e.target.value})}
               >
@@ -222,8 +225,9 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
             </div>
 
             <div className="form-field">
-              <label>Priority</label>
+              <label htmlFor="task-priority">Priority</label>
               <select
+                id="task-priority"
                 value={formData.priority}
                 onChange={(e) => setFormData({...formData, priority: e.target.value})}
               >
@@ -235,8 +239,9 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
           </div>
 
           <div className="form-field">
-            <label>Assigned To</label>
+            <label htmlFor="task-assignedTo">Assigned To</label>
             <select
+              id="task-assignedTo"
               value={formData.assignedTo}
               onChange={(e) => setFormData({...formData, assignedTo: e.target.value})}
             >
@@ -250,8 +255,9 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
           </div>
 
           <div className="form-field">
-            <label>Due Date</label>
+            <label htmlFor="task-dueDate">Due Date</label>
             <input
+              id="task-dueDate"
               type="date"
               value={formData.dueDate}
               onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
@@ -259,8 +265,9 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
           </div>
 
           <div className="form-field">
-            <label>Link to Deal (optional)</label>
+            <label htmlFor="task-dealId">Link to Deal (optional)</label>
             <select
+              id="task-dealId"
               value={formData.dealId}
               onChange={(e) => setFormData({...formData, dealId: e.target.value})}
             >
@@ -274,8 +281,9 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
           </div>
 
           <div className="form-field">
-            <label>Link to Contact (optional)</label>
+            <label htmlFor="task-contactId">Link to Contact (optional)</label>
             <select
+              id="task-contactId"
               value={formData.contactId}
               onChange={(e) => setFormData({...formData, contactId: e.target.value})}
             >
@@ -289,8 +297,9 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
           </div>
 
           <div className="form-field">
-            <label>Link to Property (optional)</label>
+            <label htmlFor="task-propertyId">Link to Property (optional)</label>
             <select
+              id="task-propertyId"
               value={formData.propertyId}
               onChange={(e) => setFormData({...formData, propertyId: e.target.value})}
             >
@@ -739,7 +748,16 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
 
       <div className="grid-four" style={{ marginBottom: '20px' }}>
         <div
+          role="button"
+          tabIndex={0}
+          aria-pressed={filterStatus === 'all'}
           onClick={() => setFilterStatus('all')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setFilterStatus('all');
+            }
+          }}
           style={{
             background: filterStatus === 'all' ? '#0f0f0f' : '#0a0a0a',
             border: filterStatus === 'all' ? '1px solid #0088ff' : '1px solid #1a1a1a',
@@ -754,7 +772,16 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
         </div>
 
         <div
+          role="button"
+          tabIndex={0}
+          aria-pressed={filterStatus === 'pending'}
           onClick={() => setFilterStatus('pending')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setFilterStatus('pending');
+            }
+          }}
           style={{
             background: filterStatus === 'pending' ? '#0f0f0f' : '#0a0a0a',
             border: filterStatus === 'pending' ? '1px solid #0088ff' : '1px solid #1a1a1a',
@@ -769,7 +796,16 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
         </div>
 
         <div
+          role="button"
+          tabIndex={0}
+          aria-pressed={filterStatus === 'overdue'}
           onClick={() => setFilterStatus('overdue')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setFilterStatus('overdue');
+            }
+          }}
           style={{
             background: filterStatus === 'overdue' ? '#0f0f0f' : '#0a0a0a',
             border: filterStatus === 'overdue' ? '1px solid #ff3333' : '1px solid #1a1a1a',
@@ -784,7 +820,16 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
         </div>
 
         <div
+          role="button"
+          tabIndex={0}
+          aria-pressed={filterStatus === 'completed'}
           onClick={() => setFilterStatus('completed')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setFilterStatus('completed');
+            }
+          }}
           style={{
             background: filterStatus === 'completed' ? '#0f0f0f' : '#0a0a0a',
             border: filterStatus === 'completed' ? '1px solid #00ff88' : '1px solid #1a1a1a',
@@ -933,7 +978,17 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
               return (
                 <div
                   key={key}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isSelected}
+                  aria-label={date.toDateString()}
                   onClick={() => setSelectedDate(date)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedDate(date);
+                    }
+                  }}
                   style={{
                     minHeight: '80px',
                     padding: '8px',
