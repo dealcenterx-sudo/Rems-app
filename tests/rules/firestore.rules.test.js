@@ -149,6 +149,53 @@ describe('userId-scoped business collections', () => {
   });
 });
 
+describe('users self-service rules', () => {
+  it('prevents self-registration with an admin role but allows a non-admin role', async () => {
+    const adminDb = authedDb('self-new', { email: 'self-new@example.com' });
+    const agentDb = authedDb('self-new2', { email: 'self-new2@example.com' });
+
+    await assertFails(setDoc(doc(adminDb, 'users/self-new'), {
+      userId: 'self-new',
+      email: 'self-new@example.com',
+      role: 'admin',
+      assignedProperties: [],
+      assignedDeals: []
+    }));
+    await assertSucceeds(setDoc(doc(agentDb, 'users/self-new2'), {
+      userId: 'self-new2',
+      email: 'self-new2@example.com',
+      role: 'agent',
+      assignedProperties: [],
+      assignedDeals: []
+    }));
+  });
+
+  it('prevents a user from escalating their own role or reassigning themselves', async () => {
+    const db = authedDb('agent-a', { email: 'agent@example.com' });
+
+    await assertFails(updateDoc(doc(db, 'users/agent-a'), { role: 'admin' }));
+    await assertFails(updateDoc(doc(db, 'users/agent-a'), {
+      assignedProperties: ['prop-x']
+    }));
+    await assertFails(updateDoc(doc(db, 'users/agent-a'), {
+      assignedDeals: ['deal-x']
+    }));
+  });
+
+  it('allows a benign self-update and lets admins change role/assignments', async () => {
+    const selfDb = authedDb('agent-a', { email: 'agent@example.com' });
+    const adminDb = authedDb('admin-uid', { email: 'admin@example.com' });
+
+    await assertSucceeds(updateDoc(doc(selfDb, 'users/agent-a'), {
+      email: 'agent-new@example.com'
+    }));
+    await assertSucceeds(updateDoc(doc(adminDb, 'users/agent-a'), {
+      role: 'buyer',
+      assignedProperties: ['prop-assigned', 'prop-2']
+    }));
+  });
+});
+
 describe('assignment-based access', () => {
   it('allows assigned users to read and update assigned properties without deleting them', async () => {
     const db = authedDb('agent-a', { email: 'agent@example.com' });
