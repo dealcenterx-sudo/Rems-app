@@ -14,7 +14,7 @@ Upgrade a live, auto-deploying real estate CRM from "functional app" to professi
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Audit, Repo Hygiene & Config Centralization** - Audit deliverables in docs/, archive/diagnostics cleanup, admin email + constants centralized with CI grep proof (completed 2026-07-07)
-- [ ] **Phase 2: Test Scaffolding** - Emulator-backed Firestore rules tests and API handler tests wired into CI, outside CRA's Jest
+- [x] **Phase 2: Test Scaffolding** - Emulator-backed Firestore rules tests and API handler tests wired into CI, outside CRA's Jest (completed 2026-07-13)
 - [ ] **Phase 3: Observability** - Sentry client + serverless error capture and web-vitals, verified with a real production error
 - [ ] **Phase 4: Serverless Hardening** - Zod validation with log-then-enforce rollout, auth audit, documented trust boundaries, Cloudinary delete
 - [ ] **Phase 5: Data Reliability & Infrastructure Headers** - Composite indexes READY, loud fallbacks, cache headers, CSP Report-Only soak begins
@@ -61,7 +61,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Developer can run `npm run test:api` and see passing handler tests covering auth validation, payload validation, and error paths for send-email, accept-invite, and lead-intake
   3. CI runs both new suites alongside the existing lint → test → build pipeline, and `npm run test:ci` (CRA's Jest) behaves exactly as before
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 **Wave 1** *(parallel — no shared files)*
 
@@ -70,7 +70,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 02-03-PLAN.md — Verify CI wiring + CRA-Jest isolation and document Java 21 / npm ci run prerequisites in docs/TESTING.md (TEST-03)
+- [x] 02-03-PLAN.md — Verify CI wiring + CRA-Jest isolation and document Java 21 / npm ci run prerequisites in docs/TESTING.md (TEST-03)
 
 ### Phase 3: Observability
 
@@ -167,7 +167,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Audit, Repo Hygiene & Config Centralization | 3/3 | Complete    | 2026-07-07 |
-| 2. Test Scaffolding | 2/3 | In Progress|  |
+| 2. Test Scaffolding | 3/3 | Complete   | 2026-07-13 |
 | 3. Observability | 0/TBD | Not started | - |
 | 4. Serverless Hardening | 0/TBD | Not started | - |
 | 5. Data Reliability & Infrastructure Headers | 0/TBD | Not started | - |
