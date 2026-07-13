@@ -1,9 +1,10 @@
 ---
 phase: 04-serverless-hardening
-verified: 2026-07-13T09:40:00Z
-status: human_needed
-score: 3/3 code-wiring halves verified (2 external halves pending human verification)
+verified: 2026-07-13T09:55:00Z
+status: passed
+score: 3/3 requirements fully verified (code-wiring + external halves)
 behavior_unverified: 0
+closed_via: post-deploy UAT — user confirmed real Cloudinary asset deletion on prod; validation soak clean (no live-client rejections). SEC-01/02/03 all verified. Handled-500s Sentry gap remains routed to Phase 5 / DATA-02.
 overrides_applied: 0
 requirements_verified: [SEC-01, SEC-02, SEC-03]
 human_verification:

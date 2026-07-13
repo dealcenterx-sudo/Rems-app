@@ -15,8 +15,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Audit, Repo Hygiene & Config Centralization** - Audit deliverables in docs/, archive/diagnostics cleanup, admin email + constants centralized with CI grep proof (completed 2026-07-07)
 - [x] **Phase 2: Test Scaffolding** - Emulator-backed Firestore rules tests and API handler tests wired into CI, outside CRA's Jest (completed 2026-07-13)
-- [ ] **Phase 3: Observability** - Sentry client + serverless error capture and web-vitals; code-wiring verified this session (test:ci 42, test:api 27), but the three "event appears in Sentry" checkpoints are DEFERRED pending a production deploy with a DSN — status human_needed, close via /gsd-verify-work 3 after a Sentry smoke
-- [ ] **Phase 4: Serverless Hardening** - Zod validation, auth audit, documented trust boundaries, Cloudinary delete; code-wiring of SEC-01/02/03 verified this session (test:api 41, test:ci 42), but two external halves are DEFERRED pending a production deploy with credentials — (a) real Cloudinary delete needs CLOUDINARY_API_KEY/SECRET, (b) the log-then-enforce Sentry-watched validation soak needs the Phase 3 SENTRY_DSN — status human_needed, close via /gsd-verify-work 4 after a deploy with creds + DSN
+- [x] **Phase 3: Observability** - Sentry client + serverless error capture and web-vitals — verified live in production: client error + web-vitals confirmed landing in Sentry on deploy dpl_PR1UNkDrWVdWn4ZmNeveopTqCgG1; serverless uncaught-throw path armed + unit-verified (verified-by-inference) (completed 2026-07-13)
+- [x] **Phase 4: Serverless Hardening** - Zod validation, auth audit, documented trust boundaries, Cloudinary delete — fully verified: code-wiring via test:api 41 / test:ci 42, and real Cloudinary deletion + validation soak confirmed live in production. (Handled-500s Sentry gap routed to Phase 5 / DATA-02.) (completed 2026-07-13)
 - [ ] **Phase 5: Data Reliability & Infrastructure Headers** - Composite indexes READY, loud fallbacks, cache headers, CSP Report-Only soak begins
 - [ ] **Phase 6: Firestore Rules Hardening** - Admin email fallback removed via additive-then-subtractive Console publishes with two-account smoke tests
 - [ ] **Phase 7: UI/UX, Copy & Accessibility** - Copy standard + sweep, empty states, skeletons, SWR KPIs, pending states, token-level a11y
@@ -186,8 +186,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 |-------|----------------|--------|-----------|
 | 1. Audit, Repo Hygiene & Config Centralization | 3/3 | Complete    | 2026-07-07 |
 | 2. Test Scaffolding | 3/3 | Complete    | 2026-07-13 |
-| 3. Observability | 3/3 | Complete   | 2026-07-13 |
-| 4. Serverless Hardening | 3/3 | Human-verify (deferred) | - |
+| 3. Observability | 3/3 | Complete    | 2026-07-13 |
+| 4. Serverless Hardening | 3/3 | Complete    | 2026-07-13 |
 | 5. Data Reliability & Infrastructure Headers | 0/TBD | Not started | - |
 | 6. Firestore Rules Hardening | 0/TBD | Not started | - |
 | 7. UI/UX, Copy & Accessibility | 0/TBD | Not started | - |

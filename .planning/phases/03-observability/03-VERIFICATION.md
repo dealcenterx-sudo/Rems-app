@@ -1,9 +1,10 @@
 ---
 phase: 03-observability
-verified: 2026-07-13T05:25:30Z
-status: human_needed
-score: 12/16 must-haves verified
+verified: 2026-07-13T09:55:00Z
+status: passed
+score: 15/16 must-haves verified (OBS-02 live serverless throw = verified-by-inference)
 behavior_unverified: 0
+closed_via: post-deploy UAT — user confirmed client error + web-vitals in Sentry on prod deploy dpl_PR1UNkDrWVdWn4ZmNeveopTqCgG1; client DSN inlining independently confirmed in shipped bundle; OBS-02 serverless path armed + unit-verified + ingest-proven (see 03-UAT.md)
 overrides_applied: 0
 human_verification:
   - test: "Provision REACT_APP_SENTRY_DSN as a Vercel BUILD-TIME env var, deploy, trigger a deliberate client render error under ErrorBoundary in production"
