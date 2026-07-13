@@ -29,9 +29,9 @@
 
 ### Observability
 
-- [ ] **OBS-01**: Production client errors are captured in Sentry (init gated on `REACT_APP_SENTRY_DSN`; ErrorBoundary bridged), verified with a real production error
+- [x] **OBS-01**: Production client errors are captured in Sentry (init gated on `REACT_APP_SENTRY_DSN`; ErrorBoundary bridged), verified with a real production error
 - [ ] **OBS-02**: Serverless function errors are captured via a `withSentry` wrapper that flushes before responding
-- [ ] **OBS-03**: Web-vitals metrics flow to Sentry from the existing `web-vitals` dependency
+- [x] **OBS-03**: Web-vitals metrics flow to Sentry from the existing `web-vitals` dependency
 
 ### Security & Auth Hardening
 
@@ -127,9 +127,9 @@ Deferred to future milestone:
 | TEST-02 | Phase 2 | Complete |
 | TEST-03 | Phase 2 | Complete |
 | TEST-04 | Phase 8 | Pending |
-| OBS-01 | Phase 3 | Pending |
+| OBS-01 | Phase 3 | Complete |
 | OBS-02 | Phase 3 | Pending |
-| OBS-03 | Phase 3 | Pending |
+| OBS-03 | Phase 3 | Complete |
 | SEC-01 | Phase 4 | Pending |
 | SEC-02 | Phase 4 | Pending |
 | SEC-03 | Phase 4 | Pending |
