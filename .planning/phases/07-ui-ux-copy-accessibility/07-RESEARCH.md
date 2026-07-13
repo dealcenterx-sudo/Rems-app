@@ -381,6 +381,8 @@ All target pages already have a `loading` state var and an empty branch — skel
 
 ## Open Questions
 
+> **RESOLVED (2026-07-13)** — all three questions below were decided by the user during planning and recorded in `07-CONTEXT.md` `<research_clarifications>` **RC-01** (exact-token additions `--white`/`--text-muted-2`/`--skeleton-highlight` in Pass 1; consolidation/recolor deferred to Pass 2) and **RC-02** (skeleton base = `--surface-2`). The plans implement these resolutions (RC-01 → plan 07-02/07-10/07-11; RC-02 → plan 07-03/07-12). The "Recommendation" lines below are retained for audit context.
+
 1. **How to reconcile `#888888` (180 uses) — add a token or consolidate to `--text-muted`?**
    - Known: `#888888` ≠ `--text-muted #8a8a8a` (byte-identical rule forbids Pass-1 mapping).
    - Unclear: whether the ~2-unit difference is intentional or drift.
