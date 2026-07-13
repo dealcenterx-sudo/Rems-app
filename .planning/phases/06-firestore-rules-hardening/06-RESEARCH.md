@@ -285,9 +285,11 @@ Invariant: rules tests green BEFORE and AFTER each publish; admin + non-admin sm
 | A3 | Only one admin account exists in production (`dealcenterx@gmail.com`) | Lockout gate | If secondary admins exist without `role: 'admin'`, they'd be locked out. HUMAN must enumerate all admin accounts during the gate. |
 | A4 | No app subcollections rely on the recursive catch-all | Blast radius | Grep found only top-level collections; if a subcollection is added later it would need its own rule (default-deny otherwise). Low risk. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **What are the exact rules currently LIVE in the Firebase Console?**
+> Q1 → resolved by design: inherently unanswerable without live Console access, so it IS the execution-time lockout gate + Console-inspection checkpoint (plan 06-03 T1), which branches (email-based live rules → additive bridge publish; role-based → direct cutover). Q2 → resolved: SEC-05 access-model doc extends `docs/TRUST_BOUNDARIES.md` (plan 06-02), not a new file.
+
+1. **What are the exact rules currently LIVE in the Firebase Console?** *(RESOLVED → 06-03 T1 lockout gate + Console inspection branches the publish path.)*
    - What we know: git rules are role-only with the catch-all present.
    - What's unclear: whether prod is running email-based, role-based, or email-OR-role rules right now.
    - Recommendation: HUMAN inspects Console rules at Stage 0; this decides whether the additive bridge (Stage 2) is needed.
