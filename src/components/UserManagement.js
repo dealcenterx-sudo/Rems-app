@@ -8,9 +8,9 @@ import { notifyUsers } from '../utils/notifications';
 const ROLES = ['agent', 'admin', 'buyer', 'seller'];
 
 const roleBadgeColor = (role) => {
-  if (role === 'admin') return '#00ff88';
-  if (role === 'agent') return '#0088ff';
-  return '#888888';
+  if (role === 'admin') return 'var(--accent)';
+  if (role === 'agent') return 'var(--info)';
+  return 'var(--text-muted-2)';
 };
 
 const propertyLabel = (property) => {
@@ -138,7 +138,7 @@ const UserManagement = () => {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div style={{ fontSize: '13px', color: '#888888' }}>
+        <div style={{ fontSize: '13px', color: 'var(--text-muted-2)' }}>
           {users.length} user{users.length === 1 ? '' : 's'}
         </div>
         <button onClick={loadData} className="btn-secondary btn-sm">Refresh</button>
@@ -156,11 +156,11 @@ const UserManagement = () => {
             <div key={user.id} className="card-surface" style={{ padding: '16px 20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
                 <div style={{ minWidth: '220px' }}>
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)' }}>
                     {user.displayName || user.email || user.id}
-                    {isSelf && <span style={{ fontSize: '11px', color: '#00ff88', marginLeft: '8px' }}>(you)</span>}
+                    {isSelf && <span style={{ fontSize: '11px', color: 'var(--accent)', marginLeft: '8px' }}>(you)</span>}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#888888', marginTop: '2px' }}>{user.email}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', marginTop: '2px' }}>{user.email}</div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
@@ -183,10 +183,10 @@ const UserManagement = () => {
                     disabled={isSelf || isSaving}
                     title={isSelf ? 'You cannot change your own role' : 'Change role'}
                     style={{
-                      background: '#0a0a0a',
-                      border: '1px solid #1a1a1a',
+                      background: 'var(--surface-1)',
+                      border: '1px solid var(--skeleton-highlight)',
                       borderRadius: '4px',
-                      color: isSelf ? '#555555' : '#ffffff',
+                      color: isSelf ? 'var(--gray-555)' : 'var(--white)',
                       padding: '8px 10px',
                       fontSize: '12px',
                       fontFamily: 'inherit',
@@ -214,8 +214,8 @@ const UserManagement = () => {
               </div>
 
               {isExpanded && (
-                <div style={{ marginTop: '15px', borderTop: '1px solid #1a1a1a', paddingTop: '15px' }}>
-                  <div style={{ fontSize: '11px', color: '#888888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
+                <div style={{ marginTop: '15px', borderTop: '1px solid var(--skeleton-highlight)', paddingTop: '15px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
                     {expandedSection === 'deals' ? 'Assigned Deals (deal portal access)' : 'Assigned Properties'}
                   </div>
                   {(expandedSection === 'deals' ? deals : properties).length === 0 ? (
@@ -235,7 +235,7 @@ const UserManagement = () => {
                               alignItems: 'center',
                               gap: '8px',
                               fontSize: '13px',
-                              color: isAssigned ? '#ffffff' : '#888888',
+                              color: isAssigned ? 'var(--white)' : 'var(--text-muted-2)',
                               cursor: isSaving ? 'wait' : 'pointer',
                               padding: '6px 8px',
                               borderRadius: '4px',

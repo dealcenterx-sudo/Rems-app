@@ -483,10 +483,10 @@ const handleSaveContact = async () => {
                   style={{
                     width: '100%',
                     padding: '12px 16px',
-                    background: '#0a0a0a',
-                    border: '1px solid #1a1a1a',
+                    background: 'var(--surface-1)',
+                    border: '1px solid var(--skeleton-highlight)',
                     borderRadius: '8px',
-                    color: '#ffffff',
+                    color: 'var(--white)',
                     fontSize: '14px'
                   }}
                 />
@@ -562,20 +562,20 @@ const handleSaveContact = async () => {
                   </div>
                   {filteredContacts.map((contact) => (
                     <div key={contact.id} className="table-row" style={{ gridTemplateColumns: '200px 120px 150px 180px 120px 150px' }}>
-                      <div data-label="Name" style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
+                      <div data-label="Name" style={{ fontSize: '13px', color: 'var(--white)', fontWeight: '600' }}>
                         {contact.firstName} {contact.lastName}
                       </div>
-                      <div data-label="Type" style={{ fontSize: '12px', color: '#00ff88', textTransform: 'capitalize' }}>
+                      <div data-label="Type" style={{ fontSize: '12px', color: 'var(--accent)', textTransform: 'capitalize' }}>
                         {contact.contactType}
                         {contact.contactType === 'seller' && (
-                          <span style={{ marginLeft: '6px', color: contact.activelySelling === false ? '#ff6600' : '#00ff88' }}>
+                          <span style={{ marginLeft: '6px', color: contact.activelySelling === false ? '#ff6600' : 'var(--accent)' }}>
                             ({contact.activelySelling === false ? 'Inactive' : 'Active'})
                           </span>
                         )}
                       </div>
-                      <div data-label="Phone" style={{ fontSize: '12px', color: '#888888' }}>{contact.phone}</div>
-                      <div data-label="Email" style={{ fontSize: '12px', color: '#888888' }}>{contact.email}</div>
-                      <div data-label="Date Added" style={{ fontSize: '12px', color: '#888888' }}>
+                      <div data-label="Phone" style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>{contact.phone}</div>
+                      <div data-label="Email" style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>{contact.email}</div>
+                      <div data-label="Date Added" style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>
                         {contact.createdAt ? new Date(contact.createdAt).toLocaleDateString() : 'N/A'}
                       </div>
                       <div data-label="Actions" style={{ display: 'flex', gap: '8px' }}>
@@ -588,7 +588,7 @@ const handleSaveContact = async () => {
               )}
               {filteredContacts.length > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', flexWrap: 'wrap', gap: '10px' }}>
-                  <div style={{ fontSize: '12px', color: '#888888' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>
                     Showing {filteredContacts.length} contacts
                     {hasNextPage ? ' (more available)' : ''}
                   </div>

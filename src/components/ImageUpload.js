@@ -85,21 +85,21 @@ const ImageUpload = ({
           justifyContent: 'center',
           gap: '8px',
           padding: '12px 20px',
-          background: uploading ? '#1a1a1a' : '#0a0a0a',
-          border: '2px dashed #00ff88',
+          background: uploading ? 'var(--skeleton-highlight)' : 'var(--surface-1)',
+          border: '2px dashed var(--accent)',
           borderRadius: '4px',
           cursor: uploading ? 'not-allowed' : 'pointer',
           transition: 'all 0.2s',
-          color: '#00ff88',
+          color: 'var(--accent)',
           fontSize: '13px',
           fontWeight: '600',
           fontFamily: 'inherit'
         }}
         onMouseEnter={(e) => {
-          if (!uploading) e.currentTarget.style.background = '#0f0f0f';
+          if (!uploading) e.currentTarget.style.background = 'var(--surface-2)';
         }}
         onMouseLeave={(e) => {
-          if (!uploading) e.currentTarget.style.background = '#0a0a0a';
+          if (!uploading) e.currentTarget.style.background = 'var(--surface-1)';
         }}
       >
         <UploadIcon size={20} />
@@ -120,9 +120,9 @@ const ImageUpload = ({
           marginTop: '10px',
           padding: '10px',
           background: '#ff333315',
-          border: '1px solid #ff3333',
+          border: '1px solid var(--danger)',
           borderRadius: '4px',
-          color: '#ff3333',
+          color: 'var(--danger)',
           fontSize: '12px'
         }}>
           {error}
@@ -145,7 +145,7 @@ const ImageUpload = ({
                 aspectRatio: '1',
                 borderRadius: '4px',
                 overflow: 'hidden',
-                border: '1px solid #1a1a1a'
+                border: '1px solid var(--skeleton-highlight)'
               }}
             >
               <img
@@ -165,7 +165,7 @@ const ImageUpload = ({
                   position: 'absolute',
                   top: '5px',
                   right: '5px',
-                  background: '#ff3333',
+                  background: 'var(--danger)',
                   border: 'none',
                   borderRadius: '50%',
                   width: '24px',
@@ -174,7 +174,7 @@ const ImageUpload = ({
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  color: '#ffffff'
+                  color: 'var(--white)'
                 }}
               >
                 <XIcon size={14} />

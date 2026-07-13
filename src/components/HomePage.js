@@ -335,7 +335,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
     return (
       <div className="page-content">
         <div className="card-surface" style={{ maxWidth: '640px', margin: '40px auto', padding: '40px', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', marginBottom: '10px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--white)', marginBottom: '10px' }}>
             Welcome{firstName ? `, ${firstName}` : ''}
           </h2>
           <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '24px' }}>
@@ -364,7 +364,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
     <div className="page-content">
       {isFirstRun && (
         <div className="card-surface" style={{ marginBottom: '24px', padding: '28px', border: '1px solid var(--accent-border)' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff', margin: '0 0 6px 0' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--white)', margin: '0 0 6px 0' }}>
             Welcome to REMS
           </h3>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 18px 0', lineHeight: 1.6 }}>
@@ -402,7 +402,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
         <div className="section-title">Key Performance Indicators</div>
         <div className="kpi-grid">
           <div className="kpi-container">
-            <div className="kpi-title" style={{ color: '#00ff88' }}>Seller Leads</div>
+            <div className="kpi-title" style={{ color: 'var(--accent)' }}>Seller Leads</div>
             <div className="kpi-items">
               <div className="kpi-item">
                 <span className="kpi-label">Total Number of Sellers</span>
@@ -432,7 +432,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
           </div>
 
           <div className="kpi-container">
-            <div className="kpi-title" style={{ color: '#0088ff' }}>Active Deals</div>
+            <div className="kpi-title" style={{ color: 'var(--info)' }}>Active Deals</div>
             <div className="kpi-items">
               <div className="kpi-item">
                 <span className="kpi-label">Total Deals</span>
@@ -450,7 +450,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
           </div>
 
           <div className="kpi-container">
-            <div className="kpi-title" style={{ color: '#ffaa00' }}>Tasks</div>
+            <div className="kpi-title" style={{ color: 'var(--warning)' }}>Tasks</div>
             <div className="kpi-items">
               <div className="kpi-item">
                 <span className="kpi-label">Total Tasks</span>
@@ -505,7 +505,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
                 <div data-label="Task">{task.title || task.description}</div>
                 <div data-label="Due Date">{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}</div>
                 <div data-label="Status">
-                  <span className="badge" style={{ color: task.completed ? '#00ff88' : '#ffaa00', background: task.completed ? '#00ff8815' : '#ffaa0015' }}>
+                  <span className="badge" style={{ color: task.completed ? 'var(--accent)' : 'var(--warning)', background: task.completed ? '#00ff8815' : '#ffaa0015' }}>
                     {task.completed ? 'Completed' : 'Pending'}
                   </span>
                 </div>

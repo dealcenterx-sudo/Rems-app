@@ -128,7 +128,7 @@ const ClosedDealsPage = () => {
     <div className="page-content">
       {/* Header with Stats */}
       <div style={{ marginBottom: '25px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', margin: '0 0 20px 0' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--white)', margin: '0 0 20px 0' }}>
           Closed Deals
         </h2>
 
@@ -137,7 +137,7 @@ const ClosedDealsPage = () => {
             <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginBottom: '8px', textTransform: 'uppercase' }}>
               Total Closed
             </div>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: '#00ff88' }}>
+            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--accent)' }}>
               {filteredDeals.length}
             </div>
           </div>
@@ -146,7 +146,7 @@ const ClosedDealsPage = () => {
             <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginBottom: '8px', textTransform: 'uppercase' }}>
               Total Volume
             </div>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: '#0088ff' }}>
+            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--info)' }}>
               {formatCurrency(totalVolume)}
             </div>
           </div>
@@ -155,7 +155,7 @@ const ClosedDealsPage = () => {
             <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginBottom: '8px', textTransform: 'uppercase' }}>
               Total Earnings
             </div>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: '#ffaa00' }}>
+            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--warning)' }}>
               {formatCurrency(totalRevenue)}
             </div>
           </div>
@@ -214,34 +214,34 @@ const ClosedDealsPage = () => {
                   cursor: 'pointer'
                 }}
               >
-                <div data-label="Property" style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
+                <div data-label="Property" style={{ fontSize: '13px', color: 'var(--white)', fontWeight: '600' }}>
                   {deal.propertyAddress || 'No address'}
                 </div>
 
-                <div data-label="Buyer" style={{ fontSize: '12px', color: '#0088ff' }}>
+                <div data-label="Buyer" style={{ fontSize: '12px', color: 'var(--info)' }}>
                   {deal.buyerName || 'N/A'}
                 </div>
 
-                <div data-label="Seller" style={{ fontSize: '12px', color: '#00ff88' }}>
+                <div data-label="Seller" style={{ fontSize: '12px', color: 'var(--accent)' }}>
                   {deal.sellerName || 'N/A'}
                 </div>
 
-                <div data-label="Sale Price" style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
+                <div data-label="Sale Price" style={{ fontSize: '13px', color: 'var(--white)', fontWeight: '600' }}>
                   {formatCurrency(deal.purchasePrice)}
                 </div>
 
-                <div data-label="Your Earnings" style={{ fontSize: '13px', color: '#ffaa00', fontWeight: '700' }}>
+                <div data-label="Your Earnings" style={{ fontSize: '13px', color: 'var(--warning)', fontWeight: '700' }}>
                   {formatCurrency(deal.commission?.agentEarnings)}
                 </div>
 
-              <div data-label="Close Date" style={{ fontSize: '12px', color: '#888888' }}>
+              <div data-label="Close Date" style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>
                   {formatDate(deal.actualCloseDate || deal.expectedCloseDate)}
                 </div>
               </div>
             );
           })}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ fontSize: '12px', color: '#888888' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>
               Showing {filteredDeals.length} closed deal{filteredDeals.length === 1 ? '' : 's'} on this page
               {hasNextPage ? ' · more available' : ''}
             </div>

@@ -23,10 +23,10 @@ const WebsitesPage = () => {
     <div className="page-content">
       {/* Header */}
       <div style={{ marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff', margin: '0 0 5px 0' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--white)', margin: '0 0 5px 0' }}>
           Websites
         </h2>
-        <p style={{ fontSize: '13px', color: '#888888', margin: 0 }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-muted-2)', margin: 0 }}>
           Marketing tools and property websites
         </p>
       </div>
@@ -49,7 +49,7 @@ const WebsitesPage = () => {
         <h3 style={{
           fontSize: '24px',
           fontWeight: '700',
-          color: '#ffffff',
+          color: 'var(--white)',
           marginBottom: '15px'
         }}>
           Property Website Builder
@@ -57,7 +57,7 @@ const WebsitesPage = () => {
 
         <p style={{
           fontSize: '14px',
-          color: '#888888',
+          color: 'var(--text-muted-2)',
           marginBottom: '40px',
           maxWidth: '600px',
           margin: '0 auto 40px',
@@ -79,20 +79,20 @@ const WebsitesPage = () => {
             <div
               key={index}
               className="card-surface hover-lift"
-              style={{ background: '#0f0f0f', textAlign: 'left' }}
+              style={{ background: 'var(--surface-2)', textAlign: 'left' }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#0088ff';
+                e.currentTarget.style.borderColor = 'var(--info)';
                 e.currentTarget.style.background = '#151515';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#1a1a1a';
-                e.currentTarget.style.background = '#0f0f0f';
+                e.currentTarget.style.borderColor = 'var(--skeleton-highlight)';
+                e.currentTarget.style.background = 'var(--surface-2)';
               }}
             >
               <h4 style={{
                 fontSize: '14px',
                 fontWeight: '600',
-                color: '#ffffff',
+                color: 'var(--white)',
                 marginBottom: '8px'
               }}>
                 {feature.title}
@@ -110,10 +110,10 @@ const WebsitesPage = () => {
         </div>
 
         {/* CTA */}
-        <div className="card-surface" style={{ marginTop: '40px', padding: '20px', background: '#0088ff15', border: '1px solid #0088ff', maxWidth: '600px', margin: '40px auto 0' }}>
+        <div className="card-surface" style={{ marginTop: '40px', padding: '20px', background: '#0088ff15', border: '1px solid var(--info)', maxWidth: '600px', margin: '40px auto 0' }}>
           <p style={{
             fontSize: '13px',
-            color: '#0088ff',
+            color: 'var(--info)',
             margin: 0,
             fontWeight: '600'
           }}>

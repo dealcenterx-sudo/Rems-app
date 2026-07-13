@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 // Skeleton is a decorative loading placeholder. It reuses the existing `shimmer`
 // keyframe (src/App.css) and references design tokens directly per RC-02:
 // base fill var(--surface-2) with a var(--skeleton-highlight) sweep (NOT the
-// legacy #0a0a0a). Each composed shape reserves the exact height/width of the
+// legacy var(--surface-1)). Each composed shape reserves the exact height/width of the
 // real content it replaces so there is no layout shift on swap-in (D-10).
 
 const SHIMMER_GRADIENT =

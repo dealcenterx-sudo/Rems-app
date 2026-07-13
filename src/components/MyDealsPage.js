@@ -9,6 +9,8 @@ import { mapError } from '../utils/errorMessages';
 
 const DealPortalPage = lazyWithReload(() => import('./DealPortalPage'));
 
+// Raw hex kept intentionally (D-16): these values feed a template-literal
+// alpha-concat (`${statusColor}15`) where var(--token) would not resolve.
 const STATUS_COLORS = {
   new: '#ffaa00',
   active: '#00ff88',
@@ -103,10 +105,10 @@ const MyDealsPage = ({ notificationDeal }) => {
   return (
     <div className="page-content">
       <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '700', margin: '0 0 4px 0' }}>
+        <h2 style={{ fontSize: '20px', color: 'var(--white)', fontWeight: '700', margin: '0 0 4px 0' }}>
           Your Deals
         </h2>
-        <p style={{ fontSize: '13px', color: '#888888', margin: 0 }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-muted-2)', margin: 0 }}>
           Transactions your agent has shared with you
         </p>
       </div>
@@ -138,7 +140,7 @@ const MyDealsPage = ({ notificationDeal }) => {
                 style={{ cursor: 'pointer' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '12px' }}>
-                  <div style={{ fontSize: '15px', fontWeight: '600', color: '#ffffff' }}>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--white)' }}>
                     {deal.propertyAddress || 'Untitled Deal'}
                   </div>
                   <span style={{
@@ -156,7 +158,7 @@ const MyDealsPage = ({ notificationDeal }) => {
                   </span>
                 </div>
                 {deal.purchasePrice ? (
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#00ff88', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--accent)', marginBottom: '8px' }}>
                     ${Number(deal.purchasePrice).toLocaleString()}
                   </div>
                 ) : null}

@@ -27,7 +27,7 @@ const SettingsPage = lazyWithReload(() => import('./components/SettingsPage'));
 const MyDealsPage = lazyWithReload(() => import('./components/MyDealsPage'));
 
 const PageLoader = () => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#00ff88', fontSize: '14px' }}>
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: 'var(--accent)', fontSize: '14px' }}>
     Loading...
   </div>
 );
@@ -141,8 +141,8 @@ function App() {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        background: '#000000',
-        color: '#00ff88',
+        background: 'var(--surface-0)',
+        color: 'var(--accent)',
         fontSize: '18px',
         fontFamily: 'IBM Plex Mono, monospace'
       }}>

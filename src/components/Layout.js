@@ -192,7 +192,7 @@ const TopBar = ({ title, searchQuery, onSearchChange, showSearch, onOpenDeal }) 
                 height: '16px',
                 borderRadius: '8px',
                 background: 'var(--accent)',
-                color: '#000000',
+                color: 'var(--surface-0)',
                 fontSize: '10px',
                 fontWeight: '700',
                 display: 'flex',
@@ -230,7 +230,7 @@ const TopBar = ({ title, searchQuery, onSearchChange, showSearch, onOpenDeal }) 
                         cursor: n.dealId && onOpenDeal ? 'pointer' : 'default'
                       }}
                     >
-                      <div style={{ fontSize: '12px', fontWeight: '600', color: '#ffffff' }}>
+                      <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--white)' }}>
                         {n.title}
                       </div>
                       {n.body && (

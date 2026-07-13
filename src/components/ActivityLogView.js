@@ -55,7 +55,7 @@ const ActivityLogView = () => {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div style={{ fontSize: '13px', color: '#888888' }}>
+        <div style={{ fontSize: '13px', color: 'var(--text-muted-2)' }}>
           Last {entries.length} events · log entries are permanent and cannot be edited
         </div>
         <button onClick={loadEntries} className="btn-secondary btn-sm">Refresh</button>
@@ -91,7 +91,7 @@ const ActivityLogView = () => {
                 {(entry.action || 'event').replace('_', ' ')}
               </span>
               <div style={{ flex: 1, minWidth: '220px' }}>
-                <div style={{ fontSize: '13px', color: '#ffffff' }}>{entry.description || `${entry.entity} ${entry.entityId}`}</div>
+                <div style={{ fontSize: '13px', color: 'var(--white)' }}>{entry.description || `${entry.entity} ${entry.entityId}`}</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginTop: '2px' }}>
                   {entry.userEmail || entry.userId} · {formatWhen(entry.createdAt)}
                 </div>
