@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 03
 current_phase_name: Observability
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-07-13T05:05:03.282Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-07-13T05:13:44.687Z"
 last_activity: 2026-07-13
 last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
   percent: 25
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 03 (Observability) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-07-13 — Phase 03 execution started
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02 P02 | ~3m | 3 tasks | 1 files |
 | Phase 02 P03 | 6min | 2 tasks | 1 files |
 | Phase 03 P01 | 8min | 2 tasks | 2 files |
+| Phase 03 P02 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Emulator test:rules pass delegated to CI (Java 21); dev host Java 8 documented Manual-Only
 - [Phase 02]: Verified TEST-03: CI runs test:api + test:rules alongside lint->test->build; CRA-Jest isolation holds (roots=src/)
 - [Phase ?]: 03-01: Used explicit jest.mock('@sentry/react') factory instead of auto-mock (auto-mock fails on package export shape)
+- [Phase ?]: OBS-02 test drives an actual uncaught throw; handled 500s never enter the wrapper catch (blind spot routed to Phase 5 / DATA-02)
 
 ### Pending Todos
 
@@ -101,6 +103,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T05:05:03.219Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-07-13T05:13:44.627Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None
