@@ -102,9 +102,9 @@ const LoginPage = ({ onLoginSuccess, embedded = false }) => {
         <form onSubmit={handleEmailAuth}>
           {isSignup && (
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '12px', color: '#888888', marginBottom: '8px' }}>
+              <div style={{ display: 'block', fontSize: '12px', color: '#888888', marginBottom: '8px' }}>
                 I am signing up as a...
-              </label>
+              </div>
               <div role="radiogroup" aria-label="Account type" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {SIGNUP_ROLES.map((role) => {
                   const isSelected = signupRole === role.value;
@@ -154,12 +154,13 @@ const LoginPage = ({ onLoginSuccess, embedded = false }) => {
             </div>
           )}
           <div className="form-field" style={{ marginBottom: '15px' }}>
-            <label>Email</label>
-            <input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <label htmlFor="login-email">Email</label>
+            <input id="login-email" type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
           <div className="form-field" style={{ marginBottom: isSignup ? '8px' : '6px' }}>
-            <label>Password</label>
+            <label htmlFor="login-password">Password</label>
             <input
+              id="login-password"
               type="password"
               placeholder="••••••••"
               value={password}

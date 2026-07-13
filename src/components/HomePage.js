@@ -388,7 +388,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
         <div className="section-title">Quick Links</div>
         <div className="quick-links-grid">
           {quickLinks.map((link, idx) => (
-            <div key={idx} className="quick-link-card" onClick={link.action}>
+            <div key={idx} role="button" tabIndex={0} className="quick-link-card" onClick={link.action} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); link.action(); } }}>
               <div className="quick-link-icon" style={{ background: `${link.color}15` }}>
                 <link.icon size={20} color={link.color} />
               </div>

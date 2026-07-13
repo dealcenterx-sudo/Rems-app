@@ -209,8 +209,9 @@ const SettingsPage = () => {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '500px' }}>
                 <div className="form-field">
-                  <label>Display Name</label>
+                  <label htmlFor="settings-displayName">Display Name</label>
                   <input
+                    id="settings-displayName"
                     type="text"
                     placeholder="Your name"
                     value={profileData.displayName}
@@ -219,8 +220,9 @@ const SettingsPage = () => {
                 </div>
 
                 <div className="form-field">
-                  <label>Email Address</label>
+                  <label htmlFor="settings-email">Email Address</label>
                   <input
+                    id="settings-email"
                     type="email"
                     value={profileData.email}
                     onChange={(e) => setProfileData({...profileData, email: e.target.value})}
@@ -262,8 +264,9 @@ const SettingsPage = () => {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '500px' }}>
                 <div className="form-field">
-                  <label>New Password</label>
+                  <label htmlFor="settings-newPassword">New Password</label>
                   <input
+                    id="settings-newPassword"
                     type="password"
                     placeholder="Enter new password"
                     value={passwordData.newPassword}
@@ -272,8 +275,9 @@ const SettingsPage = () => {
                 </div>
 
                 <div className="form-field">
-                  <label>Confirm New Password</label>
+                  <label htmlFor="settings-confirmPassword">Confirm New Password</label>
                   <input
+                    id="settings-confirmPassword"
                     type="password"
                     placeholder="Confirm new password"
                     value={passwordData.confirmPassword}

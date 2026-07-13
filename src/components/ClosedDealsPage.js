@@ -165,8 +165,9 @@ const ClosedDealsPage = () => {
       {/* Search */}
       <div className="card-surface" style={{ marginBottom: '20px' }}>
         <div className="form-field" style={{ margin: 0 }}>
-          <label style={{ marginBottom: '8px' }}>Search Closed Deals</label>
+          <label htmlFor="closed-deals-search" style={{ marginBottom: '8px' }}>Search Closed Deals</label>
           <input
+            id="closed-deals-search"
             type="text"
             placeholder="Search by property, buyer, or seller..."
             value={searchQuery}
@@ -203,8 +204,11 @@ const ClosedDealsPage = () => {
             return (
               <div
                 key={deal.id}
+                role="button"
+                tabIndex={0}
                 className="table-row"
                 onClick={() => setSelectedDeal(deal)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedDeal(deal); } }}
                 style={{
                   gridTemplateColumns: '250px 150px 150px 120px 120px 120px',
                   cursor: 'pointer'

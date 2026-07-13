@@ -312,9 +312,9 @@ const AnalyticsDashboard = () => {
 
       {/* Date Range Filters */}
       <div className="card-surface" style={{ padding: '20px', marginBottom: '30px' }}>
-        <label style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
+        <div style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
           Date Range
-        </label>
+        </div>
         {queryError && (
           <div className="status-banner status-banner-warning" role="status" style={{ marginBottom: '12px' }}>
             {queryError}
@@ -324,7 +324,11 @@ const AnalyticsDashboard = () => {
           {['7', '30', '90', 'custom'].map((range) => (
             <div
               key={range}
+              role="button"
+              tabIndex={0}
+              aria-pressed={dateRange === range}
               onClick={() => setDateRange(range)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDateRange(range); } }}
               className={`filter-chip ${dateRange === range ? 'active' : ''}`}
               style={{ textTransform: 'capitalize' }}
             >

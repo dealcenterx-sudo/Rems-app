@@ -305,7 +305,10 @@ const DealsDashboard = () => {
                     {statusDeals.map((deal) => (
                       <div
                         key={deal.id}
+                        role="button"
+                        tabIndex={0}
                         onClick={() => setSelectedDeal(deal)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedDeal(deal); } }}
                         className="card-surface"
                         style={{ background: '#0f0f0f', padding: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
                         onMouseEnter={(e) => {
@@ -388,8 +391,11 @@ const DealsDashboard = () => {
               return (
                 <div
                   key={deal.id}
+                  role="button"
+                  tabIndex={0}
                   className="table-row"
                   onClick={() => setSelectedDeal(deal)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedDeal(deal); } }}
                   style={{
                     gridTemplateColumns: '250px 150px 150px 120px 150px 120px'
                   }}

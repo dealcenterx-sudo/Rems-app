@@ -282,7 +282,11 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
         {statusOptions.map((option) => (
           <div
             key={option.value}
+            role="button"
+            tabIndex={0}
+            aria-pressed={filterStatus === option.value}
             onClick={() => setFilterStatus(option.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterStatus(option.value); } }}
             className={`filter-chip ${filterStatus === option.value ? 'active' : ''}`}
             style={{ whiteSpace: 'nowrap' }}
           >
@@ -330,7 +334,7 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
       ) : (
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
           {deals.map((deal) => (
-            <div key={deal.id} onClick={() => { setSelectedDeal(deal); setShowDetailModal(true); }} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = getStatusColor(deal.status); e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1a1a1a'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+            <div key={deal.id} role="button" tabIndex={0} onClick={() => { setSelectedDeal(deal); setShowDetailModal(true); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedDeal(deal); setShowDetailModal(true); } }} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = getStatusColor(deal.status); e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1a1a1a'; e.currentTarget.style.transform = 'translateY(0)'; }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                 <span style={{ fontSize: '11px', fontWeight: '700', color: getStatusColor(deal.status), background: `${getStatusColor(deal.status)}15`, padding: '4px 12px', borderRadius: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{getStatusLabel(deal.status)}</span>
                 <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>{deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : 'N/A'}</span>
@@ -378,8 +382,8 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
 
       {/* Deal Detail Modal */}
       {showDetailModal && selectedDeal && (
-        <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ padding: '30px', maxWidth: '600px' }}>
+        <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setShowDetailModal(false); }}>
+          <div className="modal-content" style={{ padding: '30px', maxWidth: '600px' }}>
             <div className="modal-header" style={{ marginBottom: '24px' }}>
               <div>
                 <h2 style={{ fontSize: '20px', color: '#ffffff', marginBottom: '8px', fontWeight: '600' }}>Deal Details</h2>

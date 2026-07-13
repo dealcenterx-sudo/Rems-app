@@ -344,7 +344,11 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
           {categoryOptions.map((option) => (
             <div
               key={option.value}
+              role="button"
+              tabIndex={0}
+              aria-pressed={filterCategory === option.value}
               onClick={() => setFilterCategory(option.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterCategory(option.value); } }}
               className={`filter-chip ${filterCategory === option.value ? 'active' : ''}`}
             >
               <span className="chip-label">{option.label}</span>
@@ -442,8 +446,8 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
         </div>
       )}
       {showUploadModal && (
-        <div className="modal-overlay" onClick={closeUploadModal}>
-          <div className="modal-content" style={{ padding: '30px', maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) closeUploadModal(); }}>
+          <div className="modal-content" style={{ padding: '30px', maxWidth: '500px' }}>
             <div className="modal-header" style={{ marginBottom: '24px' }}>
               <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '600', margin: 0 }}>Upload Document</h2>
               <button onClick={closeUploadModal} className="icon-button">×</button>
@@ -451,16 +455,16 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
             <form onSubmit={handleUpload}>
               <div style={{ display: 'grid', gap: '16px' }}>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Select File</label>
-                  <input type="file" onChange={handleFileSelect} required style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }} />
+                  <label htmlFor="docupload-file" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Select File</label>
+                  <input id="docupload-file" type="file" onChange={handleFileSelect} required style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>File Name</label>
-                  <input type="text" value={uploadData.fileName} onChange={(e) => setUploadData({...uploadData, fileName: e.target.value})} required style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }} />
+                  <label htmlFor="docupload-fileName" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>File Name</label>
+                  <input id="docupload-fileName" type="text" value={uploadData.fileName} onChange={(e) => setUploadData({...uploadData, fileName: e.target.value})} required style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Category</label>
-                  <select value={uploadData.category} onChange={(e) => setUploadData({...uploadData, category: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}>
+                  <label htmlFor="docupload-category" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Category</label>
+                  <select id="docupload-category" value={uploadData.category} onChange={(e) => setUploadData({...uploadData, category: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}>
                     <option value="contract">Contract</option>
                     <option value="inspection">Inspection</option>
                     <option value="photo">Photo</option>
@@ -470,12 +474,12 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Description</label>
-                  <textarea value={uploadData.description} onChange={(e) => setUploadData({...uploadData, description: e.target.value})} rows={3} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', resize: 'vertical' }} />
+                  <label htmlFor="docupload-description" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Description</label>
+                  <textarea id="docupload-description" value={uploadData.description} onChange={(e) => setUploadData({...uploadData, description: e.target.value})} rows={3} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', resize: 'vertical' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Link to</label>
-                  <select value={uploadData.linkedType} onChange={(e) => setUploadData({...uploadData, linkedType: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '8px' }}>
+                  <label htmlFor="docupload-linkedType" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Link to</label>
+                  <select id="docupload-linkedType" value={uploadData.linkedType} onChange={(e) => setUploadData({...uploadData, linkedType: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '8px' }}>
                     <option value="none">None</option>
                     <option value="deal">Deal</option>
                     <option value="property">Property</option>

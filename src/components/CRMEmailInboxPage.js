@@ -364,8 +364,11 @@ const CRMEmailInboxPage = () => {
                 {visibleEmails.map((email) => (
                   <div
                     key={email.id}
+                    role="button"
+                    tabIndex={0}
                     className={`crm-email-row ${selectedEmail?.id === email.id ? 'active' : ''} ${email.unread ? 'unread' : ''}`}
                     onClick={() => setSelectedEmailId(email.id)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedEmailId(email.id); } }}
                   >
                     <div className="crm-email-row-from">{email.from || 'Unknown Sender'}</div>
                     <div className="crm-email-row-subject">
@@ -382,8 +385,8 @@ const CRMEmailInboxPage = () => {
       </div>
 
       {showCompose && (
-        <div className="modal-overlay" onClick={() => !sending && setShowCompose(false)}>
-          <div className="modal-content crm-email-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="modal-overlay" role="presentation" onClick={(event) => { if (event.target === event.currentTarget && !sending) setShowCompose(false); }}>
+          <div className="modal-content crm-email-modal">
             <div className="modal-header crm-email-modal-header">
               <h2 style={{ margin: 0, fontSize: '20px', color: '#ffffff', fontWeight: '700' }}>Compose Email</h2>
               <button
@@ -397,8 +400,9 @@ const CRMEmailInboxPage = () => {
             </div>
             <div className="crm-email-modal-grid">
               <div className="lead-field">
-                <label>Send To</label>
+                <label htmlFor="email-compose-to">Send To</label>
                 <input
+                  id="email-compose-to"
                   type="email"
                   value={composeData.to}
                   onChange={(event) => updateComposeField('to', event.target.value)}
@@ -406,8 +410,9 @@ const CRMEmailInboxPage = () => {
                 />
               </div>
               <div className="lead-field">
-                <label>CC</label>
+                <label htmlFor="email-compose-cc">CC</label>
                 <input
+                  id="email-compose-cc"
                   type="text"
                   value={composeData.cc}
                   onChange={(event) => updateComposeField('cc', event.target.value)}
@@ -415,8 +420,9 @@ const CRMEmailInboxPage = () => {
                 />
               </div>
               <div className="lead-field">
-                <label>BCC</label>
+                <label htmlFor="email-compose-bcc">BCC</label>
                 <input
+                  id="email-compose-bcc"
                   type="text"
                   value={composeData.bcc}
                   onChange={(event) => updateComposeField('bcc', event.target.value)}
@@ -424,8 +430,9 @@ const CRMEmailInboxPage = () => {
                 />
               </div>
               <div className="lead-field">
-                <label>Subject</label>
+                <label htmlFor="email-compose-subject">Subject</label>
                 <input
+                  id="email-compose-subject"
                   type="text"
                   value={composeData.subject}
                   onChange={(event) => updateComposeField('subject', event.target.value)}
@@ -433,8 +440,9 @@ const CRMEmailInboxPage = () => {
                 />
               </div>
               <div className="lead-field crm-email-modal-body-field">
-                <label>Email Contents</label>
+                <label htmlFor="email-compose-body">Email Contents</label>
                 <textarea
+                  id="email-compose-body"
                   rows={8}
                   value={composeData.body}
                   onChange={(event) => updateComposeField('body', event.target.value)}
@@ -442,8 +450,9 @@ const CRMEmailInboxPage = () => {
                 />
               </div>
               <div className="lead-field">
-                <label>Signatures</label>
+                <label htmlFor="email-compose-signature">Signatures</label>
                 <select
+                  id="email-compose-signature"
                   value={composeData.signatureKey}
                   onChange={(event) => handleSignatureChange(event.target.value)}
                 >
