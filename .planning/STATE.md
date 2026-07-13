@@ -6,7 +6,7 @@ current_phase: 03
 current_phase_name: Observability
 status: executing
 stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-07-13T05:13:44.687Z"
+last_updated: "2026-07-13T05:19:11.614Z"
 last_activity: 2026-07-13
 last_activity_desc: Phase 03 execution started
 progress:
@@ -92,6 +92,7 @@ None yet.
 - [Two-channel deploy]: Code auto-deploys on merge to main; Firestore rules/indexes deploy only via manual Console action — "published/READY" must be explicit acceptance criteria in Phases 5 and 6
 - [Phase 1]: External consumers of `api/health.js` (uptime monitors) invisible to grep — auth-gate, don't delete; confirm with user
 - [Phase 1 audit item]: Firestore backup posture unverified — record as audit finding
+- [03-03]: OBS-01/02/03 event-landing verification blocked — requires REACT_APP_SENTRY_DSN + SENTRY_DSN in Vercel and a production deploy; deferred to human-verify
 
 ## Deferred Items
 
@@ -103,6 +104,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T05:13:44.627Z
+Last session: 2026-07-13T05:18:34.752Z
 Stopped at: Completed 03-02-PLAN.md
 Resume file: None
