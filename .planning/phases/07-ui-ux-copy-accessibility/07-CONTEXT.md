@@ -216,7 +216,32 @@ capability.
 
 </deferred>
 
+<research_clarifications>
+## Research-Informed Clarifications (2026-07-13)
+
+Added after `07-RESEARCH.md` measured the live migration surface (1,160 hex across 38 files;
+only ~35% map byte-identically to an existing token). These resolve conflicts the research
+flagged between locked decisions and observed reality. They are binding on planning/execution.
+
+- **RC-01 (resolves D-15 ↔ D-17 conflict):** The three highest-frequency hex values have
+  **no** byte-identical existing token: `#ffffff` (207), `#888888` (180), `#1a1a1a` (150).
+  D-15's `#ffffff → --text-primary` (`#f1f1f1`) is a *value change* and MUST NOT happen in
+  Pass 1 (violates D-17's byte-identical rule). **Decision:** In **Pass 1**, add exact-match
+  tokens — `--white: #ffffff`, `--text-muted-2: #888888`, `--skeleton-highlight: #1a1a1a` —
+  and remap every occurrence to them so computed styles are unchanged by construction. Any
+  consolidation/recolor (e.g. `#ffffff → --text-primary` per D-15, `#888888 → --text-muted`)
+  is deferred to **Pass 2** as an explicit value-change commit, verified against contrast.
+  This keeps Pass 1 fully tokenizing (no high-frequency value left inline) while honoring the
+  byte-identical safety rule.
+- **RC-02 (skeleton base color):** The existing `.skeleton` CSS uses `#0a0a0a` (`--surface-1`),
+  but the approved UI-SPEC specifies `--surface-2` (`#0f0f0f`) as the base fill. **Decision:**
+  Follow the UI-SPEC — the new `<Skeleton>` primitive uses `--surface-2` base with the
+  `--skeleton-highlight` (`#1a1a1a`) sweep. Reconcile the existing `.skeleton` rule to match.
+
+</research_clarifications>
+
 ---
 
 *Phase: 7-ui-ux-copy-accessibility*
 *Context gathered: 2026-07-13*
+*Research clarifications added: 2026-07-13*
