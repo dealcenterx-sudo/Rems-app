@@ -143,12 +143,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. After each publish, both an admin and a non-admin account complete a production smoke test with no access regressions
   4. A reviewer can read documented Firestore access-model assumptions (who can read/write what, and why) that match the tested rules
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 **Wave 1** *(parallel — disjoint files)*
 
 - [x] 06-01-PLAN.md — Remove the match /{document=**} admin write catch-all from firestore.rules + flip the activity_log characterization test to assert append-only against admin (emulator 15/15 green) (SEC-04)
-- [ ] 06-02-PLAN.md — Extend docs/TRUST_BOUNDARIES.md with a per-collection Firestore access matrix matching the tested rules (SEC-05)
+- [x] 06-02-PLAN.md — Extend docs/TRUST_BOUNDARIES.md with a per-collection Firestore access matrix matching the tested rules (SEC-05)
 
 **Wave 2** *(blocked on Wave 1; autonomous:false — LIVE)*
 
@@ -198,7 +198,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 3. Observability | 3/3 | Complete    | 2026-07-13 |
 | 4. Serverless Hardening | 3/3 | Complete    | 2026-07-13 |
 | 5. Data Reliability & Infrastructure Headers | 0/TBD | Not started | - |
-| 6. Firestore Rules Hardening | 1/3 | In Progress|  |
+| 6. Firestore Rules Hardening | 2/3 | In Progress|  |
 | 7. UI/UX, Copy & Accessibility | 0/TBD | Not started | - |
 | 8. Landing Page, Trust & Final Polish | 0/TBD | Not started | - |
 

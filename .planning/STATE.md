@@ -6,14 +6,14 @@ current_phase: 06
 current_phase_name: Firestore Rules Hardening
 status: executing
 stopped_at: Finalized 04-03-PLAN.md — changelog complete; both external-half checkpoints DEFERRED post-deploy (human_needed). Close via /gsd-verify-work 4 after deploy with Cloudinary creds + SENTRY_DSN
-last_updated: "2026-07-13T08:14:22.093Z"
+last_updated: "2026-07-13T08:18:24.040Z"
 last_activity: 2026-07-13
 last_activity_desc: Phase 06 execution started
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 14
   percent: 50
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 06 (Firestore Rules Hardening) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-07-13 — Phase 06 execution started
 
@@ -70,6 +70,7 @@ Progress: [█████░░░░░] 50%
 | Phase 04 P02 | 1min | 2 tasks | 2 files |
 | Phase 04 P03 | ~10min | 1 tasks | 1 files |
 | Phase 06 P01 | 2min | 2 tasks | 2 files |
+| Phase 06 P02 | ~2m | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,7 @@ Recent decisions affecting current work:
 - [Phase ?]: csp-report documented as intentional low-risk open beacon (SEC-02); trust-boundary doc coverage machine-checked by a completeness audit test
 - [Phase 04]: Plan 04-03 changelog (AUDIT-03): SEC-01/02/03 code-wiring green (test:api 41, test:ci 42); two external halves DEFERRED post-deploy — SEC-03 real Cloudinary delete (CLOUDINARY_API_KEY/SECRET) and SEC-01 Sentry-watched validation soak (SENTRY_DSN, enforce-only by decision)
 - [Phase ?]: SEC-04 (06-01): Removed firestore.rules match /{document=**} admin write catch-all; deletion is the only correct fix under Firestore OR-semantics so activity_log append-only now holds against admin. Emulator 15/15 green; live Console publish deferred to 06-03.
+- [Phase 06]: SEC-05: documented per-collection Firestore access matrix in TRUST_BOUNDARIES.md, derived from and matching the tested rules
 
 ### Pending Todos
 
@@ -117,6 +119,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T08:13:49.996Z
+Last session: 2026-07-13T08:17:28.000Z
 Stopped at: Finalized 04-03-PLAN.md — changelog complete; both external-half checkpoints DEFERRED post-deploy (human_needed). Close via /gsd-verify-work 4 after deploy with Cloudinary creds + SENTRY_DSN
 Resume file: None
