@@ -145,7 +145,7 @@ Deferred to future milestone:
 | UI-02 | Phase 7 | Pending |
 | UI-03 | Phase 7 | Pending |
 | UI-04 | Phase 7 | Pending |
-| UI-05 | Phase 7 | Pending |
+| UI-05 | Phase 7 | In Progress |
 | UI-06 | Phase 7 | Pending |
 | COPY-01 | Phase 7 | Complete |
 | COPY-02 | Phase 7 | Complete |
