@@ -50,8 +50,8 @@
 ### Infrastructure & Deployment
 
 - [ ] **INFRA-01**: `vercel.json` ships a Content-Security-Policy — Report-Only first with a soak period, enforced only after a clean 5-action smoke test (Google popup sign-in, email sign-in, live Firestore view, Cloudinary upload, PDF preview)
-- [ ] **INFRA-02**: Static assets serve with `Cache-Control: immutable`; `index.html` serves `no-cache` (closes the stale-chunk trap)
-- [ ] **INFRA-03**: `INLINE_RUNTIME_CHUNK=false` so the CSP needs no `'unsafe-inline'` script-src
+- [x] **INFRA-02**: Static assets serve with `Cache-Control: immutable`; `index.html` serves `no-cache` (closes the stale-chunk trap)
+- [x] **INFRA-03**: `INLINE_RUNTIME_CHUNK=false` so the CSP needs no `'unsafe-inline'` script-src
 
 ### UI/UX Modernization
 
@@ -139,8 +139,8 @@ Deferred to future milestone:
 | DATA-02 | Phase 5 | Complete |
 | DATA-03 | Phase 5 | Pending |
 | INFRA-01 | Phase 8 | Pending |
-| INFRA-02 | Phase 5 | Pending |
-| INFRA-03 | Phase 5 | Pending |
+| INFRA-02 | Phase 5 | Complete |
+| INFRA-03 | Phase 5 | Complete |
 | UI-01 | Phase 7 | Pending |
 | UI-02 | Phase 7 | Pending |
 | UI-03 | Phase 7 | Pending |
