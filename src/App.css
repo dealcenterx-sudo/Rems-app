@@ -21,7 +21,7 @@ body {
   --text-primary: #f1f1f1;
   --text-secondary: #cfcfcf;
   --text-muted: #8a8a8a;
-  --text-faint: #757575; /* minimum legible tier; replaces inline #666666 */
+  --text-faint: #7f7f7f; /* minimum legible tier (WCAG 2.2 AA 4.5:1 on --surface-3); replaces inline #666666 */
 
   /* Surfaces & borders */
   --surface-0: #000000;
@@ -82,8 +82,8 @@ body {
   --radius-lg: 10px;
   --radius-pill: 999px;
 
-  /* Focus */
-  --focus-ring: 0 0 0 3px rgba(0, 255, 136, 0.25);
+  /* Focus — single unified brand-green ring (>=3:1 non-text contrast, D-18/T-07-15) */
+  --focus-ring: 0 0 0 3px rgba(0, 255, 136, 0.45);
 
   /* Motion */
   --ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);
@@ -112,7 +112,7 @@ body {
 
 /* Skeleton Loader */
 .skeleton {
-  background: linear-gradient(90deg, #0a0a0a 25%, #1a1a1a 50%, #0a0a0a 75%);
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--skeleton-highlight) 50%, var(--surface-2) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.2s infinite;
   border-radius: 4px;
@@ -4357,11 +4357,9 @@ body {
 
 :root {
   --surface-3: #141414;
-  --focus-ring: 0 0 0 3px rgba(0, 255, 136, 0.18);
   --radius-lg: 14px;
   --radius-md: 10px;
   --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.28);
-  --shadow-focus: 0 0 0 3px rgba(0, 136, 255, 0.25);
 }
 
 *,
@@ -4504,7 +4502,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
   outline: none;
-  box-shadow: var(--shadow-focus);
+  box-shadow: var(--focus-ring);
 }
 
 .btn-primary,
