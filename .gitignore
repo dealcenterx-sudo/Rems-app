@@ -33,3 +33,5 @@ ui-debug.log
 
 # GSD research web-fetch cache (transient)
 .planning/research/.cache/
+.vercel
+.env*
