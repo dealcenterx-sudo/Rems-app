@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Observability** - Sentry client + serverless error capture and web-vitals — verified live in production: client error + web-vitals confirmed landing in Sentry on deploy dpl_PR1UNkDrWVdWn4ZmNeveopTqCgG1; serverless uncaught-throw path armed + unit-verified (verified-by-inference) (completed 2026-07-13)
 - [x] **Phase 4: Serverless Hardening** - Zod validation, auth audit, documented trust boundaries, Cloudinary delete — fully verified: code-wiring via test:api 41 / test:ci 42, and real Cloudinary deletion + validation soak confirmed live in production. (Handled-500s Sentry gap routed to Phase 5 / DATA-02.) (completed 2026-07-13)
 - [ ] **Phase 5: Data Reliability & Infrastructure Headers** - Composite indexes READY, loud fallbacks, cache headers, CSP Report-Only soak begins
-- [ ] **Phase 6: Firestore Rules Hardening** - Admin email fallback removed via additive-then-subtractive Console publishes with two-account smoke tests
+- [x] **Phase 6: Firestore Rules Hardening** - Admin email fallback removed via additive-then-subtractive Console publishes with two-account smoke tests (completed 2026-07-13)
 - [ ] **Phase 7: UI/UX, Copy & Accessibility** - Copy standard + sweep, empty states, skeletons, SWR KPIs, pending states, token-level a11y
 - [ ] **Phase 8: Landing Page, Trust & Final Polish** - Public marketing page with real screenshots, trust page, CSP enforced, final intentionality pass
 
@@ -143,7 +143,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. After each publish, both an admin and a non-admin account complete a production smoke test with no access regressions
   4. A reviewer can read documented Firestore access-model assumptions (who can read/write what, and why) that match the tested rules
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 **Wave 1** *(parallel — disjoint files)*
 
@@ -152,7 +152,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 2** *(blocked on Wave 1; autonomous:false — LIVE)*
 
-- [ ] 06-03-PLAN.md — Lockout gate (verify prod users/{adminUid}.role) → staged Console publish (pbcopy, additive-then-subtractive) → two-account production smoke → Phase 6 changelog (SEC-04)
+- [x] 06-03-PLAN.md — Lockout gate (verify prod users/{adminUid}.role) → staged Console publish (pbcopy, additive-then-subtractive) → two-account production smoke → Phase 6 changelog (SEC-04)
 
 ### Phase 7: UI/UX, Copy & Accessibility
 
@@ -198,7 +198,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 3. Observability | 3/3 | Complete    | 2026-07-13 |
 | 4. Serverless Hardening | 3/3 | Complete    | 2026-07-13 |
 | 5. Data Reliability & Infrastructure Headers | 0/TBD | Not started | - |
-| 6. Firestore Rules Hardening | 2/3 | In Progress|  |
+| 6. Firestore Rules Hardening | 3/3 | Complete   | 2026-07-13 |
 | 7. UI/UX, Copy & Accessibility | 0/TBD | Not started | - |
 | 8. Landing Page, Trust & Final Polish | 0/TBD | Not started | - |
 

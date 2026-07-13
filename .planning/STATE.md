@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 06
 current_phase_name: Firestore Rules Hardening
-status: executing
-stopped_at: Finalized 04-03-PLAN.md — changelog complete; both external-half checkpoints DEFERRED post-deploy (human_needed). Close via /gsd-verify-work 4 after deploy with Cloudinary creds + SENTRY_DSN
-last_updated: "2026-07-13T08:18:24.040Z"
+status: verifying
+stopped_at: Completed 06-03-PLAN.md — Phase 6 firestore-rules-hardening LIVE half verified (lockout gate GO; staged additive-then-subtractive Console publish + two-account smoke PASSED). SEC-04 + SEC-05 closed; production authorizes admin by role doc only, activity_log append-only against admin. Phase 6 complete — ready for verification.
+last_updated: "2026-07-13T08:36:47.750Z"
 last_activity: 2026-07-13
-last_activity_desc: Phase 06 execution started
+last_activity_desc: Phase 06 complete — SEC-04 live half verified and published
 progress:
   total_phases: 8
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 15
-  completed_plans: 14
-  percent: 50
+  completed_plans: 15
+  percent: 63
 ---
 
 # Project State
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 06 (Firestore Rules Hardening) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-07-13 — Phase 06 execution started
+Phase: 06 (Firestore Rules Hardening) — COMPLETE (ready for verification)
+Plan: 3 of 3 complete
+Status: Phase complete — SEC-04 + SEC-05 closed; hardened rules published live
+Last activity: 2026-07-13 — Phase 06 complete (SEC-04 live half verified)
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 63%
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Progress: [█████░░░░░] 50%
 | Phase 04 P03 | ~10min | 1 tasks | 1 files |
 | Phase 06 P01 | 2min | 2 tasks | 2 files |
 | Phase 06 P02 | ~2m | 1 tasks | 1 files |
+| Phase 06 P03 | 6min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,7 @@ Recent decisions affecting current work:
 - [Phase 04]: Plan 04-03 changelog (AUDIT-03): SEC-01/02/03 code-wiring green (test:api 41, test:ci 42); two external halves DEFERRED post-deploy — SEC-03 real Cloudinary delete (CLOUDINARY_API_KEY/SECRET) and SEC-01 Sentry-watched validation soak (SENTRY_DSN, enforce-only by decision)
 - [Phase ?]: SEC-04 (06-01): Removed firestore.rules match /{document=**} admin write catch-all; deletion is the only correct fix under Firestore OR-semantics so activity_log append-only now holds against admin. Emulator 15/15 green; live Console publish deferred to 06-03.
 - [Phase 06]: SEC-05: documented per-collection Firestore access matrix in TRUST_BOUNDARIES.md, derived from and matching the tested rules
+- [Phase 06]: 06-03 (SEC-04 live half): lockout gate GO; staged additive-then-subtractive Console publish + two-account smoke PASSED — production Firestore rules now authorize admin by role doc only, activity_log append-only against admin. SEC-04 + SEC-05 both closed.
 
 ### Pending Todos
 
@@ -102,8 +104,8 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 6 gate]: Whether `users/{adminUid}.role == 'admin'` exists in production is UNVERIFIED — must be checked before removing the rules email fallback (lockout risk)
-- [Two-channel deploy]: Code auto-deploys on merge to main; Firestore rules/indexes deploy only via manual Console action — "published/READY" must be explicit acceptance criteria in Phases 5 and 6
+- [Phase 6 gate — RESOLVED]: Production `users/{adminUid}.role == 'admin'` was verified GO in the Console this session (06-03 lockout gate); the hardened role-only rules were then published live via a staged additive-then-subtractive bridge with a passing two-account smoke — no lockout occurred
+- [Two-channel deploy]: Code auto-deploys on merge to main; Firestore rules/indexes deploy only via manual Console action — "published/READY" must be explicit acceptance criteria in Phases 5 and 6 (Phase 6 rules now PUBLISHED live; Phase 5 indexes still pending READY)
 - [Phase 1]: External consumers of `api/health.js` (uptime monitors) invisible to grep — auth-gate, don't delete; confirm with user
 - [Phase 1 audit item]: Firestore backup posture unverified — record as audit finding
 - [03-03]: OBS-01/02/03 event-landing verification blocked — requires REACT_APP_SENTRY_DSN + SENTRY_DSN in Vercel and a production deploy; deferred to human-verify
@@ -119,6 +121,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T08:17:28.000Z
-Stopped at: Finalized 04-03-PLAN.md — changelog complete; both external-half checkpoints DEFERRED post-deploy (human_needed). Close via /gsd-verify-work 4 after deploy with Cloudinary creds + SENTRY_DSN
+Last session: 2026-07-13T08:36:13.740Z
+Stopped at: Completed 06-03-PLAN.md — Phase 6 firestore-rules-hardening LIVE half verified (lockout gate GO; staged Console publish + two-account smoke PASSED); SEC-04 + SEC-05 closed. Phase 6 complete — ready for verification.
 Resume file: None
