@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: Serverless Hardening
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-07-13T06:16:51.796Z"
+stopped_at: Executing 04-03-PLAN.md — Task 3 (changelog) committed; STOPPED at 2 human-verify checkpoints
+last_updated: "2026-07-13T06:22:54.585Z"
 last_activity: 2026-07-13
 last_activity_desc: Phase 04 execution started
 progress:
@@ -87,6 +87,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [03-03]: OBS-01/02/03 event-landing DEFERRED post-deploy (no DSN); code-wiring half verified by Wave 1/2 tests — only live Sentry smoke outstanding
 - [Phase 04]: Plan 04-01: accept-path written as direct schema unit tests; no log-then-enforce toggle added (SEC-01 enforce-only)
 - [Phase ?]: csp-report documented as intentional low-risk open beacon (SEC-02); trust-boundary doc coverage machine-checked by a completeness audit test
+- [Phase 04]: Plan 04-03 changelog (AUDIT-03): SEC-01/02/03 code-wiring green (test:api 41, test:ci 42); two external halves DEFERRED post-deploy — SEC-03 real Cloudinary delete (CLOUDINARY_API_KEY/SECRET) and SEC-01 Sentry-watched validation soak (SENTRY_DSN, enforce-only by decision)
 
 ### Pending Todos
 
@@ -99,6 +100,7 @@ None yet.
 - [Phase 1]: External consumers of `api/health.js` (uptime monitors) invisible to grep — auth-gate, don't delete; confirm with user
 - [Phase 1 audit item]: Firestore backup posture unverified — record as audit finding
 - [03-03]: OBS-01/02/03 event-landing verification blocked — requires REACT_APP_SENTRY_DSN + SENTRY_DSN in Vercel and a production deploy; deferred to human-verify
+- [04-03]: SEC-03 real Cloudinary asset deletion + SEC-01 Sentry-watched validation soak are blocking human-verify checkpoints — deferred post-deploy pending CLOUDINARY_API_KEY/SECRET and SENTRY_DSN in Vercel runtime
 
 ## Deferred Items
 
@@ -110,6 +112,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T06:15:43.361Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-07-13T06:22:54.521Z
+Stopped at: Executing 04-03-PLAN.md — Task 3 (changelog) committed; STOPPED at 2 human-verify checkpoints
 Resume file: None
