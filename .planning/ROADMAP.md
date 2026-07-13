@@ -180,8 +180,41 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Hardcoded hex values are migrated to `:root` design tokens BEFORE any token values change (two separate passes), then text contrast meets WCAG 2.2 AA (4.5:1) and the #00ff88 focus ring (3:1) is fixed at the token level so it propagates everywhere
   5. All modals trap focus and close on Escape, interactive elements are keyboard-reachable with semantic HTML on major pages, meaning is never conveyed by color alone, and `plugin:jsx-a11y/recommended` passes in lint
 
-**Plans**: TBD
+**Plans**: 12 plans
 **UI hint**: yes
+
+**Wave 1** *(parallel — disjoint files)*
+
+- [ ] 07-01-PLAN.md — Copy standard + central error map (leak-safe) (COPY-01, COPY-02)
+- [ ] 07-02-PLAN.md — Token Pass-1 scaffold: byte-identical :root token additions (UI-05)
+
+**Wave 2** *(parallel — new files vs page files)*
+
+- [ ] 07-03-PLAN.md — Reusable primitives: Skeleton + useDelayedFlag + useFocusTrap (UI-02, A11Y-02)
+- [ ] 07-04-PLAN.md — Empty & error states across list/dashboard surfaces incl. client shell (UI-01, COPY-03)
+
+**Wave 3** *(parallel — shared components vs page files)*
+
+- [ ] 07-05-PLAN.md — LoadingButton pending + ConfirmModal focus-trap + Toast error composition (UI-04, COPY-03, A11Y-02)
+- [ ] 07-06-PLAN.md — Delayed skeleton wiring + Home silent SWR (UI-02, UI-03)
+
+**Wave 4**
+
+- [ ] 07-07-PLAN.md — Optimistic toggles + rollback + pending-button adoption (UI-04, UI-06)
+
+**Wave 5** *(parallel — disjoint a11y file clusters)*
+
+- [ ] 07-08-PLAN.md — jsx-a11y fixes cluster A (heaviest files) + never-color-alone (A11Y-02)
+- [ ] 07-09-PLAN.md — jsx-a11y fixes cluster B (deal portal + secondary pages + stragglers) (A11Y-02)
+
+**Wave 6** *(parallel — disjoint hex file clusters)*
+
+- [ ] 07-10-PLAN.md — Token Pass-1 component sweep cluster A (byte-identical) (UI-05)
+- [ ] 07-11-PLAN.md — Token Pass-1 component sweep cluster B + straggler grep (UI-05)
+
+**Wave 7**
+
+- [ ] 07-12-PLAN.md — Token Pass-2 contrast + brand-green focus ring + atomic jsx-a11y flip + changelog (UI-05, A11Y-01, A11Y-03)
 
 ### Phase 8: Landing Page, Trust & Final Polish
 
@@ -212,7 +245,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 4. Serverless Hardening | 3/3 | Complete    | 2026-07-13 |
 | 5. Data Reliability & Infrastructure Headers | 2/4 | In Progress|  |
 | 6. Firestore Rules Hardening | 3/3 | Complete    | 2026-07-13 |
-| 7. UI/UX, Copy & Accessibility | 0/TBD | Not started | - |
+| 7. UI/UX, Copy & Accessibility | 0/12 | Not started | - |
 | 8. Landing Page, Trust & Final Polish | 0/TBD | Not started | - |
 
 ## Coverage
