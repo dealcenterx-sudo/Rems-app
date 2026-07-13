@@ -39,10 +39,14 @@ created: 2026-07-13
 
 ## Per-Task Verification Map
 
-*To be filled by the planner — map SEC-04/SEC-05 to automated (emulator rules tests, doc greps) vs human-verify (prod data lockout gate, Console publish, two-account smoke).*
-
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
+| 06-01-T1 | 06-01 | 1 | SEC-04 | T-06-01, T-06-04 | Admin write catch-all removed; activity_log `if false` is the only matching write rule | emulator rules / grep | `! grep -q 'document=**' firestore.rules` | ✅ firestore.rules | ⬜ pending |
+| 06-01-T2 | 06-01 | 1 | SEC-04 | T-06-01, T-06-02 | Append-only enforced against admin (updateDoc/deleteDoc → assertFails) | emulator rules | `JAVA_HOME=/usr/local/opt/openjdk@21 npm run test:rules` (15/15) | ✅ tests/rules/firestore.rules.test.js | ⬜ pending |
+| 06-02-T1 | 06-02 | 1 | SEC-05 | T-06D-01, T-06D-02 | Access matrix documents who reads/writes each collection, matching tested rules; secret-free | doc grep / audit test | `grep -q '| Collection | Read | Create | Update | Delete | Why |' docs/TRUST_BOUNDARIES.md && npm run test:api` | ✅ docs/TRUST_BOUNDARIES.md | ⬜ pending |
+| 06-03-T1 | 06-03 | 2 | SEC-04 | T-06L-01, T-06L-04 | Prod `users/{adminUid}.role == 'admin'` verified before any publish (lockout gate) | manual-only (Console) | HUMAN — Console query, cannot be automated | ❌ HUMAN | ⬜ pending |
+| 06-03-T2 | 06-03 | 2 | SEC-04 | T-06L-01, T-06L-02, T-06L-03 | Staged publish (emulator-green before each) + two-account smoke: admin CRUD ok, admin denied activity_log edit/delete, admin notification writes, non-admin scoped access intact | manual-only (Console + live login) | HUMAN — production smoke, cannot be automated | ❌ HUMAN | ⬜ pending |
+| 06-03-T3 | 06-03 | 2 | SEC-04 | T-06L-05 | Phase 6 outcome recorded secret-free (AUDIT-03) | doc grep | `grep -qi 'SEC-04\|catch-all' docs/SAAS_UPGRADE_CHANGELOG.md` | ✅ docs/SAAS_UPGRADE_CHANGELOG.md | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

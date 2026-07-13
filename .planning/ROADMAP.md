@@ -143,7 +143,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. After each publish, both an admin and a non-admin account complete a production smoke test with no access regressions
   4. A reviewer can read documented Firestore access-model assumptions (who can read/write what, and why) that match the tested rules
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+**Wave 1** *(parallel — disjoint files)*
+
+- [ ] 06-01-PLAN.md — Remove the match /{document=**} admin write catch-all from firestore.rules + flip the activity_log characterization test to assert append-only against admin (emulator 15/15 green) (SEC-04)
+- [ ] 06-02-PLAN.md — Extend docs/TRUST_BOUNDARIES.md with a per-collection Firestore access matrix matching the tested rules (SEC-05)
+
+**Wave 2** *(blocked on Wave 1; autonomous:false — LIVE)*
+
+- [ ] 06-03-PLAN.md — Lockout gate (verify prod users/{adminUid}.role) → staged Console publish (pbcopy, additive-then-subtractive) → two-account production smoke → Phase 6 changelog (SEC-04)
 
 ### Phase 7: UI/UX, Copy & Accessibility
 
