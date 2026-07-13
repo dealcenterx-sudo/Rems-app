@@ -25,3 +25,8 @@ yarn-error.log*
 # exported source snapshots
 /rems-project-source-*
 /rems-project-source-*.zip
+
+# Firebase emulator debug logs (local test:rules runs)
+firestore-debug.log
+firebase-debug.log
+ui-debug.log
