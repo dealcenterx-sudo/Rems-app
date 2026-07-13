@@ -58,7 +58,7 @@
 - [x] **UI-01**: Every list/dashboard surface (~10+, including the buyer/seller client shell) shows a designed empty state with first-use and no-results variants that guide the next action
 - [x] **UI-02**: Loads over ~500ms show skeleton loaders that mirror final layout (Home, Deals, CRM, Contacts, Properties, Tasks, Documents); no layout shift
 - [ ] **UI-03**: Home KPIs render instantly from cache and refresh in the background (SWR pattern)
-- [ ] **UI-04**: Every submit/destructive button shows a pending state while its action is in flight
+- [x] **UI-04**: Every submit/destructive button shows a pending state while its action is in flight
 - [ ] **UI-05**: Hardcoded hex values in components are migrated to `:root` design tokens BEFORE any token values change (two separate passes)
 - [ ] **UI-06**: Task/status toggles respond optimistically with rollback on Firestore failure
 
@@ -144,7 +144,7 @@ Deferred to future milestone:
 | UI-01 | Phase 7 | Complete |
 | UI-02 | Phase 7 | Complete |
 | UI-03 | Phase 7 | Pending |
-| UI-04 | Phase 7 | Pending |
+| UI-04 | Phase 7 | Complete |
 | UI-05 | Phase 7 | In Progress |
 | UI-06 | Phase 7 | Pending |
 | COPY-01 | Phase 7 | Complete |
