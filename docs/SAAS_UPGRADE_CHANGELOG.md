@@ -734,3 +734,64 @@ Firebase does not read `firestore.rules` from git — production enforces whatev
 - The client UI still uses `ADMIN_EMAIL` in some legacy admin-display/scoping helpers; Firestore enforcement no longer trusts email alone, so those remain UI-only conveniences.
 - Firestore composite indexes from Phase 5 must still be created or verified READY before non-admin query smoke is considered fully complete (Phase 5 scope, not this plan).
 - Dependency audit debt remains outside this verification pass.
+
+---
+
+## Phase 7 - UI/UX Copy & Accessibility (AUDIT-03) (2026-07-13)
+
+### What
+
+Polished every major REMS surface to production-SaaS quality without adding a new design language or UI kit — all values derive from the existing `src/App.css :root` token system and the 21 locked decisions in `07-CONTEXT.md` (D-01…D-21).
+
+- **Copy standard + error map (COPY-01/02/03):** centralized user-facing error translation (`src/utils/errorMessages.js`) returning a curated `{ message, recovery }` pair, never raw `err.message` (T-07-01). Standard sentence-case, action-oriented copy across empty/error/pending states.
+- **Empty / no-results / error states (UI-01):** `PageState` wired on all 8 list/dashboard surfaces (Home, Deals, CRM/Leads, Contacts, Properties, Tasks, Documents, Analytics) with leak-safe error copy; HomePage multi-action onboarding and CRMLeadsPage sample-lead demo preserved for backward-compat.
+- **Skeletons + delay-then-show + silent SWR (UI-02/03, D-08/09/10/11):** dependency-free `Skeleton` primitive; loading branches gated by `useDelayedFlag(loading, 400)` so sub-threshold loads swap straight to content (no flash) and only slower loads render layout-mirroring skeletons (no CLS). HomePage KPIs use silent stale-while-revalidate off the existing 30s localStorage cache — cached numbers render instantly, refetch in the background, no visible refresh indicator.
+- **Pending + optimistic feedback (UI-04/06, COPY-03):** standardized `LoadingButton` (pendingLabel) and `ConfirmModal` (focus-trapped, LoadingButton confirm); optimistic toggles revert state-only on write failure with a composed error toast (message + recovery), never raw error text (D-13).
+- **Two-pass token migration (UI-05, RC-01, D-16/17):** Pass 1 = 948 byte-identical hex→token replacements across clusters A+B (no computed-style change by construction; SVG/chart colors left inline per D-16). Pass 2 (this plan, separate commit per D-17) = the value changes below.
+- **Token-level WCAG-AA contrast + brand-green focus ring (A11Y-01, D-18):** `--text-faint` `#757575`→`#7f7f7f` (~4.6:1 on `--surface-3`, the only text tier that was failing AA for normal text). Focus-ring reconciliation (T-07-15): the app defined `--focus-ring` twice and the primary `:focus-visible` block rendered an off-brand **blue** `--shadow-focus`; collapsed to one `--focus-ring: rgba(0,255,136,0.45)` (≥3:1 non-text), deleted `--shadow-focus`, and repointed every consuming `:focus-visible` selector — the indicator is now brand-green everywhere with no selector left without a visible ring. Legacy `.skeleton` base reconciled to `var(--surface-2)`/`var(--skeleton-highlight)` to match the Skeleton primitive (RC-02).
+- **Focus trap + keyboard / semantic / color-alone a11y (A11Y-02, D-19/20):** `useFocusTrap` hook (focus-first-on-open, Tab/Shift+Tab cycle, restore focus to invoker on close; no new dependency), Escape-close on modals, semantic HTML, and status meaning never conveyed by color alone (every color cue paired with text/icon).
+- **jsx-a11y lint gate (A11Y-03, D-21):** cleared all 251 `jsx-a11y/recommended` violations across the full `src/` tree in plans 07-08/07-09 (label associations, `role="button"` + keyboard handlers on click-only elements, managed focus replacing `autoFocus`), then flipped `plugin:jsx-a11y/recommended` on at **error** level in `package.json` in one atomic, green commit so CI enforces a11y on every push.
+
+### Why
+
+REMS is a live product being professionalized to a demoable, investor-grade B2B SaaS. Consistent copy, honest loading/empty/error states, and a single accessible focus affordance are what separate a "functional app" from a "serious production SaaS." Doing contrast/focus fixes at the **token level** (rather than per-component) makes them propagate everywhere and stay correct as the app grows. The a11y lint flip converts a one-time cleanup into a permanent, machine-enforced gate. All changes are backward-compatible and preserve the dark `#00ff88` brand direction.
+
+### Files Modified (this plan, 07-12)
+
+- `src/App.css` — Pass-2 token value changes: `--text-faint` → `#7f7f7f`; single unified `--focus-ring` at `rgba(0,255,136,0.45)`; `--shadow-focus` deleted and its `:focus-visible` consumer repointed; `.skeleton` base reconciled to `var(--surface-2)`/`var(--skeleton-highlight)`.
+- `package.json` — `eslintConfig.extends` adds `plugin:jsx-a11y/recommended` (error level).
+- `docs/SAAS_UPGRADE_CHANGELOG.md` — this Phase 7 entry.
+
+(Earlier plans 07-01…07-11 shipped `errorMessages.js`, `PageState`, `Skeleton`, `useDelayedFlag`, `useFocusTrap`, `LoadingButton`, `ConfirmModal`/`Toast` standardization, the Pass-1 token sweep, and the jsx-a11y violation clearing — see their SUMMARYs.)
+
+### Commands Run
+
+- `npm run build` — green (with the a11y rule enforced)
+- `npm run lint` — green across full `src/` with `plugin:jsx-a11y/recommended` at error level (atomic-flip proof)
+- `npm run test:ci` — green (9 suites, 58 tests)
+- `grep -c -- '--shadow-focus' src/App.css` → `0`; `grep "0, 255, 136, 0.45" src/App.css` → present
+
+### Results
+
+- Text and focus meet WCAG 2.2 AA at the token level; the focus indicator is brand-green everywhere with no missing-indicator selector.
+- `jsx-a11y/recommended` is enforced and the full-src lint is green — the flip landed green in one commit because plans 07-08/07-09 had already cleared all 251 violations.
+- Pass 2 value changes are a separate commit from Pass 1 (D-17 honored).
+- `main` is shippable.
+
+### Manual-Only Verifications (pending `/gsd-verify-work`, per 07-VALIDATION.md)
+
+Perceptual/interaction items not unit-assertable — recorded here for phase verify:
+
+- **No layout shift (CLS) on skeleton→content swap (UI-02):** load each skeleton page throttled >400ms; content swaps in with no jump.
+- **Focus trap cycles + restores focus (A11Y-02):** open ConfirmModal + major modals; Tab/Shift+Tab stays within; Escape closes; focus returns to the invoking element.
+- **Focus ring visible + brand-green everywhere (A11Y-01):** keyboard-navigate buttons/links/inputs/nav; confirm green ring, never blue, never missing.
+- **Meaning never by color alone (A11Y-02):** inspect status pills/toasts; each color cue has a text/icon pair.
+- **Optimistic toggle revert + error toast on failure (UI-06):** induce an offline/denied write; control reverts and an error toast shows message + recovery.
+
+### Remaining Risks / Deferred Items
+
+- **Admin-only copy sweep** (deep polish of admin-internal strings) deferred — user-facing surfaces are standardized.
+- **Exhaustive focus-trap coverage** across every modal/portal deferred; `useFocusTrap` is TDD-covered and applied to ConfirmModal + major modals.
+- **Decorative-color migration** (SVG/chart/inline decorative hex) intentionally left inline per D-16; only structural UI colors were tokenized.
+- Two pre-existing hardcoded green `:focus-visible` box-shadows (`.btn-*` group, form-field group) retain visible indicators but are not yet unified onto `--focus-ring`; out of scope for this plan (not `--shadow-focus` consumers).
+- Dependency audit debt remains outside this verification pass.
