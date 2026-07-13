@@ -632,3 +632,58 @@ Phase 3's automatable gate proves the observability code-wiring half of OBS-01/0
 - Handled-500s serverless errors remain unreported until the Phase 5 / DATA-02 follow-up instruments handler catch paths.
 - No source-map upload yet; production Sentry events may show minified frames until a later step adds it.
 - Dependency audit debt remains outside this verification pass.
+
+---
+
+## Phase 4 - Serverless Hardening Verification (AUDIT-03) (2026-07-13)
+
+### What
+
+- Added GSD verification coverage for the serverless hardening originally shipped in bulk commit `dd6364a`; no production source was modified in this pass.
+- Added three net-new automatable test surfaces characterizing the shipped hardening:
+  - `tests/api/validate-schemas.test.mjs` (04-01) — ACCEPT-PATH schema suite proving every exact live-client payload shape still passes zod validation for `sendEmailSchema`, `acceptInviteSchema`, `deleteMediaSchema`, and `leadIntakeSchema` (SEC-01, the complement to the already-pinned reject/400 path).
+  - delete-media delta cases in `tests/api/api-handlers.test.mjs` (04-01) — idempotent 200-on-not-found (`result: 'not found'`) and 502-on-provider-rejection (`result: 'error'`) branch coverage (SEC-03).
+  - `tests/api/trust-boundaries-audit.test.mjs` (04-02) — a static filesystem-vs-doc completeness audit asserting every `api/*.js` handler has a `docs/TRUST_BOUNDARIES.md` row, plus the two non-Firebase-token postures (lead-intake shared secret, csp-report open beacon).
+- Added the `api/csp-report.js` row + an intentional-open-beacon rationale to `docs/TRUST_BOUNDARIES.md` (04-02), closing the single SEC-02 documentation gap.
+- Recorded the external-resource halves of SEC-01 and SEC-03 as human-verify checkpoints pending live credentials + a production deploy (see Results).
+
+### Why
+
+Phase 4's automatable gate proves the code-wiring halves of SEC-01/SEC-02/SEC-03 as regression-guarded tests, without pretending a real external event (a Cloudinary asset actually leaving the account, or a live client-payload soak observed via Sentry) can be observed from this environment. Those external halves legitimately require live credentials in Vercel and a production deploy, so they are delegated to human-verify checkpoints exactly as Phase 1/2/3 delegated Java-21 emulator and DSN/deploy-gated items. Per the locked decision, NO log-then-enforce mode toggle was added — `api/_lib/validate.js` is enforce-only by design and stays unmodified.
+
+### Files Modified
+
+- `tests/api/validate-schemas.test.mjs` (created in 04-01)
+- `tests/api/api-handlers.test.mjs` (delete-media delta cases added in 04-01)
+- `tests/api/trust-boundaries-audit.test.mjs` (created in 04-02)
+- `docs/TRUST_BOUNDARIES.md` (csp-report row + rationale, 04-02)
+- `docs/SAAS_UPGRADE_CHANGELOG.md`
+
+### Commands Run
+
+- `npm run test:api`
+- `npm run test:ci`
+- `npm run lint`
+- `npm run build`
+- `npm run check:constants`
+
+### Results
+
+- Code-wiring halves of SEC-01, SEC-02, and SEC-03 are verified automatically:
+  - `npm run test:api` green: 41 tests (33 in 04-01 after the accept-path + delete-media deltas, then +8 for the trust-boundaries completeness audit in 04-02).
+  - `npm run test:ci` green: 42 tests.
+  - `npm run check:constants` green after the doc edits (no secret or admin-email literal written).
+- SEC-01 (accept-path validation): green — every live-client payload shape passes zod validation; enforce-only, no log-then-enforce toggle added (locked decision).
+- SEC-02 (trust boundaries): green — every `api/` endpoint is documented and machine-checked against drift, including the intentionally-unauthenticated `api/csp-report.js` beacon.
+- SEC-03 (delete-media): green — idempotent 200-on-not-found and 502-on-provider-rejection branches pinned.
+- Two external-resource halves are DEFERRED post-deploy (human-verify), blocked on credentials that live only in the Vercel runtime:
+  - **SEC-03 external half — real Cloudinary asset deletion:** requires `CLOUDINARY_API_KEY` and `CLOUDINARY_API_SECRET` set as Vercel runtime env vars (`CLOUDINARY_CLOUD_NAME` has the public fallback `dcirl3j3v`) plus a real uploaded throwaway asset; the operator confirms the asset is gone from the Cloudinary dashboard after an in-app delete (200 `result: 'ok'`) and that a second delete returns 200 `result: 'not found'` idempotently.
+  - **SEC-01 external half — log-then-enforce validation soak with Sentry watching:** the code is enforce-only (no log-mode toggle, by decision) and Sentry has no DSN (Phase 3 deferral). The accept-path tests already prove live-client payloads pass; a live Sentry-watched soak is deferred until `SENTRY_DSN` is provisioned and production is deployed, at which point the operator watches for any 400 rejections on real client traffic.
+- Env var NAMES only (values never recorded): `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `CLOUDINARY_CLOUD_NAME`, `SENTRY_DSN`.
+
+### Remaining Risks
+
+- Real Cloudinary asset deletion (SEC-03 external half) is unverified until `CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` are provisioned in Vercel and a production/preview deploy is smoke-tested with a throwaway asset.
+- The Sentry-watched validation soak (SEC-01 external half) is deferred to the same post-deploy DSN bucket as the Phase 3 event-landing items; the automatable accept-path evidence stands in for it until a DSN exists.
+- Existing Cloudinary-backed records without a stored `publicId` still cannot be deleted from Cloudinary by the app; they delete from Firestore as before.
+- Dependency audit debt remains outside this verification pass.
