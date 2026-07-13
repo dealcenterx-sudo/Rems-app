@@ -15,8 +15,9 @@ import {
 } from 'firebase/firestore';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
-import { Search, Users, Check } from './Icons';
+import { Search, Users, Check, AlertCircle } from './Icons';
 import PageState from './PageState';
+import { mapError } from '../utils/errorMessages';
 import { isAdminUser } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
 import useDebounce from '../utils/useDebounce';
@@ -52,6 +53,7 @@ const ContactsPage = ({ initialTab = 'all', editContactId = null, globalSearch =
   const [saving, setSaving] = useState(false);
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageCursors, setPageCursors] = useState([null]);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -70,6 +72,7 @@ const ContactsPage = ({ initialTab = 'all', editContactId = null, globalSearch =
     try {
       const isAdmin = isAdminUser();
       setLoading(true);
+      setLoadError(null);
 
       const baseConstraints = [collection(db, 'contacts')];
 
@@ -118,6 +121,7 @@ const ContactsPage = ({ initialTab = 'all', editContactId = null, globalSearch =
       setLoading(false);
     } catch (error) {
       console.error('Error loading contacts:', error);
+      setLoadError(mapError(error));
       setLoading(false);
     }
   }, [selectedViewTab]);
@@ -486,19 +490,49 @@ const handleSaveContact = async () => {
                 <div className="loading-container">
                   <div className="loading-spinner" />
                 </div>
+              ) : loadError ? (
+                <PageState
+                  tone="error"
+                  icon={AlertCircle}
+                  eyebrow="Contacts"
+                  title="Couldn't load contacts"
+                  message={`${loadError.message} ${loadError.recovery}`}
+                  actions={(
+                    <button onClick={() => loadContacts(0, true)} className="btn-primary">
+                      Try again
+                    </button>
+                  )}
+                />
               ) : contacts.length === 0 ? (
                 <PageState
                   icon={Users}
                   eyebrow="Contacts"
                   title="No contacts yet"
                   message="Add your first buyer, seller, agent, lender, or investor record."
+                  actions={(
+                    <button onClick={() => openAddContactForTab(selectedViewTab)} className="btn-primary">
+                      Add contact
+                    </button>
+                  )}
                 />
               ) : filteredContacts.length === 0 ? (
                 <PageState
                   icon={Search}
                   eyebrow="Contacts"
-                  title="No contacts match this view"
-                  message="Try another subtab or adjust your search."
+                  title="No matches"
+                  message="No contacts match the current filters."
+                  actions={(
+                    <button
+                      onClick={() => {
+                        setSearchInput('');
+                        if (onSearchChange) onSearchChange('');
+                        setSelectedViewTab('all');
+                      }}
+                      className="btn-secondary"
+                    >
+                      Clear filters
+                    </button>
+                  )}
                 />
               ) : (
                 <div className="tasks-table">

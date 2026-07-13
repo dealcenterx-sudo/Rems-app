@@ -2,8 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { db, auth } from '../firebase';
 import { collection, getDocs, query, orderBy, where, limit, startAfter } from 'firebase/firestore';
 import LeadDrawer from './LeadDrawer';
-import { CalendarIcon } from './Icons';
+import { CalendarIcon, Search, AlertCircle } from './Icons';
+import PageState from './PageState';
 import { isAdminUser, normalizeLeadWarmth } from '../utils/helpers';
+import { mapError } from '../utils/errorMessages';
 
 // Warmth is a pipeline signal — color it like one instead of flat green.
 const WARMTH_COLORS = {
@@ -22,6 +24,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
   const [drawerLeadId, setDrawerLeadId] = useState(null);
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageCursors, setPageCursors] = useState([null]);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -52,6 +55,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
   const loadLeads = useCallback(async (targetPage = 0, forceReset = false) => {
     const sanitizedPage = Math.max(0, Number(targetPage) || 0);
     try {
+      setLoadError(null);
       const isAdmin = isAdminUser();
       const constraints = [collection(db, 'leads')];
       if (!isAdmin) {
@@ -100,6 +104,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
       setLeads(leadsData);
     } catch (error) {
       console.error('Error loading leads:', error);
+      setLoadError(mapError(error));
     } finally {
       setLoading(false);
     }
@@ -276,6 +281,41 @@ const CRMLeadsPage = ({ onOpenLead }) => {
       </div>
     );
   }
+
+  if (loadError) {
+    return (
+      <div className="page-content">
+        <PageState
+          tone="error"
+          icon={AlertCircle}
+          eyebrow="Leads"
+          title="Couldn't load leads"
+          message={`${loadError.message} ${loadError.recovery}`}
+          actions={(
+            <button onClick={() => loadLeads(0, true)} className="btn-primary">
+              Try again
+            </button>
+          )}
+        />
+      </div>
+    );
+  }
+
+  const hasActiveLeadFilters = Boolean(
+    searchTerm || fromDate || toDate || monthFilter || yearFilter ||
+    cityFilter || zipFilter || (serviceFilter && serviceFilter !== 'all')
+  );
+
+  const clearLeadFilters = () => {
+    setSearchTerm('');
+    setFromDate('');
+    setToDate('');
+    setMonthFilter('');
+    setYearFilter('');
+    setServiceFilter('all');
+    setCityFilter('');
+    setZipFilter('');
+  };
 
   return (
     <div className="page-content">
@@ -744,10 +784,26 @@ const CRMLeadsPage = ({ onOpenLead }) => {
               </div>
             </div>
             {filteredLeads.length === 0 && (
-              <div className="empty-state-card">
-                <div className="empty-state-title">No leads match these filters</div>
-                <div className="empty-state-subtitle">Adjust filters to see results.</div>
-              </div>
+              hasActiveLeadFilters ? (
+                <PageState
+                  icon={Search}
+                  eyebrow="Leads"
+                  title="No matches"
+                  message="No leads match the current filters."
+                  actions={(
+                    <button onClick={clearLeadFilters} className="btn-secondary">
+                      Clear filters
+                    </button>
+                  )}
+                />
+              ) : (
+                <PageState
+                  icon={CalendarIcon}
+                  eyebrow="Leads"
+                  title="No leads yet"
+                  message="New lead submissions will appear here as they arrive."
+                />
+              )
             )}
           </div>
         </div>

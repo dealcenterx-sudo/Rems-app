@@ -3,8 +3,11 @@ import { db, auth } from '../firebase';
 import { collection, addDoc, getDocs, query, where, orderBy, updateDoc, doc, deleteDoc, limit, startAfter } from 'firebase/firestore';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
+import PageState from './PageState';
+import { CheckSquare, Search, AlertCircle } from './Icons';
 import { isAdminUser } from '../utils/helpers';
 import useDebounce from '../utils/useDebounce';
+import { mapError } from '../utils/errorMessages';
 
 // Icons
 const PlusIcon = ({ size = 20 }) => (
@@ -331,6 +334,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
   const [contacts, setContacts] = useState([]);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
@@ -441,10 +445,12 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
   const loadData = useCallback(async (targetPage = 0, forceResetTasks = true) => {
     try {
       setLoading(true);
+      setLoadError(null);
       await loadTasks(targetPage, forceResetTasks);
       setLoading(false);
     } catch (error) {
       console.error('Error loading data:', error);
+      setLoadError(mapError(error));
       setLoading(false);
     }
   }, [loadTasks]);
@@ -613,6 +619,35 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
       </div>
     );
   }
+
+  if (loadError) {
+    return (
+      <div className="page-content">
+        <PageState
+          tone="error"
+          icon={AlertCircle}
+          eyebrow="Tasks"
+          title="Couldn't load tasks"
+          message={`${loadError.message} ${loadError.recovery}`}
+          actions={(
+            <button onClick={() => loadData(0, true)} className="btn-primary">
+              Try again
+            </button>
+          )}
+        />
+      </div>
+    );
+  }
+
+  const clearTaskFilters = () => {
+    setFilterStatus('all');
+    setFilterPriority('all');
+    setFilterType('all');
+    setFilterAssignee('all');
+    setSelectedDate(null);
+    setSearchInput('');
+    if (onSearchChange) onSearchChange('');
+  };
 
   return (
     <div className="page-content">
@@ -925,11 +960,31 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
           </div>
         </div>
       ) : filteredTasks.length === 0 ? (
-        <div className="empty-state-card">
-          {tasks.length === 0 
-            ? 'No tasks yet. Create your first task!' 
-            : `No ${filterStatus} tasks.`}
-        </div>
+        tasks.length === 0 ? (
+          <PageState
+            icon={CheckSquare}
+            eyebrow="Tasks"
+            title="No tasks yet"
+            message="Add your first task to track follow-ups and deadlines."
+            actions={(
+              <button onClick={() => openTaskModal(null)} className="btn-primary">
+                New task
+              </button>
+            )}
+          />
+        ) : (
+          <PageState
+            icon={Search}
+            eyebrow="Tasks"
+            title="No matches"
+            message="No tasks match the current filters."
+            actions={(
+              <button onClick={clearTaskFilters} className="btn-secondary">
+                Clear filters
+              </button>
+            )}
+          />
+        )
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {filteredTasks.map((task) => {

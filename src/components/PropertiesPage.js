@@ -16,8 +16,9 @@ import {
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
-import { Building2 } from './Icons';
+import { Building2, AlertCircle } from './Icons';
 import PageState from './PageState';
+import { mapError } from '../utils/errorMessages';
 import { isAdminUser } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
 import { canUserManageProperty, getEditableFields } from '../utils/permissions';
@@ -37,6 +38,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   const [properties, setProperties] = useState([]);
   const [sellers, setSellers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [editingProperty, setEditingProperty] = useState(null);
@@ -118,6 +120,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
     try {
       const isAdmin = isAdminUser();
       setLoading(true);
+      setLoadError(null);
 
       // Buyers/sellers own no properties — load the ones assigned to them
       // on their user doc instead of the owner-scoped query.
@@ -182,6 +185,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
       setLoading(false);
     } catch (error) {
       console.error('Error loading properties:', error);
+      setLoadError(mapError(error));
       setLoading(false);
     }
   }, [sortBy, userDoc]);
@@ -725,7 +729,20 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
       </div>
 
       {/* Properties Grid */}
-      {filteredAndSortedProperties.length === 0 ? (
+      {loadError ? (
+        <PageState
+          tone="error"
+          icon={AlertCircle}
+          eyebrow="Properties"
+          title="Couldn't load properties"
+          message={`${loadError.message} ${loadError.recovery}`}
+          actions={(
+            <button onClick={() => loadProperties(0, true)} className="btn-primary">
+              Try again
+            </button>
+          )}
+        />
+      ) : filteredAndSortedProperties.length === 0 ? (
         properties.length === 0 && getActiveFiltersCount() === 0 && !searchTerm ? (
           <PageState
             icon={Building2}
@@ -744,12 +761,12 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
           <PageState
             icon={Building2}
             eyebrow="Properties"
-            title="No properties match your filters"
-            message="Try adjusting your search criteria."
-            actions={getActiveFiltersCount() > 0 && (
+            title="No matches"
+            message="No properties match the current filters."
+            actions={(
               <button
                 onClick={clearAllFilters}
-                className="btn-primary"
+                className="btn-secondary"
               >
                 Clear filters
               </button>

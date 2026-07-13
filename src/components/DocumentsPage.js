@@ -14,8 +14,9 @@ import {
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
-import { FileText } from './Icons';
+import { FileText, AlertCircle } from './Icons';
 import PageState from './PageState';
+import { mapError } from '../utils/errorMessages';
 import { isAdminUser } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET, deleteFromCloudinary } from '../utils/cloudinary';
@@ -27,6 +28,7 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   const toast = useToast();
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
@@ -52,6 +54,7 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
     try {
       const isAdmin = isAdminUser();
       setLoading(true);
+      setLoadError(null);
 
       const docsConstraints = [collection(db, 'documents')];
       if (!isAdmin) {
@@ -95,6 +98,7 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
       setLoading(false);
     } catch (error) {
       console.error('Error loading documents:', error);
+      setLoadError(mapError(error));
       setLoading(false);
     }
   }, [filterCategory]);
@@ -340,20 +344,52 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
         </div>
       </div>
 
-      {filteredDocuments.length === 0 ? (
+      {loadError ? (
         <PageState
-          icon={FileText}
+          tone="error"
+          icon={AlertCircle}
           eyebrow="Documents"
-          title="No documents found"
-          message={documents.length === 0
-            ? 'Upload contracts, disclosures, and supporting files to keep records organized.'
-            : 'Try another category or adjust your search.'}
-          actions={documents.length === 0 && (
-            <button onClick={() => setShowUploadModal(true)} className="btn-primary">
-              Upload document
+          title="Couldn't load documents"
+          message={`${loadError.message} ${loadError.recovery}`}
+          actions={(
+            <button onClick={() => loadDocuments(0, true)} className="btn-primary">
+              Try again
             </button>
           )}
         />
+      ) : filteredDocuments.length === 0 ? (
+        documents.length === 0 ? (
+          <PageState
+            icon={FileText}
+            eyebrow="Documents"
+            title="No documents yet"
+            message="Upload contracts, disclosures, and supporting files to keep records organized."
+            actions={(
+              <button onClick={() => setShowUploadModal(true)} className="btn-primary">
+                Upload document
+              </button>
+            )}
+          />
+        ) : (
+          <PageState
+            icon={FileText}
+            eyebrow="Documents"
+            title="No matches"
+            message="No documents match the current filters."
+            actions={(
+              <button
+                onClick={() => {
+                  setSearchInput('');
+                  if (onSearchChange) onSearchChange('');
+                  setFilterCategory('all');
+                }}
+                className="btn-secondary"
+              >
+                Clear filters
+              </button>
+            )}
+          />
+        )
       ) : (
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
           {filteredDocuments.map((document) => (
