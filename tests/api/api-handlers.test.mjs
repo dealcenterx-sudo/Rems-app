@@ -145,6 +145,37 @@ describe('api/send-email', () => {
     expect(result.status).toBe(502);
     expect(result.body.error).toBe('Provider rejected payload');
   });
+
+  it('returns 200 with the provider message id on a successful send', async () => {
+    process.env.RESEND_API_KEY = 'resend-key';
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ users: [{ email: 'agent@example.com' }] })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 'email-1' })
+      }));
+    const handler = loadHandler('send-email');
+
+    const result = await invoke(handler, {
+      headers: { authorization: 'Bearer valid-token' },
+      body: { to: 'buyer@example.com', subject: 'Hello', text: 'Body' }
+    });
+
+    expect(result.status).toBe(200);
+    expect(result.body).toEqual({ ok: true, id: 'email-1' });
+  });
+
+  it('rejects non-POST requests with 405', async () => {
+    const handler = loadHandler('send-email');
+
+    const result = await invoke(handler, { method: 'GET' });
+
+    expect(result.status).toBe(405);
+    expect(result.body.error).toBe('Method not allowed');
+  });
 });
 
 describe('api/accept-invite', () => {
@@ -235,6 +266,107 @@ describe('api/accept-invite', () => {
     expect(result.body.error).toContain('different email address');
     expect(partyDoc.ref.update).not.toHaveBeenCalled();
   });
+
+  it('returns 200 and links the deal for a matching invite', async () => {
+    const partyDoc = {
+      data: () => ({ email: 'buyer@example.com', dealId: 'deal-1', name: 'Buyer' }),
+      ref: { update: vi.fn(async () => undefined) }
+    };
+    const dealDoc = {
+      set: vi.fn(async () => undefined),
+      update: vi.fn(async () => undefined),
+      get: vi.fn(async () => ({
+        exists: true,
+        data: () => ({ userId: 'owner-1', propertyAddress: '123 Main St' })
+      }))
+    };
+    const db = {
+      collection: vi.fn((name) => {
+        if (name === 'deal-parties') return makeCollection({
+          get: async () => ({ empty: false, docs: [partyDoc] })
+        });
+        if (name === 'deals') return makeCollection({ doc: () => dealDoc });
+        return makeCollection();
+      })
+    };
+    mockFirebaseAdmin({
+      getDb: vi.fn(() => db),
+      getAuthAdmin: vi.fn(() => ({
+        verifyIdToken: vi.fn(async () => ({ uid: 'user-1', email: 'buyer@example.com' }))
+      })),
+      FieldValue: { arrayUnion: vi.fn((value) => ({ arrayUnion: value })) }
+    });
+    const handler = loadHandler('accept-invite');
+
+    const result = await invoke(handler, {
+      headers: { authorization: 'Bearer valid' },
+      body: { inviteToken: 'invite-1' }
+    });
+
+    expect(result.status).toBe(200);
+    expect(result.body).toEqual({
+      ok: true,
+      dealId: 'deal-1',
+      propertyAddress: '123 Main St'
+    });
+    expect(partyDoc.ref.update).toHaveBeenCalled();
+  });
+
+  it('rejects requests with no authorization header', async () => {
+    mockFirebaseAdmin({
+      getDb: vi.fn(() => ({ collection: vi.fn() })),
+      getAuthAdmin: vi.fn(() => ({
+        verifyIdToken: vi.fn(async () => ({ uid: 'user-1', email: 'buyer@example.com' }))
+      })),
+      FieldValue: { arrayUnion: vi.fn((value) => ({ arrayUnion: value })) }
+    });
+    const handler = loadHandler('accept-invite');
+
+    const result = await invoke(handler, {
+      body: { inviteToken: 'invite-1' }
+    });
+
+    expect(result.status).toBe(401);
+    expect(result.body.error).toBe('Missing auth token');
+  });
+
+  it('returns 404 when the invite token matches no deal party', async () => {
+    const db = {
+      collection: vi.fn(() => makeCollection({
+        get: async () => ({ empty: true, docs: [] })
+      }))
+    };
+    mockFirebaseAdmin({
+      getDb: vi.fn(() => db),
+      getAuthAdmin: vi.fn(() => ({
+        verifyIdToken: vi.fn(async () => ({ uid: 'user-1', email: 'buyer@example.com' }))
+      })),
+      FieldValue: { arrayUnion: vi.fn((value) => ({ arrayUnion: value })) }
+    });
+    const handler = loadHandler('accept-invite');
+
+    const result = await invoke(handler, {
+      headers: { authorization: 'Bearer valid' },
+      body: { inviteToken: 'missing' }
+    });
+
+    expect(result.status).toBe(404);
+    expect(result.body.error).toBe('Invite not found or already used');
+  });
+
+  it('rejects non-POST requests with 405', async () => {
+    mockFirebaseAdmin({
+      getDb: vi.fn(() => ({ collection: vi.fn() })),
+      getAuthAdmin: vi.fn(),
+      FieldValue: { arrayUnion: vi.fn() }
+    });
+    const handler = loadHandler('accept-invite');
+
+    const result = await invoke(handler, { method: 'GET' });
+
+    expect(result.status).toBe(405);
+    expect(result.body.error).toBe('Method not allowed');
+  });
 });
 
 describe('api/lead-intake', () => {
@@ -318,6 +450,15 @@ describe('api/lead-intake', () => {
       recipientId: 'admin-uid',
       type: 'lead-intake'
     }));
+  });
+
+  it('rejects non-POST requests with 405', async () => {
+    const handler = loadHandler('lead-intake');
+
+    const result = await invoke(handler, { method: 'GET' });
+
+    expect(result.status).toBe(405);
+    expect(result.body.error).toBe('Method not allowed');
   });
 });
 
