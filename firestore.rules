@@ -202,10 +202,5 @@ service cloud.firestore {
       allow update, delete: if isAdmin() ||
         (isSignedIn() && resource.data.ownerId == request.auth.uid);
     }
-
-    // ---------- everything else ----------
-    match /{document=**} {
-      allow read, write: if isAdmin();
-    }
   }
 }
