@@ -362,24 +362,24 @@ const handleSaveContact = async () => {
               <div className="section-title">{editingId ? 'Edit Contact' : 'Add New Contact'}</div>
               <div className="form-grid">
                 <div className="form-field">
-                  <label>First Name *</label>
-                  <input type="text" placeholder="Enter first name" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} />
+                  <label htmlFor="contact-firstName">First Name *</label>
+                  <input id="contact-firstName" type="text" placeholder="Enter first name" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} />
                 </div>
                 <div className="form-field">
-                  <label>Last Name *</label>
-                  <input type="text" placeholder="Enter last name" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} />
+                  <label htmlFor="contact-lastName">Last Name *</label>
+                  <input id="contact-lastName" type="text" placeholder="Enter last name" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} />
                 </div>
                 <div className="form-field">
-                  <label>Phone Number *</label>
-                  <input type="tel" placeholder="(555) 555-5555" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
+                  <label htmlFor="contact-phone">Phone Number *</label>
+                  <input id="contact-phone" type="tel" placeholder="(555) 555-5555" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
                 </div>
                 <div className="form-field">
-                  <label>Email *</label>
-                  <input type="email" placeholder="email@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
+                  <label htmlFor="contact-email">Email *</label>
+                  <input id="contact-email" type="email" placeholder="email@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
                 </div>
                 <div className="form-field">
-                  <label>Contact Type</label>
-                  <select value={selectedContactType} onChange={(e) => setSelectedContactType(e.target.value)}>
+                  <label htmlFor="contact-type">Contact Type</label>
+                  <select id="contact-type" value={selectedContactType} onChange={(e) => setSelectedContactType(e.target.value)}>
                     {contactTypes.map((type) => (
                       <option key={type.id} value={type.id}>{type.label}</option>
                     ))}
@@ -388,8 +388,8 @@ const handleSaveContact = async () => {
                 {selectedContactType === 'buyer' && (
                   <>
                     <div className="form-field">
-                      <label>Buyer Type</label>
-                      <select value={formData.buyerType} onChange={(e) => setFormData({...formData, buyerType: e.target.value})}>
+                      <label htmlFor="contact-buyerType">Buyer Type</label>
+                      <select id="contact-buyerType" value={formData.buyerType} onChange={(e) => setFormData({...formData, buyerType: e.target.value})}>
                         <option value="">Select type</option>
                         <option value="flipper">Flipper</option>
                         <option value="builder">Builder</option>
@@ -397,8 +397,9 @@ const handleSaveContact = async () => {
                       </select>
                     </div>
                     <div className="form-field">
-                      <label>Actively Buying</label>
+                      <label htmlFor="contact-activelyBuying">Actively Buying</label>
                       <div
+                        id="contact-activelyBuying"
                         onClick={() => setFormData({...formData, activelyBuying: !formData.activelyBuying})}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
@@ -421,8 +422,9 @@ const handleSaveContact = async () => {
                 )}
                 {selectedContactType === 'seller' && (
                   <div className="form-field">
-                    <label>Actively Selling</label>
+                    <label htmlFor="contact-activelySelling">Actively Selling</label>
                     <div
+                      id="contact-activelySelling"
                       onClick={() => setFormData({...formData, activelySelling: !formData.activelySelling})}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {

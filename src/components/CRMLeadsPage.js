@@ -338,10 +338,11 @@ const CRMLeadsPage = ({ onOpenLead }) => {
           Ordered by lead submission date (newest first)
         </div>
         <div style={{ marginBottom: '14px' }}>
-          <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <label htmlFor="crm-leads-search" style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Search Lead
           </label>
           <input
+            id="crm-leads-search"
             type="text"
             placeholder="Search by name, email, or phone..."
             value={searchTerm}
@@ -357,9 +358,10 @@ const CRMLeadsPage = ({ onOpenLead }) => {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>From Date</label>
+                <label htmlFor="crm-leads-fromDate" style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>From Date</label>
                 <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 42px', gap: '8px' }}>
                   <input
+                    id="crm-leads-fromDate"
                     type="text"
                     value={fromDateInput}
                     placeholder="MM/DD/YYYY"
@@ -403,7 +405,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                   </button>
                   {showFromCalendar && (
                     <div className="card-surface" style={{ position: 'absolute', top: '46px', right: 0, zIndex: 30, width: '260px' }}>
-                      <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '6px' }}>Choose From Date</label>
+                      <div style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '6px' }}>Choose From Date</div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => setFromCalendarMonth(new Date(fromCalendarMonth.getFullYear(), fromCalendarMonth.getMonth() - 1, 1))}>{'<'}</button>
                         <button
@@ -491,9 +493,10 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                 </div>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>To Date</label>
+                <label htmlFor="crm-leads-toDate" style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>To Date</label>
                 <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 42px', gap: '8px' }}>
                   <input
+                    id="crm-leads-toDate"
                     type="text"
                     value={toDateInput}
                     placeholder="MM/DD/YYYY"
@@ -537,7 +540,7 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                   </button>
                   {showToCalendar && (
                     <div className="card-surface" style={{ position: 'absolute', top: '46px', right: 0, zIndex: 30, width: '260px' }}>
-                      <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '6px' }}>Choose To Date</label>
+                      <div style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '6px' }}>Choose To Date</div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <button type="button" className="btn-secondary btn-sm" onClick={() => setToCalendarMonth(new Date(toCalendarMonth.getFullYear(), toCalendarMonth.getMonth() - 1, 1))}>{'<'}</button>
                         <button
@@ -625,8 +628,9 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                 </div>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>Month</label>
+                <label htmlFor="crm-leads-month" style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>Month</label>
                 <select
+                  id="crm-leads-month"
                   value={monthFilter}
                   onChange={(e) => setMonthFilter(e.target.value)}
                   style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
@@ -640,8 +644,9 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>Year</label>
+                <label htmlFor="crm-leads-year" style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>Year</label>
                 <input
+                  id="crm-leads-year"
                   type="number"
                   min="2000"
                   max="2100"
@@ -658,8 +663,9 @@ const CRMLeadsPage = ({ onOpenLead }) => {
             <div style={{ fontSize: '11px', color: '#00ff88', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Service Filtering
             </div>
-            <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>Service Type</label>
+            <label htmlFor="crm-leads-service" style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>Service Type</label>
             <select
+              id="crm-leads-service"
               value={serviceFilter}
               onChange={(e) => setServiceFilter(e.target.value)}
               style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff' }}
@@ -677,8 +683,9 @@ const CRMLeadsPage = ({ onOpenLead }) => {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>City</label>
+                <label htmlFor="crm-leads-city" style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>City</label>
                 <input
+                  id="crm-leads-city"
                   type="text"
                   placeholder="City"
                   value={cityFilter}
@@ -687,8 +694,9 @@ const CRMLeadsPage = ({ onOpenLead }) => {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>Zipcode</label>
+                <label htmlFor="crm-leads-zip" style={{ display: 'block', fontSize: '11px', color: '#888888', marginBottom: '4px' }}>Zipcode</label>
                 <input
+                  id="crm-leads-zip"
                   type="text"
                   placeholder="Zipcode"
                   value={zipFilter}

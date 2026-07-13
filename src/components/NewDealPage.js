@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { collection, addDoc, getDocs, query, doc, updateDoc, where } from 'firebase/firestore';
 import { useToast } from './Toast';
@@ -23,6 +23,7 @@ const NewDealPage = () => {
   const [showSellerModal, setShowSellerModal] = useState(false);
   const [showPropertyModal, setShowPropertyModal] = useState(false);
   const [propertyInput, setPropertyInput] = useState('');
+  const propertyInputRef = useRef(null);
   const toast = useToast();
 
   useEscapeKey(() => {
@@ -30,6 +31,13 @@ const NewDealPage = () => {
     setShowSellerModal(false);
     setShowPropertyModal(false);
   }, showBuyerModal || showSellerModal || showPropertyModal);
+
+  // Managed initial focus for the property modal (replaces autoFocus)
+  useEffect(() => {
+    if (showPropertyModal) {
+      propertyInputRef.current?.focus();
+    }
+  }, [showPropertyModal]);
   // Load contacts and properties from Firebase
   React.useEffect(() => {
     const loadData = async () => {
@@ -145,7 +153,15 @@ const querySnapshot = isAdmin
         {/* Buyer Card */}
         <div
           className="deal-card"
+          role="button"
+          tabIndex={0}
           onClick={() => setShowBuyerModal(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setShowBuyerModal(true);
+            }
+          }}
           style={{
             background: dealData.buyer ? '#0f0f0f' : '#0a0a0a',
             borderColor: dealData.buyer ? '#0088ff' : '#1a1a1a'
@@ -185,7 +201,15 @@ const querySnapshot = isAdmin
         {/* Seller Card */}
         <div
           className="deal-card"
+          role="button"
+          tabIndex={0}
           onClick={() => setShowSellerModal(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setShowSellerModal(true);
+            }
+          }}
           style={{
             background: dealData.seller ? '#0f0f0f' : '#0a0a0a',
             borderColor: dealData.seller ? '#00ff88' : '#1a1a1a'
@@ -225,7 +249,15 @@ const querySnapshot = isAdmin
         {/* Property Card */}
         <div
           className="deal-card"
+          role="button"
+          tabIndex={0}
           onClick={() => setShowPropertyModal(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setShowPropertyModal(true);
+            }
+          }}
           style={{
             background: dealData.property ? '#0f0f0f' : '#0a0a0a',
             borderColor: dealData.property ? '#ffaa00' : '#1a1a1a'
@@ -304,8 +336,8 @@ const querySnapshot = isAdmin
 
       {/* Buyer Selection Modal */}
       {showBuyerModal && (
-        <div className="modal-overlay" onClick={() => setShowBuyerModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ borderColor: '#0088ff', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
+        <div className="modal-overlay" role="presentation" onClick={() => setShowBuyerModal(false)}>
+          <div className="modal-content" role="presentation" onClick={(e) => e.stopPropagation()} style={{ borderColor: '#0088ff', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '20px', color: '#0088ff', margin: 0 }}>Select Buyer</h2>
               <button
@@ -330,9 +362,18 @@ const querySnapshot = isAdmin
                 {buyers.map((contact) => (
                   <div
                     key={contact.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => {
                       setDealData({...dealData, buyer: contact.id});
                       setShowBuyerModal(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setDealData({...dealData, buyer: contact.id});
+                        setShowBuyerModal(false);
+                      }
                     }}
                     style={{
                       background: dealData.buyer === contact.id ? '#1a1a1a' : '#0f0f0f',
@@ -374,8 +415,8 @@ const querySnapshot = isAdmin
 
       {/* Seller Selection Modal */}
       {showSellerModal && (
-        <div className="modal-overlay" onClick={() => setShowSellerModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ borderColor: '#00ff88', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
+        <div className="modal-overlay" role="presentation" onClick={() => setShowSellerModal(false)}>
+          <div className="modal-content" role="presentation" onClick={(e) => e.stopPropagation()} style={{ borderColor: '#00ff88', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '20px', color: '#00ff88', margin: 0 }}>Select Seller</h2>
               <button
@@ -400,9 +441,18 @@ const querySnapshot = isAdmin
                 {sellers.map((contact) => (
                   <div
                     key={contact.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => {
                       setDealData({...dealData, seller: contact.id});
                       setShowSellerModal(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setDealData({...dealData, seller: contact.id});
+                        setShowSellerModal(false);
+                      }
                     }}
                     style={{
                       background: dealData.seller === contact.id ? '#1a1a1a' : '#0f0f0f',
@@ -439,8 +489,8 @@ const querySnapshot = isAdmin
 
       {/* Property Input Modal */}
       {showPropertyModal && (
-        <div className="modal-overlay" onClick={() => setShowPropertyModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ borderColor: '#ffaa00', padding: '30px', maxWidth: '500px', width: '90%' }}>
+        <div className="modal-overlay" role="presentation" onClick={() => setShowPropertyModal(false)}>
+          <div className="modal-content" role="presentation" onClick={(e) => e.stopPropagation()} style={{ borderColor: '#ffaa00', padding: '30px', maxWidth: '500px', width: '90%' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '20px', color: '#ffaa00', margin: 0 }}>Enter Property Address</h2>
               <button
@@ -450,8 +500,10 @@ const querySnapshot = isAdmin
             </div>
 
             <div className="form-field" style={{ marginBottom: '20px' }}>
-              <label>Property Address *</label>
+              <label htmlFor="new-deal-property">Property Address *</label>
               <input
+                id="new-deal-property"
+                ref={propertyInputRef}
                 type="text"
                 placeholder="e.g., 123 Main Street, Los Angeles, CA 90001"
                 value={propertyInput}
@@ -467,7 +519,6 @@ const querySnapshot = isAdmin
                   borderRadius: '4px',
                   outline: 'none'
                 }}
-                autoFocus
               />
             </div>
 

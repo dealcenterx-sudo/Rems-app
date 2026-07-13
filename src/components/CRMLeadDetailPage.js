@@ -1917,16 +1917,18 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
             <div className="lead-panel-title">Contact Information</div>
             <div className="lead-field-stack">
               <div className="lead-field">
-                <label>Name / Entity</label>
+                <label htmlFor="lead-name">Name / Entity</label>
                 <input
+                  id="lead-name"
                   type="text"
                   value={leadForm.name}
                   onChange={(e) => handleLeadFormChange('name', e.target.value)}
                 />
               </div>
               <div className="lead-field">
-                <label>Cell Phone</label>
+                <label htmlFor="lead-phone">Cell Phone</label>
                 <input
+                  id="lead-phone"
                   type="text"
                   value={leadForm.phone}
                   onChange={(e) => handleLeadFormChange('phone', e.target.value)}
@@ -1934,8 +1936,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field">
-                <label>Email</label>
+                <label htmlFor="lead-email">Email</label>
                 <input
+                  id="lead-email"
                   type="text"
                   value={leadForm.email}
                   onChange={(e) => handleLeadFormChange('email', e.target.value)}
@@ -1943,8 +1946,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field">
-                <label>Lead Source</label>
+                <label htmlFor="lead-source">Lead Source</label>
                 <input
+                  id="lead-source"
                   type="text"
                   value={leadForm.source}
                   onChange={(e) => handleLeadFormChange('source', e.target.value)}
@@ -1958,8 +1962,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
             <div className="lead-panel-title">Lead Details</div>
             <div className="lead-field-stack">
               <div className="lead-field">
-                <label>Service Requested</label>
+                <label htmlFor="lead-service">Service Requested</label>
                 <select
+                  id="lead-service"
                   value={selectedServiceValue}
                   onChange={(e) => handleLeadFormChange('serviceType', e.target.value)}
                 >
@@ -1970,8 +1975,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 </select>
               </div>
               <div className="lead-field">
-                <label>Pipeline Stage</label>
+                <label htmlFor="lead-stage">Pipeline Stage</label>
                 <select
+                  id="lead-stage"
                   value={warmth}
                   onChange={(e) => handleWarmthChange(e.target.value)}
                   disabled={saving}
@@ -1986,8 +1992,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 </select>
               </div>
               <div className="lead-field">
-                <label>Preferred Contact</label>
+                <label htmlFor="lead-contactMethod">Preferred Contact</label>
                 <input
+                  id="lead-contactMethod"
                   type="text"
                   value={leadForm.contactMethod}
                   onChange={(e) => handleLeadFormChange('contactMethod', e.target.value)}
@@ -1995,8 +2002,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field">
-                <label>Notes</label>
+                <label htmlFor="lead-notes">Notes</label>
                 <textarea
+                  id="lead-notes"
                   value={leadForm.notes}
                   onChange={(e) => handleLeadFormChange('notes', e.target.value)}
                   rows={4}
@@ -2137,24 +2145,27 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                   {editingActivityId === entry.id ? (
                     <div className="lead-activity-edit-fields">
                       <div className="lead-field">
-                        <label>Title</label>
+                        <label htmlFor="lead-activity-edit-title">Title</label>
                         <input
+                          id="lead-activity-edit-title"
                           type="text"
                           value={editingActivityDraft.title}
                           onChange={(e) => setEditingActivityDraft((prev) => ({ ...prev, title: e.target.value }))}
                         />
                       </div>
                       <div className="lead-field">
-                        <label>Summary</label>
+                        <label htmlFor="lead-activity-edit-summary">Summary</label>
                         <textarea
+                          id="lead-activity-edit-summary"
                           rows={2}
                           value={editingActivityDraft.summary}
                           onChange={(e) => setEditingActivityDraft((prev) => ({ ...prev, summary: e.target.value }))}
                         />
                       </div>
                       <div className="lead-field">
-                        <label>Detail</label>
+                        <label htmlFor="lead-activity-edit-detail">Detail</label>
                         <textarea
+                          id="lead-activity-edit-detail"
                           rows={3}
                           value={editingActivityDraft.detail}
                           onChange={(e) => setEditingActivityDraft((prev) => ({ ...prev, detail: e.target.value }))}
@@ -2189,8 +2200,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
             <div className="lead-panel-title">Property Information</div>
             <div className="lead-field-stack">
               <div className="lead-field">
-                <label>Street</label>
+                <label htmlFor="lead-street">Street</label>
                 <input
+                  id="lead-street"
                   type="text"
                   value={leadForm.street}
                   onChange={(e) => handleLeadFormChange('street', e.target.value)}
@@ -2198,8 +2210,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field">
-                <label>City</label>
+                <label htmlFor="lead-city">City</label>
                 <input
+                  id="lead-city"
                   type="text"
                   value={leadForm.city}
                   onChange={(e) => handleLeadFormChange('city', e.target.value)}
@@ -2207,8 +2220,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field">
-                <label>State</label>
+                <label htmlFor="lead-state">State</label>
                 <input
+                  id="lead-state"
                   type="text"
                   maxLength={2}
                   value={leadForm.state}
@@ -2217,8 +2231,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field">
-                <label>Zip Code</label>
+                <label htmlFor="lead-zip">Zip Code</label>
                 <input
+                  id="lead-zip"
                   type="text"
                   value={leadForm.zipCode}
                   onChange={(e) => handleLeadFormChange('zipCode', e.target.value)}
@@ -2226,8 +2241,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field">
-                <label>Property Type</label>
+                <label htmlFor="lead-propertyType">Property Type</label>
                 <select
+                  id="lead-propertyType"
                   value={leadForm.propertyType || ''}
                   onChange={(e) => handleLeadFormChange('propertyType', e.target.value)}
                 >
@@ -2326,8 +2342,17 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                       filteredLibraryDocuments.map((documentItem) => (
                         <div
                           key={documentItem.id}
+                          role="button"
+                          tabIndex={0}
+                          aria-pressed={activeFocusedDocumentId === documentItem.id}
                           className={`lead-doc-library-row ${activeFocusedDocumentId === documentItem.id ? 'active' : ''}`}
                           onClick={() => setFocusedDocumentId(documentItem.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              setFocusedDocumentId(documentItem.id);
+                            }
+                          }}
                         >
                           <div className="lead-doc-library-title-cell">
                             <label className="lead-doc-library-select">
@@ -2419,8 +2444,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       )}
 
       {showEmailComposer && (
-        <div className="modal-overlay" onClick={() => !sendingEmail && setShowEmailComposer(false)}>
-          <div className="modal-content crm-email-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="modal-overlay" role="presentation" onClick={() => !sendingEmail && setShowEmailComposer(false)}>
+          <div className="modal-content crm-email-modal" role="presentation" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header crm-email-modal-header">
               <h2 style={{ margin: 0, fontSize: '20px', color: '#ffffff', fontWeight: '700' }}>Send Email</h2>
               <button
@@ -2434,8 +2459,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
             </div>
             <div className="crm-email-modal-grid">
               <div className="lead-field">
-                <label>Send To</label>
+                <label htmlFor="email-to">Send To</label>
                 <input
+                  id="email-to"
                   type="email"
                   value={emailComposer.to}
                   onChange={(event) => handleEmailComposerChange('to', event.target.value)}
@@ -2443,8 +2469,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field">
-                <label>CC</label>
+                <label htmlFor="email-cc">CC</label>
                 <input
+                  id="email-cc"
                   type="text"
                   value={emailComposer.cc}
                   onChange={(event) => handleEmailComposerChange('cc', event.target.value)}
@@ -2452,8 +2479,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field">
-                <label>BCC</label>
+                <label htmlFor="email-bcc">BCC</label>
                 <input
+                  id="email-bcc"
                   type="text"
                   value={emailComposer.bcc}
                   onChange={(event) => handleEmailComposerChange('bcc', event.target.value)}
@@ -2461,8 +2489,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field">
-                <label>Subject</label>
+                <label htmlFor="email-subject">Subject</label>
                 <input
+                  id="email-subject"
                   type="text"
                   value={emailComposer.subject}
                   onChange={(event) => handleEmailComposerChange('subject', event.target.value)}
@@ -2470,8 +2499,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field crm-email-modal-body-field">
-                <label>Email Contents</label>
+                <label htmlFor="email-body">Email Contents</label>
                 <textarea
+                  id="email-body"
                   rows={8}
                   value={emailComposer.body}
                   onChange={(event) => handleEmailComposerChange('body', event.target.value)}
@@ -2479,8 +2509,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field">
-                <label>Signatures</label>
+                <label htmlFor="email-signature">Signatures</label>
                 <select
+                  id="email-signature"
                   value={emailComposer.signatureKey}
                   onChange={(event) => handleSignatureTemplateChange(event.target.value)}
                 >
@@ -2511,8 +2542,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       )}
 
       {activityComposer.isOpen && (
-        <div className="modal-overlay" onClick={() => !saving && closeActivityComposer()}>
-          <div className="modal-content lead-activity-composer-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="modal-overlay" role="presentation" onClick={() => !saving && closeActivityComposer()}>
+          <div className="modal-content lead-activity-composer-modal" role="presentation" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header lead-activity-composer-header">
               <div>
                 <div className={`lead-activity-badge ${activityComposer.type}`}>
@@ -2534,8 +2565,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
             </div>
             <div className="lead-activity-composer-fields">
               <div className="lead-field">
-                <label>Title</label>
+                <label htmlFor="activity-title">Title</label>
                 <input
+                  id="activity-title"
                   type="text"
                   value={activityComposer.title}
                   onChange={(event) => handleActivityComposerChange('title', event.target.value)}
@@ -2543,8 +2575,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field">
-                <label>Summary</label>
+                <label htmlFor="activity-summary">Summary</label>
                 <textarea
+                  id="activity-summary"
                   rows={3}
                   value={activityComposer.summary}
                   onChange={(event) => handleActivityComposerChange('summary', event.target.value)}
@@ -2552,8 +2585,9 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
                 />
               </div>
               <div className="lead-field">
-                <label>Detail</label>
+                <label htmlFor="activity-detail">Detail</label>
                 <textarea
+                  id="activity-detail"
                   rows={4}
                   value={activityComposer.detail}
                   onChange={(event) => handleActivityComposerChange('detail', event.target.value)}
@@ -2584,8 +2618,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
       )}
 
       {pdfPreviewDocument && (
-        <div className="modal-overlay" onClick={closePdfPreview}>
-          <div className="modal-content lead-pdf-preview-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="modal-overlay" role="presentation" onClick={closePdfPreview}>
+          <div className="modal-content lead-pdf-preview-modal" role="presentation" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header lead-pdf-preview-header">
               <div className="lead-pdf-preview-heading">
                 <h2>{pdfPreviewDocument.fileName}</h2>
