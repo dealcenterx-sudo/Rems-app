@@ -3,8 +3,8 @@ import { doc, updateDoc, collection, addDoc, getDocs, query, where } from 'fireb
 import { db, auth } from '../firebase';
 import { useToast } from './Toast';
 
-const FIELD_STYLE = { background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' };
-const LABEL_STYLE = { fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' };
+const FIELD_STYLE = { background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' };
+const LABEL_STYLE = { fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' };
 
 const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
   const toast = useToast();
@@ -139,7 +139,7 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
             {suffix && <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)', fontSize: '12px' }}>{suffix}</span>}
           </div>
         ) : (
-          <div style={{ fontSize: '16px', color: '#fff', fontWeight: '600' }}>
+          <div style={{ fontSize: '16px', color: 'var(--white)', fontWeight: '600' }}>
             {prefix === '$' ? fmt(form[key]) : suffix === '%' ? pct(form[key]) : (form[key] || '—')}
           </div>
         )}
@@ -152,7 +152,7 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <div style={{ fontSize: '16px', fontWeight: '600', color: '#fff' }}>Deal Financials</div>
+          <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--white)' }}>Deal Financials</div>
           <div style={{ fontSize: '12px', color: 'var(--text-faint)', marginTop: '4px' }}>All numbers visible to authorized parties</div>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
@@ -163,7 +163,7 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
                 onClick={() => setShowPushModal(true)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
-                  padding: '8px 16px', background: '#aa00ff', color: '#fff',
+                  padding: '8px 16px', background: '#aa00ff', color: 'var(--white)',
                   border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600'
                 }}
               >
@@ -189,7 +189,7 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
           { label: 'Total Fees & Costs', value: fmt(totalFees), color: '#ff8800' },
           { label: 'Est. Net to Seller', value: fmt(netToSeller), color: '#aa00ff' }
         ].map((card) => (
-          <div key={card.label} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '16px' }}>
+          <div key={card.label} style={{ background: 'var(--surface-1)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', padding: '16px' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{card.label}</div>
             <div style={{ fontSize: '22px', fontWeight: '700', color: card.color }}>{card.value}</div>
           </div>
@@ -197,8 +197,8 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
       </div>
 
       {/* Price & Offer */}
-      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
-        <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '16px' }}>Price & Terms</div>
+      <div style={{ background: 'var(--surface-1)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
+        <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)', marginBottom: '16px' }}>Price & Terms</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
           {renderField('Purchase Price', 'purchasePrice', { prefix: '$' })}
           {renderField('Offer Price', 'offerPrice', { prefix: '$' })}
@@ -207,8 +207,8 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
       </div>
 
       {/* Financing */}
-      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
-        <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '16px' }}>Financing</div>
+      <div style={{ background: 'var(--surface-1)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
+        <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)', marginBottom: '16px' }}>Financing</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '20px' }}>
           {renderField('Down Payment', 'downPayment', { prefix: '$' })}
           {renderField('Loan Amount', 'loanAmount', { prefix: '$' })}
@@ -232,32 +232,32 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
                 <option value="other">Other</option>
               </select>
             ) : (
-              <div style={{ fontSize: '16px', color: '#fff', fontWeight: '600', textTransform: 'capitalize' }}>{form.loanType?.replace(/-/g, ' ') || '—'}</div>
+              <div style={{ fontSize: '16px', color: 'var(--white)', fontWeight: '600', textTransform: 'capitalize' }}>{form.loanType?.replace(/-/g, ' ') || '—'}</div>
             )}
           </div>
         </div>
       </div>
 
       {/* Commissions */}
-      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
-        <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '16px' }}>Commissions</div>
+      <div style={{ background: 'var(--surface-1)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
+        <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)', marginBottom: '16px' }}>Commissions</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '20px' }}>
           {renderField("Buyer's Agent %", 'buyerAgentCommission', { suffix: '%' })}
           <div>
             <div style={LABEL_STYLE}>Buyer Agent Amount</div>
-            <div style={{ fontSize: '16px', color: '#0088ff', fontWeight: '600' }}>{fmt(buyerCommAmt)}</div>
+            <div style={{ fontSize: '16px', color: 'var(--info)', fontWeight: '600' }}>{fmt(buyerCommAmt)}</div>
           </div>
           {renderField("Seller's Agent %", 'sellerAgentCommission', { suffix: '%' })}
           <div>
             <div style={LABEL_STYLE}>Seller Agent Amount</div>
-            <div style={{ fontSize: '16px', color: '#00ff88', fontWeight: '600' }}>{fmt(sellerCommAmt)}</div>
+            <div style={{ fontSize: '16px', color: 'var(--accent)', fontWeight: '600' }}>{fmt(sellerCommAmt)}</div>
           </div>
         </div>
       </div>
 
       {/* Fees */}
-      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
-        <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '16px' }}>Fees & Costs</div>
+      <div style={{ background: 'var(--surface-1)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
+        <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)', marginBottom: '16px' }}>Fees & Costs</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
           {renderField('Closing Costs', 'closingCosts', { prefix: '$' })}
           {renderField('Title Fees', 'titleFees', { prefix: '$' })}
@@ -276,11 +276,11 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
         <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setShowPushModal(false); }}>
           <div className="modal-content" style={{ maxWidth: '500px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Push Deal to Lender</h2>
+              <h2 style={{ fontSize: '18px', color: 'var(--white)', fontWeight: '600' }}>Push Deal to Lender</h2>
               <button onClick={() => setShowPushModal(false)} className="icon-button">×</button>
             </div>
 
-            <div style={{ background: '#0a0a0a', borderRadius: '6px', padding: '14px', marginBottom: '20px', border: '1px solid #1a1a1a' }}>
+            <div style={{ background: 'var(--surface-1)', borderRadius: '6px', padding: '14px', marginBottom: '20px', border: '1px solid var(--skeleton-highlight)' }}>
               <div style={{ fontSize: '11px', color: 'var(--text-faint)', lineHeight: '1.5' }}>
                 This will package the deal financials, property details, and buyer information and push it to the selected lender's portal for loan approval. The lender will receive an email with all conditional documents.
               </div>
@@ -290,7 +290,7 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
               <div>
                 <label style={LABEL_STYLE} htmlFor="dealfin-selectLender">Select Lender *</label>
                 {lenderParties.length === 0 ? (
-                  <div style={{ fontSize: '13px', color: '#ff4444' }}>No lenders added to this deal. Add a lender in the Parties tab first.</div>
+                  <div style={{ fontSize: '13px', color: 'var(--danger-alt)' }}>No lenders added to this deal. Add a lender in the Parties tab first.</div>
                 ) : (
                   <select
                     id="dealfin-selectLender"
@@ -318,8 +318,8 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
               </div>
 
               {/* Package Summary */}
-              <div style={{ background: '#111', borderRadius: '6px', padding: '14px', border: '1px solid #1a1a1a' }}>
-                <div style={{ fontSize: '12px', color: '#888', marginBottom: '10px', fontWeight: '600' }}>Package Contents:</div>
+              <div style={{ background: 'var(--gray-111)', borderRadius: '6px', padding: '14px', border: '1px solid var(--skeleton-highlight)' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', marginBottom: '10px', fontWeight: '600' }}>Package Contents:</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: '#aaa' }}>
                   <div>• Purchase Price: {fmt(form.purchasePrice)}</div>
                   <div>• Down Payment: {fmt(form.downPayment)}</div>
@@ -331,12 +331,12 @@ const DealFinancialsTab = ({ dealId, deal, onDealUpdate }) => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--skeleton-highlight)' }}>
               <button
                 onClick={pushToLender}
                 disabled={pushingToLender || !selectedLender}
                 style={{
-                  flex: 1, padding: '10px', background: '#aa00ff', color: '#fff',
+                  flex: 1, padding: '10px', background: '#aa00ff', color: 'var(--white)',
                   border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600',
                   opacity: (!selectedLender || pushingToLender) ? 0.5 : 1
                 }}

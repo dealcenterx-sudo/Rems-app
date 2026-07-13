@@ -156,7 +156,7 @@ const DealsDashboard = () => {
               <div style={{ fontSize: '11px', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Total Deals
               </div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--white)' }}>
                 {stats.total}
               </div>
             </div>
@@ -185,7 +185,7 @@ const DealsDashboard = () => {
               <div style={{ fontSize: '11px', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Active Deals
               </div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#0088ff' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--info)' }}>
                 {stats.active}
               </div>
             </div>
@@ -214,7 +214,7 @@ const DealsDashboard = () => {
               <div style={{ fontSize: '11px', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Closed Deals
               </div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#00ff88' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--accent)' }}>
                 {stats.closed}
               </div>
             </div>
@@ -243,7 +243,7 @@ const DealsDashboard = () => {
               <div style={{ fontSize: '11px', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Total Value
               </div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#ffaa00' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--warning)' }}>
                 {formatCurrency(stats.totalValue)}
               </div>
             </div>
@@ -310,20 +310,20 @@ const DealsDashboard = () => {
                         onClick={() => setSelectedDeal(deal)}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedDeal(deal); } }}
                         className="card-surface"
-                        style={{ background: '#0f0f0f', padding: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
+                        style={{ background: 'var(--surface-2)', padding: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.borderColor = statusConfig.color;
                           e.currentTarget.style.background = '#151515';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = '#1a1a1a';
-                          e.currentTarget.style.background = '#0f0f0f';
+                          e.currentTarget.style.borderColor = 'var(--skeleton-highlight)';
+                          e.currentTarget.style.background = 'var(--surface-2)';
                         }}
                       >
                         <div style={{
                           fontSize: '13px',
                           fontWeight: '600',
-                          color: '#ffffff',
+                          color: 'var(--white)',
                           marginBottom: '6px',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -332,22 +332,22 @@ const DealsDashboard = () => {
                           {deal.propertyAddress || 'No address'}
                         </div>
                         
-                        <div style={{ fontSize: '11px', color: '#888888', marginBottom: '4px' }}>
-                          <span style={{ color: '#0088ff' }}>B:</span> {deal.buyerName || 'N/A'}
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', marginBottom: '4px' }}>
+                          <span style={{ color: 'var(--info)' }}>B:</span> {deal.buyerName || 'N/A'}
                         </div>
                         
-                        <div style={{ fontSize: '11px', color: '#888888', marginBottom: '8px' }}>
-                          <span style={{ color: '#00ff88' }}>S:</span> {deal.sellerName || 'N/A'}
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', marginBottom: '8px' }}>
+                          <span style={{ color: 'var(--accent)' }}>S:</span> {deal.sellerName || 'N/A'}
                         </div>
                         
                         {deal.purchasePrice && (
                           <div style={{
                             fontSize: '12px',
                             fontWeight: '600',
-                            color: '#ffaa00',
+                            color: 'var(--warning)',
                             marginTop: '8px',
                             paddingTop: '8px',
-                            borderTop: '1px solid #1a1a1a'
+                            borderTop: '1px solid var(--skeleton-highlight)'
                           }}>
                             {formatCurrency(deal.purchasePrice)}
                           </div>
@@ -400,15 +400,15 @@ const DealsDashboard = () => {
                     gridTemplateColumns: '250px 150px 150px 120px 150px 120px'
                   }}
                 >
-                  <div data-label="Property" style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600' }}>
+                  <div data-label="Property" style={{ fontSize: '13px', color: 'var(--white)', fontWeight: '600' }}>
                     {deal.propertyAddress || 'No address'}
                   </div>
 
-                  <div data-label="Buyer" style={{ fontSize: '12px', color: '#0088ff' }}>
+                  <div data-label="Buyer" style={{ fontSize: '12px', color: 'var(--info)' }}>
                     {deal.buyerName || 'N/A'}
                   </div>
 
-                  <div data-label="Seller" style={{ fontSize: '12px', color: '#00ff88' }}>
+                  <div data-label="Seller" style={{ fontSize: '12px', color: 'var(--accent)' }}>
                     {deal.sellerName || 'N/A'}
                   </div>
 
@@ -418,11 +418,11 @@ const DealsDashboard = () => {
                     </span>
                   </div>
 
-                  <div data-label="Value" style={{ fontSize: '13px', color: '#ffaa00', fontWeight: '600' }}>
+                  <div data-label="Value" style={{ fontSize: '13px', color: 'var(--warning)', fontWeight: '600' }}>
                     {deal.purchasePrice ? formatCurrency(deal.purchasePrice) : 'N/A'}
                   </div>
 
-                  <div data-label="Created" style={{ fontSize: '12px', color: '#888888' }}>
+                  <div data-label="Created" style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>
                     {formatDate(deal.createdAt)}
                   </div>
                 </div>

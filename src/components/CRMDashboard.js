@@ -22,11 +22,11 @@ const BarChart = ({ data, title }) => {
   const maxValue = Math.max(...data.map(d => d.value), 1);
   return (
     <div className="card-surface hover-lift">
-      <h3 style={{ fontSize: '14px', color: '#fff', marginBottom: '20px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</h3>
+      <h3 style={{ fontSize: '14px', color: 'var(--white)', marginBottom: '20px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</h3>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '160px' }}>
         {data.map((item, idx) => (
           <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            <div style={{ fontSize: '16px', fontWeight: '700', color: item.color || '#00ff88' }}>{item.value}</div>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: item.color || 'var(--accent)' }}>{item.value}</div>
             <div style={{
               width: '100%',
               height: `${(item.value / maxValue) * 120}px`,
@@ -56,7 +56,7 @@ const DonutChart = ({ data, title }) => {
 
   return (
     <div className="card-surface hover-lift">
-      <h3 style={{ fontSize: '14px', color: '#fff', marginBottom: '20px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</h3>
+      <h3 style={{ fontSize: '14px', color: 'var(--white)', marginBottom: '20px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</h3>
       <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
         <div style={{ position: 'relative', width: '120px', height: '120px', flexShrink: 0 }}>
           <svg width="120" height="120" viewBox="0 0 120 120">
@@ -91,7 +91,7 @@ const DonutChart = ({ data, title }) => {
               <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: item.color, flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '12px', color: '#ddd', fontWeight: '500' }}>{item.label}</div>
-                <div style={{ fontSize: '11px', color: '#555' }}>{item.value} ({total > 0 ? ((item.value / total) * 100).toFixed(0) : 0}%)</div>
+                <div style={{ fontSize: '11px', color: 'var(--gray-555)' }}>{item.value} ({total > 0 ? ((item.value / total) * 100).toFixed(0) : 0}%)</div>
               </div>
             </div>
           ))}
@@ -105,13 +105,13 @@ const DonutChart = ({ data, title }) => {
 const KPICard = ({ label, value, icon, color, delta, sub }) => (
   <div className="card-surface hover-lift" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-      <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
+      <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
       <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{icon}</div>
     </div>
-    <div style={{ fontSize: '34px', fontWeight: '700', color: '#fff', lineHeight: 1 }}>{value}</div>
-    {sub && <div style={{ fontSize: '12px', color: '#555' }}>{sub}</div>}
+    <div style={{ fontSize: '34px', fontWeight: '700', color: 'var(--white)', lineHeight: 1 }}>{value}</div>
+    {sub && <div style={{ fontSize: '12px', color: 'var(--gray-555)' }}>{sub}</div>}
     {delta !== undefined && (
-      <div style={{ fontSize: '12px', color: delta >= 0 ? '#00ff88' : '#ff4444', fontWeight: '600' }}>
+      <div style={{ fontSize: '12px', color: delta >= 0 ? 'var(--accent)' : 'var(--danger-alt)', fontWeight: '600' }}>
         {delta >= 0 ? '▲' : '▼'} {Math.abs(delta)}% vs last month
       </div>
     )}
@@ -121,15 +121,15 @@ const KPICard = ({ label, value, icon, color, delta, sub }) => (
 // ─── Activity Feed ─────────────────────────────────────────────────────────────
 const ActivityFeed = ({ events }) => (
   <div className="card-surface" style={{ height: '100%' }}>
-    <h3 style={{ fontSize: '14px', color: '#fff', marginBottom: '20px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Recent Activity</h3>
+    <h3 style={{ fontSize: '14px', color: 'var(--white)', marginBottom: '20px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Recent Activity</h3>
     {events.length === 0 ? (
-      <div style={{ color: '#444', fontSize: '13px', textAlign: 'center', padding: '30px 0' }}>No recent activity</div>
+      <div style={{ color: 'var(--gray-444)', fontSize: '13px', textAlign: 'center', padding: '30px 0' }}>No recent activity</div>
     ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
         {events.map((ev, i) => (
           <div key={i} style={{
             display: 'flex', gap: '12px', alignItems: 'flex-start',
-            padding: '12px 0', borderBottom: i < events.length - 1 ? '1px solid #111' : 'none'
+            padding: '12px 0', borderBottom: i < events.length - 1 ? '1px solid var(--gray-111)' : 'none'
           }}>
             <div style={{
               width: '32px', height: '32px', borderRadius: '50%',
@@ -140,9 +140,9 @@ const ActivityFeed = ({ events }) => (
             }}>{ev.icon}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '13px', color: '#ddd', lineHeight: '1.4', marginBottom: '2px' }}>{ev.message}</div>
-              {ev.sub && <div style={{ fontSize: '12px', color: '#555' }}>{ev.sub}</div>}
+              {ev.sub && <div style={{ fontSize: '12px', color: 'var(--gray-555)' }}>{ev.sub}</div>}
             </div>
-            <div style={{ fontSize: '11px', color: '#444', flexShrink: 0 }}>{ev.time}</div>
+            <div style={{ fontSize: '11px', color: 'var(--gray-444)', flexShrink: 0 }}>{ev.time}</div>
           </div>
         ))}
       </div>
@@ -236,7 +236,7 @@ const CRMDashboard = () => {
       // Recent activity from leads
       const recentLeads = leads.slice(0, 8).map((l) => ({
         icon: (l.warmth || '').toLowerCase() === 'hot' ? '🔥' : '📋',
-        color: (l.warmth || '').toLowerCase() === 'hot' ? '#ff4444' : '#00ff88',
+        color: (l.warmth || '').toLowerCase() === 'hot' ? 'var(--danger-alt)' : 'var(--accent)',
         message: `New lead: ${l.name || l.fullName || l.entityName || 'Unknown'}`,
         sub: l.serviceType || l.service || '',
         time: fmtTime(l.submittedAt || l.createdAt)
@@ -292,14 +292,14 @@ const CRMDashboard = () => {
       {/* Bottom row: contact summary + activity feed */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
         <div className="card-surface">
-          <h3 style={{ fontSize: '14px', color: '#fff', marginBottom: '20px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Contact Mix</h3>
+          <h3 style={{ fontSize: '14px', color: 'var(--white)', marginBottom: '20px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Contact Mix</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {[
               { label: 'Sellers', value: stats.totalSellers, color: '#00ff88' },
               { label: 'Buyers', value: stats.totalBuyers, color: '#0088ff' },
               { label: 'Total Contacts', value: stats.totalContacts, color: '#aaa' },
             ].map(item => (
-              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: '#111', borderRadius: '8px' }}>
+              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--gray-111)', borderRadius: '8px' }}>
                 <div style={{ fontSize: '13px', color: '#aaa' }}>{item.label}</div>
                 <div style={{ fontSize: '22px', fontWeight: '700', color: item.color }}>{item.value}</div>
               </div>

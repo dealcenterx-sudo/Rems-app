@@ -19,8 +19,8 @@ const STATUSES = ['All Statuses', 'Active', 'Closed', 'Dead'];
 const WARMTHS = ['All', 'Hot', 'Warm', 'Cold'];
 
 const warmthColor = (w = '') => {
-  const map = { hot: '#ff4444', warm: '#ffaa00', cold: '#0088ff', closed: '#aa00ff', dead: '#555' };
-  return map[w.toLowerCase()] || '#888';
+  const map = { hot: 'var(--danger-alt)', warm: 'var(--warning)', cold: 'var(--info)', closed: '#aa00ff', dead: 'var(--gray-555)' };
+  return map[w.toLowerCase()] || 'var(--text-muted-2)';
 };
 
 // ─── CSV export ────────────────────────────────────────────────────────────────
@@ -43,10 +43,10 @@ const exportCSV = (rows) => {
 const MiniBar = ({ label, value, max, color }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
     <div style={{ width: '90px', fontSize: '12px', color: '#aaa', flexShrink: 0 }}>{label}</div>
-    <div style={{ flex: 1, height: '8px', background: '#1a1a1a', borderRadius: '4px', overflow: 'hidden' }}>
+    <div style={{ flex: 1, height: '8px', background: 'var(--skeleton-highlight)', borderRadius: '4px', overflow: 'hidden' }}>
       <div style={{ height: '100%', width: `${max > 0 ? (value / max) * 100 : 0}%`, background: color, borderRadius: '4px', transition: 'width 0.4s' }} />
     </div>
-    <div style={{ width: '30px', fontSize: '12px', color: '#fff', textAlign: 'right' }}>{value}</div>
+    <div style={{ width: '30px', fontSize: '12px', color: 'var(--white)', textAlign: 'right' }}>{value}</div>
   </div>
 );
 
@@ -94,7 +94,7 @@ const CRMReportsPage = () => {
       {/* Filter Panel */}
       <div className="card-surface" style={{ padding: '20px', marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>Filters</div>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)' }}>Filters</div>
           <button onClick={clearFilters} style={ghostBtnStyle}>Clear All</button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
@@ -142,7 +142,7 @@ const CRMReportsPage = () => {
           { label: 'Active', value: filtered.filter(r => r.status === 'Active').length, color: '#0088ff' },
         ].map(k => (
           <div key={k.label} className="card-surface" style={{ padding: '18px' }}>
-            <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{k.label}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{k.label}</div>
             <div style={{ fontSize: '28px', fontWeight: '700', color: k.color }}>{k.value}</div>
           </div>
         ))}
@@ -151,13 +151,13 @@ const CRMReportsPage = () => {
       {/* Charts + Table */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
         <div className="card-surface" style={{ padding: '20px' }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '16px' }}>Leads by Source</div>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)', marginBottom: '16px' }}>Leads by Source</div>
           {bySource.map(b => <MiniBar key={b.label} label={b.label} value={b.value} max={maxSource} color="#00ff88" />)}
         </div>
         <div className="card-surface" style={{ padding: '20px' }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '16px' }}>Top Cities</div>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)', marginBottom: '16px' }}>Top Cities</div>
           {byCity.length === 0
-            ? <div style={{ color: '#444', fontSize: '13px' }}>No data</div>
+            ? <div style={{ color: 'var(--gray-444)', fontSize: '13px' }}>No data</div>
             : byCity.map(b => <MiniBar key={b.label} label={b.label} value={b.value} max={maxCity} color="#0088ff" />)
           }
         </div>
@@ -165,39 +165,39 @@ const CRMReportsPage = () => {
 
       {/* Lead Table */}
       <div className="card-surface" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #1a1a1a' }}>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>Lead Results ({filtered.length})</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--skeleton-highlight)' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)' }}>Lead Results ({filtered.length})</div>
           <button onClick={() => exportCSV(filtered)} style={primaryBtnStyle}>⬇ Export CSV</button>
         </div>
 
         {/* Table Head */}
         <div style={{
           display: 'grid', gridTemplateColumns: '100px 2fr 100px 160px 80px 70px 80px',
-          gap: '12px', padding: '10px 20px', background: '#111', borderBottom: '1px solid #1e1e1e'
+          gap: '12px', padding: '10px 20px', background: 'var(--gray-111)', borderBottom: '1px solid #1e1e1e'
         }}>
           {['Date', 'Name', 'Source', 'Service', 'Status', 'Warmth', 'City'].map(h => (
-            <div key={h} style={{ fontSize: '11px', color: '#555', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</div>
+            <div key={h} style={{ fontSize: '11px', color: 'var(--gray-555)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</div>
           ))}
         </div>
 
         {filtered.length === 0 ? (
-          <div style={{ padding: '60px', textAlign: 'center', color: '#444' }}>No leads match these filters.</div>
+          <div style={{ padding: '60px', textAlign: 'center', color: 'var(--gray-444)' }}>No leads match these filters.</div>
         ) : (
           filtered.map(r => (
             <div key={r.id}
               style={{
                 display: 'grid', gridTemplateColumns: '100px 2fr 100px 160px 80px 70px 80px',
-                gap: '12px', padding: '12px 20px', borderBottom: '1px solid #111',
+                gap: '12px', padding: '12px 20px', borderBottom: '1px solid var(--gray-111)',
                 alignItems: 'center', transition: 'background 0.15s'
               }}
-              onMouseEnter={e => e.currentTarget.style.background = '#111'}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--gray-111)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               <div style={{ fontSize: '12px', color: 'var(--text-faint)' }}>{r.date}</div>
-              <div style={{ fontSize: '13px', color: '#fff', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}</div>
-              <div style={{ fontSize: '12px', color: '#888' }}>{r.source}</div>
+              <div style={{ fontSize: '13px', color: 'var(--white)', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>{r.source}</div>
               <div style={{ fontSize: '12px', color: '#aaa' }}>{r.serviceType}</div>
-              <div style={{ fontSize: '12px', color: r.status === 'Closed' ? '#aa00ff' : r.status === 'Active' ? '#00ff88' : '#555' }}>{r.status}</div>
+              <div style={{ fontSize: '12px', color: r.status === 'Closed' ? '#aa00ff' : r.status === 'Active' ? 'var(--accent)' : 'var(--gray-555)' }}>{r.status}</div>
               <div>
                 <span style={{
                   background: `${warmthColor(r.warmth)}22`, color: warmthColor(r.warmth),
@@ -215,18 +215,18 @@ const CRMReportsPage = () => {
 
 // ─── styles ────────────────────────────────────────────────────────────────────
 const inputStyle = {
-  background: '#111', border: '1px solid #2a2a2a', borderRadius: '8px',
-  color: '#fff', fontSize: '13px', padding: '9px 12px', outline: 'none',
+  background: 'var(--gray-111)', border: '1px solid var(--border-strong)', borderRadius: '8px',
+  color: 'var(--white)', fontSize: '13px', padding: '9px 12px', outline: 'none',
   fontFamily: 'inherit', boxSizing: 'border-box', width: '100%'
 };
 const primaryBtnStyle = {
-  background: '#00ff88', color: '#000', border: 'none', borderRadius: '8px',
+  background: 'var(--accent)', color: 'var(--surface-0)', border: 'none', borderRadius: '8px',
   padding: '8px 16px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit'
 };
 const ghostBtnStyle = {
-  background: 'transparent', color: '#888', border: '1px solid #333', borderRadius: '8px',
+  background: 'transparent', color: 'var(--text-muted-2)', border: '1px solid var(--gray-333)', borderRadius: '8px',
   padding: '7px 14px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit'
 };
-const labelStyle = { fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' };
+const labelStyle = { fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' };
 
 export default CRMReportsPage;

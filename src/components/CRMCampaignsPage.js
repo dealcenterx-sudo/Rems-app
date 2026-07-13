@@ -74,11 +74,11 @@ const CreateModal = ({ onClose, onCreate }) => {
       <div role="presentation" onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1100 }} />
       <div style={{
         position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-        background: '#0d0d0d', border: '1px solid #2a2a2a', borderRadius: '14px',
+        background: '#0d0d0d', border: '1px solid var(--border-strong)', borderRadius: '14px',
         width: '520px', maxWidth: '95vw', zIndex: 1101, padding: '28px'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <div style={{ fontSize: '18px', fontWeight: '700', color: '#fff' }}>New Campaign</div>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--white)' }}>New Campaign</div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-faint)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
         </div>
 
@@ -86,7 +86,7 @@ const CreateModal = ({ onClose, onCreate }) => {
           <div>
             <div style={labelStyle}>Campaign Name *</div>
             <input value={form.name} onChange={e => set('name', e.target.value)} style={inputStyle} placeholder="e.g. Miami Q2 Seller Outreach" />
-            {error && <div style={{ color: '#ff4444', fontSize: '12px', marginTop: '4px' }}>{error}</div>}
+            {error && <div style={{ color: 'var(--danger-alt)', fontSize: '12px', marginTop: '4px' }}>{error}</div>}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
@@ -130,30 +130,30 @@ const CampaignRow = ({ c, onStatusChange }) => {
     <div style={{
       display: 'grid', gridTemplateColumns: '2fr 80px 100px 80px 80px 80px 120px',
       alignItems: 'center', gap: '12px',
-      padding: '14px 20px', borderBottom: '1px solid #1a1a1a',
+      padding: '14px 20px', borderBottom: '1px solid var(--skeleton-highlight)',
       transition: 'background 0.15s', cursor: 'default'
     }}
-      onMouseEnter={e => e.currentTarget.style.background = '#111'}
+      onMouseEnter={e => e.currentTarget.style.background = 'var(--gray-111)'}
       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
     >
       <div>
-        <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '3px' }}>{c.name}</div>
-        <div style={{ fontSize: '12px', color: '#555' }}>{c.description}</div>
+        <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)', marginBottom: '3px' }}>{c.name}</div>
+        <div style={{ fontSize: '12px', color: 'var(--gray-555)' }}>{c.description}</div>
       </div>
-      <div style={{ fontSize: '12px', color: '#888' }}>{c.type}</div>
+      <div style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>{c.type}</div>
       <div><StatusBadge status={c.status} /></div>
       <div style={{ fontSize: '13px', color: '#ddd', textAlign: 'right' }}>{c.leads.toLocaleString()}</div>
-      <div style={{ fontSize: '13px', color: '#00ff88', textAlign: 'right' }}>{openRate}%</div>
-      <div style={{ fontSize: '13px', color: '#ffaa00', textAlign: 'right' }}>{replyRate}%</div>
+      <div style={{ fontSize: '13px', color: 'var(--accent)', textAlign: 'right' }}>{openRate}%</div>
+      <div style={{ fontSize: '13px', color: 'var(--warning)', textAlign: 'right' }}>{replyRate}%</div>
       <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
         {c.status === 'active' && (
-          <button onClick={() => onStatusChange(c.id, 'paused')} style={{ ...pillBtnStyle, color: '#ffaa00', borderColor: '#ffaa0044' }}>Pause</button>
+          <button onClick={() => onStatusChange(c.id, 'paused')} style={{ ...pillBtnStyle, color: 'var(--warning)', borderColor: '#ffaa0044' }}>Pause</button>
         )}
         {c.status === 'paused' && (
-          <button onClick={() => onStatusChange(c.id, 'active')} style={{ ...pillBtnStyle, color: '#00ff88', borderColor: '#00ff8844' }}>Resume</button>
+          <button onClick={() => onStatusChange(c.id, 'active')} style={{ ...pillBtnStyle, color: 'var(--accent)', borderColor: '#00ff8844' }}>Resume</button>
         )}
         {c.status === 'draft' && (
-          <button onClick={() => onStatusChange(c.id, 'active')} style={{ ...pillBtnStyle, color: '#00ff88', borderColor: '#00ff8844' }}>Launch</button>
+          <button onClick={() => onStatusChange(c.id, 'active')} style={{ ...pillBtnStyle, color: 'var(--accent)', borderColor: '#00ff8844' }}>Launch</button>
         )}
       </div>
     </div>
@@ -244,7 +244,7 @@ const CRMCampaignsPage = () => {
           { label: 'Total Replies', value: totalReplies.toLocaleString(), color: '#ffaa00' },
         ].map(k => (
           <div key={k.label} className="card-surface" style={{ padding: '20px' }}>
-            <div style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{k.label}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{k.label}</div>
             <div style={{ fontSize: '30px', fontWeight: '700', color: k.color }}>{k.value}</div>
           </div>
         ))}
@@ -275,15 +275,15 @@ const CRMCampaignsPage = () => {
         <div style={{
           display: 'grid', gridTemplateColumns: '2fr 80px 100px 80px 80px 80px 120px',
           gap: '12px', padding: '12px 20px',
-          borderBottom: '1px solid #1e1e1e', background: '#111'
+          borderBottom: '1px solid #1e1e1e', background: 'var(--gray-111)'
         }}>
           {['Campaign', 'Type', 'Status', 'Leads', 'Open%', 'Reply%', ''].map(h => (
-            <div key={h} style={{ fontSize: '11px', color: '#555', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: h === '' || h === 'Leads' || h === 'Open%' || h === 'Reply%' ? 'right' : 'left' }}>{h}</div>
+            <div key={h} style={{ fontSize: '11px', color: 'var(--gray-555)', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: h === '' || h === 'Leads' || h === 'Open%' || h === 'Reply%' ? 'right' : 'left' }}>{h}</div>
           ))}
         </div>
 
         {filtered.length === 0 ? (
-          <div style={{ padding: '60px', textAlign: 'center', color: '#444' }}>No campaigns match these filters.</div>
+          <div style={{ padding: '60px', textAlign: 'center', color: 'var(--gray-444)' }}>No campaigns match these filters.</div>
         ) : (
           filtered.map(c => <CampaignRow key={c.id} c={c} onStatusChange={handleStatusChange} />)
         )}
@@ -296,22 +296,22 @@ const CRMCampaignsPage = () => {
 
 // ─── styles ────────────────────────────────────────────────────────────────────
 const inputStyle = {
-  background: '#111', border: '1px solid #2a2a2a', borderRadius: '8px',
-  color: '#fff', fontSize: '13px', padding: '9px 12px', outline: 'none',
+  background: 'var(--gray-111)', border: '1px solid var(--border-strong)', borderRadius: '8px',
+  color: 'var(--white)', fontSize: '13px', padding: '9px 12px', outline: 'none',
   fontFamily: 'inherit', boxSizing: 'border-box', width: '100%'
 };
 const primaryBtnStyle = {
-  background: '#00ff88', color: '#000', border: 'none', borderRadius: '8px',
+  background: 'var(--accent)', color: 'var(--surface-0)', border: 'none', borderRadius: '8px',
   padding: '9px 18px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap'
 };
 const ghostBtnStyle = {
-  background: 'transparent', color: '#888', border: '1px solid #333', borderRadius: '8px',
+  background: 'transparent', color: 'var(--text-muted-2)', border: '1px solid var(--gray-333)', borderRadius: '8px',
   padding: '9px 16px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit'
 };
 const pillBtnStyle = {
   background: 'transparent', border: '1px solid', borderRadius: '999px',
   padding: '4px 10px', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: '600'
 };
-const labelStyle = { fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' };
+const labelStyle = { fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' };
 
 export default CRMCampaignsPage;

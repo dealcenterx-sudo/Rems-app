@@ -258,14 +258,14 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
 
   const getCategoryColor = (category) => {
     const colors = {
-      contract: '#00ff88',
-      inspection: '#ffaa00',
-      photo: '#0088ff',
+      contract: 'var(--accent)',
+      inspection: 'var(--warning)',
+      photo: 'var(--info)',
       legal: '#aa00ff',
       financial: '#ff6600',
-      other: '#888888'
+      other: 'var(--text-muted-2)'
     };
-    return colors[category] || '#888888';
+    return colors[category] || 'var(--text-muted-2)';
   };
 
   const getCategoryIcon = (category) => {
@@ -332,14 +332,14 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
   return (
     <div className="page-content">
       <div className="responsive-header" style={{ marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '700', margin: 0 }}>
+        <h2 style={{ fontSize: '20px', color: 'var(--white)', fontWeight: '700', margin: 0 }}>
           Documents
         </h2>
         <button onClick={openUploadModal} className="btn-primary">+ Upload Document</button>
       </div>
 
       <div style={{ marginBottom: '30px' }}>
-        <input type="text" placeholder="Search documents..." value={searchInput} onChange={(e) => { setSearchInput(e.target.value); if (onSearchChange) onSearchChange(e.target.value); }} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '15px' }} />
+        <input type="text" placeholder="Search documents..." value={searchInput} onChange={(e) => { setSearchInput(e.target.value); if (onSearchChange) onSearchChange(e.target.value); }} style={{ width: '100%', padding: '12px 16px', background: 'var(--surface-1)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px', marginBottom: '15px' }} />
         <div className="filters-row">
           {categoryOptions.map((option) => (
             <div
@@ -413,14 +413,14 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
                 <span style={{ fontSize: '11px', fontWeight: '700', color: getCategoryColor(document.category), background: `${getCategoryColor(document.category)}15`, padding: '4px 10px', borderRadius: '10px', textTransform: 'uppercase' }}>{document.category}</span>
               </div>
               <div style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff', marginBottom: '4px', wordBreak: 'break-word' }}>{document.fileName}</div>
-                {document.description && <div style={{ fontSize: '12px', color: '#888888', lineHeight: '1.4' }}>{document.description}</div>}
+                <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)', marginBottom: '4px', wordBreak: 'break-word' }}>{document.fileName}</div>
+                {document.description && <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', lineHeight: '1.4' }}>{document.description}</div>}
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginBottom: '16px' }}>{formatFileSize(document.fileSize || 0)} • {document.fileFormat?.toUpperCase() || 'N/A'}</div>
               {document.linkedTo && document.linkedType !== 'none' && (
-                <div style={{ fontSize: '11px', color: '#0088ff', marginBottom: '16px', padding: '8px', background: '#0088ff15', borderRadius: '4px' }}>Linked to: {document.linkedType} - {document.linkedTo}</div>
+                <div style={{ fontSize: '11px', color: 'var(--info)', marginBottom: '16px', padding: '8px', background: '#0088ff15', borderRadius: '4px' }}>Linked to: {document.linkedType} - {document.linkedTo}</div>
               )}
-              <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginBottom: '16px', borderTop: '1px solid #1a1a1a', paddingTop: '12px' }}>Uploaded: {document.createdAt ? new Date(document.createdAt).toLocaleDateString() : 'N/A'}</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginBottom: '16px', borderTop: '1px solid var(--skeleton-highlight)', paddingTop: '12px' }}>Uploaded: {document.createdAt ? new Date(document.createdAt).toLocaleDateString() : 'N/A'}</div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <a href={document.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm btn-block">View</a>
                 <button onClick={() => requestDelete(document)} className="btn-danger btn-sm btn-block">Delete</button>
@@ -431,7 +431,7 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
       )}
       {filteredDocuments.length > 0 && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', flexWrap: 'wrap', gap: '10px' }}>
-          <div style={{ fontSize: '12px', color: '#888888' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>
             Showing {filteredDocuments.length} document{filteredDocuments.length === 1 ? '' : 's'} on this page
             {hasNextPage ? ' · more available' : ''}
           </div>
@@ -449,22 +449,22 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
         <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) closeUploadModal(); }}>
           <div className="modal-content" style={{ padding: '30px', maxWidth: '500px' }}>
             <div className="modal-header" style={{ marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '600', margin: 0 }}>Upload Document</h2>
+              <h2 style={{ fontSize: '20px', color: 'var(--white)', fontWeight: '600', margin: 0 }}>Upload Document</h2>
               <button onClick={closeUploadModal} className="icon-button">×</button>
             </div>
             <form onSubmit={handleUpload}>
               <div style={{ display: 'grid', gap: '16px' }}>
                 <div>
-                  <label htmlFor="docupload-file" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Select File</label>
-                  <input id="docupload-file" type="file" onChange={handleFileSelect} required style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }} />
+                  <label htmlFor="docupload-file" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px' }}>Select File</label>
+                  <input id="docupload-file" type="file" onChange={handleFileSelect} required style={{ width: '100%', padding: '10px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label htmlFor="docupload-fileName" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>File Name</label>
-                  <input id="docupload-fileName" type="text" value={uploadData.fileName} onChange={(e) => setUploadData({...uploadData, fileName: e.target.value})} required style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }} />
+                  <label htmlFor="docupload-fileName" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px' }}>File Name</label>
+                  <input id="docupload-fileName" type="text" value={uploadData.fileName} onChange={(e) => setUploadData({...uploadData, fileName: e.target.value})} required style={{ width: '100%', padding: '10px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }} />
                 </div>
                 <div>
-                  <label htmlFor="docupload-category" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Category</label>
-                  <select id="docupload-category" value={uploadData.category} onChange={(e) => setUploadData({...uploadData, category: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}>
+                  <label htmlFor="docupload-category" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px' }}>Category</label>
+                  <select id="docupload-category" value={uploadData.category} onChange={(e) => setUploadData({...uploadData, category: e.target.value})} style={{ width: '100%', padding: '10px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }}>
                     <option value="contract">Contract</option>
                     <option value="inspection">Inspection</option>
                     <option value="photo">Photo</option>
@@ -474,19 +474,19 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="docupload-description" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Description</label>
-                  <textarea id="docupload-description" value={uploadData.description} onChange={(e) => setUploadData({...uploadData, description: e.target.value})} rows={3} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', resize: 'vertical' }} />
+                  <label htmlFor="docupload-description" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px' }}>Description</label>
+                  <textarea id="docupload-description" value={uploadData.description} onChange={(e) => setUploadData({...uploadData, description: e.target.value})} rows={3} style={{ width: '100%', padding: '10px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px', resize: 'vertical' }} />
                 </div>
                 <div>
-                  <label htmlFor="docupload-linkedType" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px' }}>Link to</label>
-                  <select id="docupload-linkedType" value={uploadData.linkedType} onChange={(e) => setUploadData({...uploadData, linkedType: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', marginBottom: '8px' }}>
+                  <label htmlFor="docupload-linkedType" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px' }}>Link to</label>
+                  <select id="docupload-linkedType" value={uploadData.linkedType} onChange={(e) => setUploadData({...uploadData, linkedType: e.target.value})} style={{ width: '100%', padding: '10px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px', marginBottom: '8px' }}>
                     <option value="none">None</option>
                     <option value="deal">Deal</option>
                     <option value="property">Property</option>
                     <option value="contact">Contact</option>
                   </select>
                   {uploadData.linkedType !== 'none' && (
-                    <input type="text" placeholder={`Enter ${uploadData.linkedType} ID`} value={uploadData.linkedTo} onChange={(e) => setUploadData({...uploadData, linkedTo: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }} />
+                    <input type="text" placeholder={`Enter ${uploadData.linkedType} ID`} value={uploadData.linkedTo} onChange={(e) => setUploadData({...uploadData, linkedTo: e.target.value})} style={{ width: '100%', padding: '10px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }} />
                   )}
                 </div>
               </div>
@@ -500,8 +500,8 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
               </div>
             </form>
             <div style={{ marginTop: '20px', padding: '12px', background: '#ffaa0015', border: '1px solid #ffaa0033', borderRadius: '6px' }}>
-              <div style={{ fontSize: '12px', color: '#ffaa00', fontWeight: '600', marginBottom: '4px' }}>⚠️ Cloudinary Setup Required</div>
-              <div style={{ fontSize: '11px', color: '#888888' }}>Update CLOUDINARY_UPLOAD_PRESET and CLOUDINARY_CLOUD_NAME with your credentials.</div>
+              <div style={{ fontSize: '12px', color: 'var(--warning)', fontWeight: '600', marginBottom: '4px' }}>⚠️ Cloudinary Setup Required</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted-2)' }}>Update CLOUDINARY_UPLOAD_PRESET and CLOUDINARY_CLOUD_NAME with your credentials.</div>
             </div>
           </div>
         </div>

@@ -388,7 +388,7 @@ const CRMEmailInboxPage = () => {
         <div className="modal-overlay" role="presentation" onClick={(event) => { if (event.target === event.currentTarget && !sending) setShowCompose(false); }}>
           <div className="modal-content crm-email-modal">
             <div className="modal-header crm-email-modal-header">
-              <h2 style={{ margin: 0, fontSize: '20px', color: '#ffffff', fontWeight: '700' }}>Compose Email</h2>
+              <h2 style={{ margin: 0, fontSize: '20px', color: 'var(--white)', fontWeight: '700' }}>Compose Email</h2>
               <button
                 type="button"
                 className="icon-button"

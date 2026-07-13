@@ -1491,7 +1491,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
               margin: 0;
               font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
               background: #1f1f1f;
-              color: #ffffff;
+              color: var(--white);
             }
             .pdf-viewer-shell {
               display: grid;
@@ -1534,7 +1534,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
               width: 76px;
               height: 98px;
               border: 1px solid #8aa8d8;
-              background: linear-gradient(180deg, #ffffff 0%, #f2f5fa 100%);
+              background: linear-gradient(180deg, var(--white) 0%, #f2f5fa 100%);
               display: flex;
               align-items: flex-end;
               justify-content: center;
@@ -1564,7 +1564,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
               align-items: center;
               justify-content: space-between;
               gap: 20px;
-              background: #2a2a2a;
+              background: var(--border-strong);
               border-bottom: 1px solid #3a3a3a;
               position: sticky;
               top: 0;
@@ -1581,7 +1581,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
               display: flex;
               align-items: center;
               gap: 16px;
-              color: #cfcfcf;
+              color: var(--text-secondary);
               font-size: 16px;
             }
             .pdf-viewer-toolbar-chip {
@@ -1617,8 +1617,8 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
             .pdf-viewer-page {
               width: min(100%, 880px);
               min-height: 1120px;
-              background: #ffffff;
-              color: #111111;
+              background: var(--white);
+              color: var(--gray-111);
               box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
               border-radius: 2px;
               padding: 64px 72px;
@@ -2447,7 +2447,7 @@ const CRMLeadDetailPage = ({ leadId, onStartDeal, onBackToLeads }) => {
         <div className="modal-overlay" role="presentation" onClick={() => !sendingEmail && setShowEmailComposer(false)}>
           <div className="modal-content crm-email-modal" role="presentation" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header crm-email-modal-header">
-              <h2 style={{ margin: 0, fontSize: '20px', color: '#ffffff', fontWeight: '700' }}>Send Email</h2>
+              <h2 style={{ margin: 0, fontSize: '20px', color: 'var(--white)', fontWeight: '700' }}>Send Email</h2>
               <button
                 type="button"
                 className="icon-button"
