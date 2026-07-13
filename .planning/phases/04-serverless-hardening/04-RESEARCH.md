@@ -276,7 +276,10 @@ Note: `validate.js` is CommonJS (`module.exports`); import via the same `require
 | A2 | The permissive schemas accept all shapes the live client currently sends (so enforce-mode won't break clients) | SEC-01 / Pitfall 1 | Medium — must be confirmed by auditing client call-site payloads + accept-path tests; the whole point of the log-then-enforce criterion |
 | A3 | csp-report being unauthenticated is intended (browser beacon), not an oversight | SEC-02 | Low — matches CSP spec; confirm with user when documenting |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Both resolved by orchestrator-locked decisions at plan time: Q1 (log-then-enforce with Sentry watching) → accept enforce-only, add accept-path tests proving live-client payloads pass (Plan 04-01), defer the Sentry-watched soak to a human-verify checkpoint tied to the Phase 3 DSN (Plan 04-03) — no log-mode toggle added. Q2 (delete-media 200-on-not-found) → keep the idempotent behavior, characterize it (Plan 04-01) and document it as intended (changelog).
+
 
 1. **"Log-then-enforce rollout with Sentry watching" — how to satisfy given the code is enforce-only and Sentry has no DSN?**
    - What we know: shipped code returns 400 immediately (enforce); no log-mode flag; SENTRY_DSN unset (Phase 3 deferred).
