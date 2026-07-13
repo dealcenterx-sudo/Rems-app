@@ -3,6 +3,8 @@ import { db, auth } from '../firebase';
 import { collection, getDocs, query, where, orderBy, getCountFromServer, limit } from 'firebase/firestore';
 import { UserPlus, FileText, ShoppingCart, Key, AlertCircle } from './Icons';
 import PageState from './PageState';
+import Skeleton, { SkeletonKpiTile } from './Skeleton';
+import useDelayedFlag from '../utils/useDelayedFlag';
 import { mapError } from '../utils/errorMessages';
 import { normalizeAddressValue, normalizePropertyTypeBucket, isAdminUser } from '../utils/helpers';
 import { isExternalRole } from './Icons';
@@ -13,13 +15,17 @@ const HOME_KPI_CACHE_KEY = 'rems-home-dashboard-cache-v1';
 
 const getHomeScope = (isAdmin, uid) => (isAdmin ? 'admin' : uid || 'anonymous');
 
+// Silent SWR (D-11): return the cached payload even when stale so KPIs render
+// instantly; `isStale` tells the caller a background refetch is warranted. Only a
+// genuine cache miss (no/invalid entry) returns null → true cold load.
 const readHomeKpiCache = (scope) => {
   try {
     const raw = localStorage.getItem(`${HOME_KPI_CACHE_KEY}:${scope}`);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (!parsed || Date.now() - parsed.savedAt > HOME_KPI_CACHE_TTL_MS) return null;
-    return parsed.payload;
+    if (!parsed || !parsed.payload) return null;
+    const isStale = Date.now() - parsed.savedAt > HOME_KPI_CACHE_TTL_MS;
+    return { payload: parsed.payload, isStale };
   } catch {
     return null;
   }
@@ -237,13 +243,16 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
     const cacheScope = getHomeScope(isAdminUser(), auth.currentUser?.uid);
     const cached = readHomeKpiCache(cacheScope);
     if (cached) {
-      if (cached.stats) setStats(cached.stats);
-      if (Array.isArray(cached.tasks)) setTasks(cached.tasks);
+      // Render cached KPIs immediately — even when stale — then refetch silently in
+      // the background and swap in fresh numbers (no spinner, no refresh indicator).
+      if (cached.payload.stats) setStats(cached.payload.stats);
+      if (Array.isArray(cached.payload.tasks)) setTasks(cached.payload.tasks);
       setLoading(false);
       loadDashboardData(true);
       return;
     }
 
+    // True cold/no-cache first load — surfaces the delayed KPI skeleton.
     loadDashboardData();
   }, [loadDashboardData, externalUser]);
 
@@ -258,12 +267,41 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
     { label: 'Properties Owned', icon: Key, color: '#aa00ff', action: onNavigateToProperties }
   ];
 
+  const showKpiSkeleton = useDelayedFlag(loading, 400);
+
   if (loading) {
+    // Cold/no-cache first load only (cached renders set loading=false immediately, so
+    // this never fires on an SWR render — D-11). Delay-then-show at 400ms (D-09): a
+    // layout-mirroring KPI skeleton, no spinner. Sub-threshold loads render nothing.
     return (
       <div className="page-content">
-        <div className="loading-container">
-          <div className="loading-spinner" />
-        </div>
+        {showKpiSkeleton && (
+          <>
+            <div className="section" aria-hidden="true">
+              <div className="section-title">Quick Links</div>
+              <div className="quick-links-grid">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} height={92} radius="var(--radius-md)" />
+                ))}
+              </div>
+            </div>
+            <div className="section" aria-hidden="true">
+              <div className="section-title">Key Performance Indicators</div>
+              <div className="kpi-grid">
+                {[6, 3, 1, 5].map((rows, c) => (
+                  <div key={c} className="kpi-container">
+                    <Skeleton height={14} width="45%" style={{ marginBottom: 'var(--space-4)' }} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                      {Array.from({ length: rows }).map((_, r) => (
+                        <SkeletonKpiTile key={r} style={{ minHeight: 0, padding: 0, gap: 'var(--space-2)', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     );
   }
