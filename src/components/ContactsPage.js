@@ -17,6 +17,8 @@ import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { Search, Users, Check, AlertCircle } from './Icons';
 import PageState from './PageState';
+import { SkeletonTableRow } from './Skeleton';
+import useDelayedFlag from '../utils/useDelayedFlag';
 import { mapError } from '../utils/errorMessages';
 import { isAdminUser } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
@@ -326,6 +328,8 @@ const handleSaveContact = async () => {
     });
   }, [contacts, selectedViewTab, searchTerm]);
 
+  const showContactsSkeleton = useDelayedFlag(loading, 400);
+
   return (
     <div className="page-with-subnav">
       <div className="subnav">
@@ -487,9 +491,19 @@ const handleSaveContact = async () => {
               </div>
 
               {loading ? (
-                <div className="loading-container">
-                  <div className="loading-spinner" />
-                </div>
+                // Delay-then-show (D-09, 400ms): sub-threshold loads render nothing
+                // then swap straight to the table; only slow loads show the skeleton (D-10).
+                showContactsSkeleton ? (
+                  <div className="tasks-table" aria-hidden="true">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <SkeletonTableRow
+                        key={i}
+                        columns={6}
+                        style={{ padding: '0 var(--space-4)', borderBottom: '1px solid var(--border-subtle)' }}
+                      />
+                    ))}
+                  </div>
+                ) : null
               ) : loadError ? (
                 <PageState
                   tone="error"

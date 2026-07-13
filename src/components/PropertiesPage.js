@@ -18,6 +18,8 @@ import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { Building2, AlertCircle } from './Icons';
 import PageState from './PageState';
+import { SkeletonCard } from './Skeleton';
+import useDelayedFlag from '../utils/useDelayedFlag';
 import { mapError } from '../utils/errorMessages';
 import { isAdminUser } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
@@ -508,12 +510,20 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
   const bedsOptions = ['any', '1', '2', '3', '4+'];
   const bathsOptions = ['any', '1', '2', '3+'];
 
+  const showPropertiesSkeleton = useDelayedFlag(loading, 400);
+
   if (loading) {
+    // Delay-then-show (D-09, 400ms): only slow loads render the card-grid skeleton;
+    // sub-threshold loads render nothing then swap straight to content (D-10).
     return (
       <div className="page-content">
-        <div className="loading-container">
-          <div className="loading-spinner" />
-        </div>
+        {showPropertiesSkeleton && (
+          <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }} aria-hidden="true">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} height={320} />
+            ))}
+          </div>
+        )}
       </div>
     );
   }

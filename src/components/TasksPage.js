@@ -4,6 +4,8 @@ import { collection, addDoc, getDocs, query, where, orderBy, updateDoc, doc, del
 import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import PageState from './PageState';
+import Skeleton, { SkeletonTableRow } from './Skeleton';
+import useDelayedFlag from '../utils/useDelayedFlag';
 import { CheckSquare, Search, AlertCircle } from './Icons';
 import { isAdminUser } from '../utils/helpers';
 import useDebounce from '../utils/useDebounce';
@@ -612,10 +614,33 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
     ? (tasksByDate[getDateKey(selectedDate)] || [])
     : [];
 
+  const showTasksSkeleton = useDelayedFlag(loading, 400);
+
   if (loading) {
+    // Delay-then-show (D-09, 400ms): only slow loads render the skeleton mirroring
+    // the header + stat tiles + list; sub-threshold loads swap straight to content (D-10).
     return (
-      <div className="loading-container">
-        <div className="loading-spinner" />
+      <div className="page-content">
+        {showTasksSkeleton && (
+          <>
+            <div className="responsive-header" style={{ marginBottom: '25px' }} aria-hidden="true">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                <Skeleton width={120} height={24} radius="var(--radius-md)" />
+                <Skeleton width={70} height={13} />
+              </div>
+            </div>
+            <div className="grid-four" style={{ marginBottom: '20px' }} aria-hidden="true">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} height={74} radius="var(--radius-md)" />
+              ))}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }} aria-hidden="true">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonTableRow key={i} columns={4} />
+              ))}
+            </div>
+          </>
+        )}
       </div>
     );
   }

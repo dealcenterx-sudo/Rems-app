@@ -18,6 +18,8 @@ import { notifyUsers, dealRecipients } from '../utils/notifications';
 import ConfirmModal from './ConfirmModal';
 import { FileText, Search, AlertCircle } from './Icons';
 import PageState from './PageState';
+import Skeleton, { SkeletonCard } from './Skeleton';
+import useDelayedFlag from '../utils/useDelayedFlag';
 import { isAdminUser } from '../utils/helpers';
 import { mapError } from '../utils/errorMessages';
 
@@ -221,12 +223,27 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
     { value: 'closed', label: 'Closed', count: deals.filter(d => d.status === 'closed').length }
   ];
 
+  const showDealsSkeleton = useDelayedFlag(loading, 400);
+
   if (loading) {
+    // Delay-then-show (D-09, 400ms): sub-threshold loads render nothing then swap
+    // straight to content; only slow loads show a layout-mirroring skeleton (D-10).
     return (
       <div className="page-content">
-        <div className="loading-container">
-          <div className="loading-spinner" />
-        </div>
+        {showDealsSkeleton && (
+          <>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '30px' }} aria-hidden="true">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} width={110} height={38} radius="var(--radius-md)" />
+              ))}
+            </div>
+            <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }} aria-hidden="true">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonCard key={i} height={196} />
+              ))}
+            </div>
+          </>
+        )}
       </div>
     );
   }

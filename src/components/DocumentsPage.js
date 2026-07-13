@@ -16,6 +16,8 @@ import { useToast } from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { FileText, AlertCircle } from './Icons';
 import PageState from './PageState';
+import { SkeletonCard } from './Skeleton';
+import useDelayedFlag from '../utils/useDelayedFlag';
 import { mapError } from '../utils/errorMessages';
 import { isAdminUser } from '../utils/helpers';
 import { logActivity } from '../utils/auditLog';
@@ -309,12 +311,20 @@ const DocumentsPage = ({ globalSearch = '', onSearchChange }) => {
     { value: 'other', label: 'Other', count: documents.filter(d => d.category === 'other').length }
   ];
 
+  const showDocumentsSkeleton = useDelayedFlag(loading, 400);
+
   if (loading) {
+    // Delay-then-show (D-09, 400ms): only slow loads render the card-grid skeleton;
+    // sub-threshold loads render nothing then swap straight to content (D-10).
     return (
       <div className="page-content">
-        <div className="loading-container">
-          <div className="loading-spinner" />
-        </div>
+        {showDocumentsSkeleton && (
+          <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }} aria-hidden="true">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} height={150} />
+            ))}
+          </div>
+        )}
       </div>
     );
   }

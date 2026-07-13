@@ -4,6 +4,8 @@ import { collection, getDocs, query, orderBy, where, limit, startAfter } from 'f
 import LeadDrawer from './LeadDrawer';
 import { CalendarIcon, Search, AlertCircle } from './Icons';
 import PageState from './PageState';
+import { SkeletonTableRow } from './Skeleton';
+import useDelayedFlag from '../utils/useDelayedFlag';
 import { isAdminUser, normalizeLeadWarmth } from '../utils/helpers';
 import { mapError } from '../utils/errorMessages';
 
@@ -272,12 +274,23 @@ const CRMLeadsPage = ({ onOpenLead }) => {
     );
   });
 
+  const showLeadsSkeleton = useDelayedFlag(loading, 400);
+
   if (loading) {
+    // Delay-then-show (D-09, 400ms): only slow loads render the table skeleton;
+    // sub-threshold loads render nothing then swap straight to content (D-10).
     return (
       <div className="page-content">
-        <div className="loading-container">
-          <div className="loading-spinner" />
-        </div>
+        {showLeadsSkeleton && (
+          <div className="section" aria-hidden="true">
+            <div className="section-title">Leads</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', marginTop: 'var(--space-3)' }}>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <SkeletonTableRow key={i} columns={11} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
