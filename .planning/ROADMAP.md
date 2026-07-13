@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Audit, Repo Hygiene & Config Centralization** - Audit deliverables in docs/, archive/diagnostics cleanup, admin email + constants centralized with CI grep proof (completed 2026-07-07)
 - [x] **Phase 2: Test Scaffolding** - Emulator-backed Firestore rules tests and API handler tests wired into CI, outside CRA's Jest (completed 2026-07-13)
-- [x] **Phase 3: Observability** - Sentry client + serverless error capture and web-vitals, verified with a real production error (completed 2026-07-13)
+- [ ] **Phase 3: Observability** - Sentry client + serverless error capture and web-vitals; code-wiring verified this session (test:ci 42, test:api 27), but the three "event appears in Sentry" checkpoints are DEFERRED pending a production deploy with a DSN — status human_needed, close via /gsd-verify-work 3 after a Sentry smoke
 - [ ] **Phase 4: Serverless Hardening** - Zod validation with log-then-enforce rollout, auth audit, documented trust boundaries, Cloudinary delete
 - [ ] **Phase 5: Data Reliability & Infrastructure Headers** - Composite indexes READY, loud fallbacks, cache headers, CSP Report-Only soak begins
 - [ ] **Phase 6: Firestore Rules Hardening** - Admin email fallback removed via additive-then-subtractive Console publishes with two-account smoke tests
