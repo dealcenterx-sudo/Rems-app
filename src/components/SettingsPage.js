@@ -172,10 +172,10 @@ const SettingsPage = () => {
     <div className="page-content">
       {/* Header */}
       <div style={{ marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff', margin: '0 0 5px 0' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--white)', margin: '0 0 5px 0' }}>
           Settings
         </h2>
-        <p style={{ fontSize: '13px', color: '#888888', margin: 0 }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-muted-2)', margin: 0 }}>
           Manage your account and preferences
         </p>
       </div>
@@ -192,7 +192,7 @@ const SettingsPage = () => {
               onClick={() => setActiveSection(section.id)}
               aria-current={activeSection === section.id ? 'true' : undefined}
             >
-              <section.icon size={18} color={activeSection === section.id ? '#0088ff' : '#888888'} />
+              <section.icon size={18} color={activeSection === section.id ? 'var(--info)' : 'var(--text-muted-2)'} />
               <span>{section.label}</span>
             </button>
           ))}
@@ -203,7 +203,7 @@ const SettingsPage = () => {
           {/* Profile Section */}
           {activeSection === 'profile' && (
             <div>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#ffffff', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--white)', marginBottom: '20px' }}>
                 Profile Information
               </h3>
 
@@ -258,7 +258,7 @@ const SettingsPage = () => {
           {/* Security Section */}
           {activeSection === 'security' && (
             <div>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#ffffff', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--white)', marginBottom: '20px' }}>
                 Change Password
               </h3>
 
@@ -299,7 +299,7 @@ const SettingsPage = () => {
           {/* Company Section */}
           {activeSection === 'company' && (
             <div>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#ffffff', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--white)', marginBottom: '20px' }}>
                 Company Settings
               </h3>
 
@@ -314,7 +314,7 @@ const SettingsPage = () => {
           {/* Notifications Section */}
           {activeSection === 'notifications' && (
             <div>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#ffffff', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--white)', marginBottom: '20px' }}>
                 Notification Preferences
               </h3>
 
@@ -329,7 +329,7 @@ const SettingsPage = () => {
           {/* User Management Section (admin only) */}
           {activeSection === 'users' && isAdmin && (
             <div>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#ffffff', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--white)', marginBottom: '20px' }}>
                 User Management
               </h3>
               <UserManagement />
@@ -339,7 +339,7 @@ const SettingsPage = () => {
           {/* Activity Log Section (admin only) */}
           {activeSection === 'activity' && isAdmin && (
             <div>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#ffffff', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--white)', marginBottom: '20px' }}>
                 Activity Log
               </h3>
               <ActivityLogView />
@@ -348,31 +348,31 @@ const SettingsPage = () => {
 
           {activeSection === 'connector' && (
             <div>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#ffffff', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--white)', marginBottom: '20px' }}>
                 Connector Settings
               </h3>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '20px' }}>
                 <div className="card-surface" style={{ padding: '20px' }}>
-                  <div style={{ fontSize: '11px', color: '#888888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
                     Lead Delivery
                   </div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--white)', marginBottom: '8px' }}>
                     XML Push + API Routing
                   </div>
-                  <div style={{ fontSize: '13px', color: '#888888', lineHeight: '1.6' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted-2)', lineHeight: '1.6' }}>
                     Configure inbound lead feeds, XML endpoints, API authentication, and partner delivery routing from Settings.
                   </div>
                 </div>
 
                 <div className="card-surface" style={{ padding: '20px' }}>
-                  <div style={{ fontSize: '11px', color: '#888888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
                     Status
                   </div>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', border: '1px solid #1a3c2a', background: '#0b1710', color: '#00ff88', borderRadius: '999px', padding: '8px 12px', fontSize: '12px', fontWeight: '700' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', border: '1px solid #1a3c2a', background: '#0b1710', color: 'var(--accent)', borderRadius: '999px', padding: '8px 12px', fontSize: '12px', fontWeight: '700' }}>
                     Admin Setup Pending
                   </div>
-                  <div style={{ fontSize: '13px', color: '#888888', lineHeight: '1.6', marginTop: '12px' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted-2)', lineHeight: '1.6', marginTop: '12px' }}>
                     This area is ready to become the central place for compliant connector configuration.
                   </div>
                 </div>

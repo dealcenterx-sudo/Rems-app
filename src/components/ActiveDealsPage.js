@@ -224,12 +224,12 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
 
   const getStatusColor = (status) => {
     const colors = {
-      new: '#ffaa00',
-      active: '#00ff88',
-      pending: '#0088ff',
+      new: 'var(--warning)',
+      active: 'var(--accent)',
+      pending: 'var(--info)',
       closed: '#aa00ff'
     };
-    return colors[status] || '#888888';
+    return colors[status] || 'var(--text-muted-2)';
   };
 
   const getStatusLabel = (status) => {
@@ -334,29 +334,29 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
       ) : (
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
           {deals.map((deal) => (
-            <div key={deal.id} role="button" tabIndex={0} onClick={() => { setSelectedDeal(deal); setShowDetailModal(true); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedDeal(deal); setShowDetailModal(true); } }} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = getStatusColor(deal.status); e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1a1a1a'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+            <div key={deal.id} role="button" tabIndex={0} onClick={() => { setSelectedDeal(deal); setShowDetailModal(true); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedDeal(deal); setShowDetailModal(true); } }} style={{ background: 'var(--surface-1)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', padding: '20px', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = getStatusColor(deal.status); e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--skeleton-highlight)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                 <span style={{ fontSize: '11px', fontWeight: '700', color: getStatusColor(deal.status), background: `${getStatusColor(deal.status)}15`, padding: '4px 12px', borderRadius: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{getStatusLabel(deal.status)}</span>
                 <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>{deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : 'N/A'}</span>
               </div>
               <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontSize: '16px', fontWeight: '600', color: '#ffffff', marginBottom: '4px' }}>{deal.propertyAddress || 'No address'}</div>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--white)', marginBottom: '4px' }}>{deal.propertyAddress || 'No address'}</div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '12px', color: '#888888', minWidth: '50px' }}>Buyer:</span>
-                  <span style={{ fontSize: '13px', color: '#0088ff', fontWeight: '600' }}>{deal.buyerName || 'Not set'}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted-2)', minWidth: '50px' }}>Buyer:</span>
+                  <span style={{ fontSize: '13px', color: 'var(--info)', fontWeight: '600' }}>{deal.buyerName || 'Not set'}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '12px', color: '#888888', minWidth: '50px' }}>Seller:</span>
-                  <span style={{ fontSize: '13px', color: '#00ff88', fontWeight: '600' }}>{deal.sellerName || 'Not set'}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted-2)', minWidth: '50px' }}>Seller:</span>
+                  <span style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: '600' }}>{deal.sellerName || 'Not set'}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: '12px', color: '#00ff88', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>View Details →</div>
+                <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>View Details →</div>
                 <button
                   onClick={(e) => { e.stopPropagation(); onOpenPortal?.(deal.id); }}
-                  style={{ background: '#00ff8815', border: '1px solid #00ff8833', color: '#00ff88', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}
+                  style={{ background: '#00ff8815', border: '1px solid #00ff8833', color: 'var(--accent)', padding: '4px 12px', borderRadius: '12px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}
                 >
                   Portal →
                 </button>
@@ -364,7 +364,7 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
             </div>
           ))}
             <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', flexWrap: 'wrap', gap: '10px' }}>
-              <div style={{ fontSize: '12px', color: '#888888' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>
                 Showing {deals.length} deal{deals.length === 1 ? '' : 's'} on this page
                 {hasNextPage ? ' · more available' : ''}
               </div>
@@ -386,7 +386,7 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
           <div className="modal-content" style={{ padding: '30px', maxWidth: '600px' }}>
             <div className="modal-header" style={{ marginBottom: '24px' }}>
               <div>
-                <h2 style={{ fontSize: '20px', color: '#ffffff', marginBottom: '8px', fontWeight: '600' }}>Deal Details</h2>
+                <h2 style={{ fontSize: '20px', color: 'var(--white)', marginBottom: '8px', fontWeight: '600' }}>Deal Details</h2>
                 <span className="badge" style={{ color: getStatusColor(selectedDeal.status), background: `${getStatusColor(selectedDeal.status)}15` }}>
                   {getStatusLabel(selectedDeal.status)}
                 </span>
@@ -394,31 +394,31 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
               <button onClick={() => setShowDetailModal(false)} className="icon-button">×</button>
             </div>
             <div className="card-surface" style={{ marginBottom: '24px' }}>
-              <div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Property Address</div>
-              <div style={{ fontSize: '18px', color: '#ffffff', fontWeight: '600' }}>{selectedDeal.propertyAddress || 'Not set'}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Property Address</div>
+              <div style={{ fontSize: '18px', color: 'var(--white)', fontWeight: '600' }}>{selectedDeal.propertyAddress || 'Not set'}</div>
             </div>
             <div className="grid-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
               <div>
-                <div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Buyer</div>
-                <div style={{ fontSize: '15px', color: '#0088ff', fontWeight: '600' }}>{selectedDeal.buyerName || 'Not set'}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Buyer</div>
+                <div style={{ fontSize: '15px', color: 'var(--info)', fontWeight: '600' }}>{selectedDeal.buyerName || 'Not set'}</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Seller</div>
-                <div style={{ fontSize: '15px', color: '#00ff88', fontWeight: '600' }}>{selectedDeal.sellerName || 'Not set'}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Seller</div>
+                <div style={{ fontSize: '15px', color: 'var(--accent)', fontWeight: '600' }}>{selectedDeal.sellerName || 'Not set'}</div>
               </div>
             </div>
             <div className="grid-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
               <div>
-                <div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Created</div>
-                <div style={{ fontSize: '14px', color: '#ffffff' }}>{selectedDeal.createdAt ? new Date(selectedDeal.createdAt).toLocaleDateString() : 'N/A'}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Created</div>
+                <div style={{ fontSize: '14px', color: 'var(--white)' }}>{selectedDeal.createdAt ? new Date(selectedDeal.createdAt).toLocaleDateString() : 'N/A'}</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Last Updated</div>
-                <div style={{ fontSize: '14px', color: '#ffffff' }}>{selectedDeal.updatedAt ? new Date(selectedDeal.updatedAt).toLocaleDateString() : 'N/A'}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Last Updated</div>
+                <div style={{ fontSize: '14px', color: 'var(--white)' }}>{selectedDeal.updatedAt ? new Date(selectedDeal.updatedAt).toLocaleDateString() : 'N/A'}</div>
               </div>
             </div>
             <div className="card-surface" style={{ marginBottom: '24px' }}>
-              <div style={{ fontSize: '12px', color: '#888888', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Update Status</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Update Status</div>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 {['new', 'active', 'pending', 'closed'].map((status) => (
                   <button
@@ -426,14 +426,14 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
                     onClick={() => requestStatusChange(selectedDeal.id, status)}
                     disabled={selectedDeal.status === status}
                     className={selectedDeal.status === status ? 'btn-primary' : 'btn-secondary'}
-                    style={selectedDeal.status === status ? { background: getStatusColor(status), color: '#000000' } : undefined}
+                    style={selectedDeal.status === status ? { background: getStatusColor(status), color: 'var(--surface-0)' } : undefined}
                   >
                     {getStatusLabel(status)}
                   </button>
                 ))}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '10px', paddingTop: '20px', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ display: 'flex', gap: '10px', paddingTop: '20px', borderTop: '1px solid var(--skeleton-highlight)' }}>
               <button
                 onClick={() => { setShowDetailModal(false); onOpenPortal?.(selectedDeal.id); }}
                 className="btn-primary btn-block"

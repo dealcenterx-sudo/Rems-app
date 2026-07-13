@@ -90,16 +90,16 @@ const DealPortalPage = ({ dealId, onBack }) => {
   return (
     <div className="page-content" style={{ padding: 0 }}>
       {/* Portal Header */}
-      <div style={{ padding: '20px 24px 0', borderBottom: '1px solid #1a1a1a' }}>
+      <div style={{ padding: '20px 24px 0', borderBottom: '1px solid var(--skeleton-highlight)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
           <button
             onClick={onBack}
-            style={{ background: 'none', border: '1px solid #333', color: '#888', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}
+            style={{ background: 'none', border: '1px solid var(--gray-333)', color: 'var(--text-muted-2)', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}
           >
             ← Back
           </button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--white)' }}>
               {deal.propertyAddress || 'Untitled Deal'}
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-faint)', marginTop: '4px' }}>
@@ -110,7 +110,7 @@ const DealPortalPage = ({ dealId, onBack }) => {
           <span style={{
             fontSize: '11px',
             fontWeight: '700',
-            color: deal.status === 'active' ? '#00ff88' : deal.status === 'pending' ? '#0088ff' : deal.status === 'closed' ? '#aa00ff' : '#ffaa00',
+            color: deal.status === 'active' ? 'var(--accent)' : deal.status === 'pending' ? 'var(--info)' : deal.status === 'closed' ? '#aa00ff' : 'var(--warning)',
             background: `${deal.status === 'active' ? '#00ff88' : deal.status === 'pending' ? '#0088ff' : deal.status === 'closed' ? '#aa00ff' : '#ffaa00'}15`,
             padding: '4px 12px',
             borderRadius: '12px',
@@ -137,8 +137,8 @@ const DealPortalPage = ({ dealId, onBack }) => {
                 padding: '12px 20px',
                 background: 'none',
                 border: 'none',
-                borderBottom: activeTab === tab.id ? '2px solid #00ff88' : '2px solid transparent',
-                color: activeTab === tab.id ? '#00ff88' : 'var(--text-muted)',
+                borderBottom: activeTab === tab.id ? '2px solid var(--accent)' : '2px solid transparent',
+                color: activeTab === tab.id ? 'var(--accent)' : 'var(--text-muted)',
                 cursor: 'pointer',
                 fontSize: '13px',
                 fontWeight: activeTab === tab.id ? '600' : '400',
@@ -146,7 +146,7 @@ const DealPortalPage = ({ dealId, onBack }) => {
                 transition: 'all 0.2s'
               }}
             >
-              <tab.icon size={16} color={activeTab === tab.id ? '#00ff88' : '#8a8a8a'} />
+              <tab.icon size={16} color={activeTab === tab.id ? 'var(--accent)' : 'var(--text-muted)'} />
               {tab.label}
             </button>
           ))}

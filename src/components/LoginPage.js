@@ -79,10 +79,10 @@ const LoginPage = ({ onLoginSuccess, embedded = false }) => {
   };
 
   const card = (
-      <div className={embedded ? 'public-auth-card' : undefined} style={{ background: '#0a0a0a', border: '2px solid #1a1a1a', borderRadius: '8px', padding: embedded ? '30px' : '40px', maxWidth: '450px', width: '100%' }}>
+      <div className={embedded ? 'public-auth-card' : undefined} style={{ background: 'var(--surface-1)', border: '2px solid var(--skeleton-highlight)', borderRadius: '8px', padding: embedded ? '30px' : '40px', maxWidth: '450px', width: '100%' }}>
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <div style={{ width: '60px', height: '60px', background: '#00ff88', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '28px', fontWeight: '700', color: '#000000', margin: '0 auto 20px' }}>R</div>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', marginBottom: '8px', letterSpacing: '-0.5px' }}>
+          <div style={{ width: '60px', height: '60px', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '28px', fontWeight: '700', color: 'var(--surface-0)', margin: '0 auto 20px' }}>R</div>
+          <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--white)', marginBottom: '8px', letterSpacing: '-0.5px' }}>
             {isSignup ? 'Create Account' : 'Welcome Back'}
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-faint)' }}>
@@ -102,7 +102,7 @@ const LoginPage = ({ onLoginSuccess, embedded = false }) => {
         <form onSubmit={handleEmailAuth}>
           {isSignup && (
             <div style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'block', fontSize: '12px', color: '#888888', marginBottom: '8px' }}>
+              <div style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted-2)', marginBottom: '8px' }}>
                 I am signing up as a...
               </div>
               <div role="radiogroup" aria-label="Account type" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -128,8 +128,8 @@ const LoginPage = ({ onLoginSuccess, embedded = false }) => {
                         padding: '10px 12px',
                         borderRadius: '6px',
                         cursor: 'pointer',
-                        background: isSelected ? '#00ff8810' : '#0f0f0f',
-                        border: isSelected ? '1px solid #00ff88' : '1px solid #1a1a1a',
+                        background: isSelected ? '#00ff8810' : 'var(--surface-2)',
+                        border: isSelected ? '1px solid var(--accent)' : '1px solid var(--skeleton-highlight)',
                         transition: 'all 0.2s'
                       }}
                     >
@@ -138,11 +138,11 @@ const LoginPage = ({ onLoginSuccess, embedded = false }) => {
                         height: '14px',
                         borderRadius: '50%',
                         flexShrink: 0,
-                        border: isSelected ? '4px solid #00ff88' : '2px solid #444444',
-                        background: isSelected ? '#000000' : 'transparent'
+                        border: isSelected ? '4px solid var(--accent)' : '2px solid var(--gray-444)',
+                        background: isSelected ? 'var(--surface-0)' : 'transparent'
                       }} />
                       <div>
-                        <div style={{ fontSize: '13px', fontWeight: '600', color: isSelected ? '#ffffff' : '#cccccc' }}>
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: isSelected ? 'var(--white)' : '#cccccc' }}>
                           {role.label}
                         </div>
                         <div style={{ fontSize: '11px', color: 'var(--text-faint)' }}>{role.description}</div>
@@ -194,11 +194,11 @@ const LoginPage = ({ onLoginSuccess, embedded = false }) => {
           </button>
         </form>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '20px 0', color: 'var(--text-faint)', fontSize: '12px' }}>
-          <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }}></div>
+          <div style={{ flex: 1, height: '1px', background: 'var(--skeleton-highlight)' }}></div>
           <span>OR</span>
-          <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }}></div>
+          <div style={{ flex: 1, height: '1px', background: 'var(--skeleton-highlight)' }}></div>
         </div>
-        <button onClick={handleGoogleAuth} disabled={loading} style={{ width: '100%', background: '#ffffff', color: '#000000', border: 'none', padding: '12px', fontSize: '13px', fontWeight: '600', borderRadius: '4px', cursor: 'pointer', fontFamily: 'inherit', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+        <button onClick={handleGoogleAuth} disabled={loading} style={{ width: '100%', background: 'var(--white)', color: 'var(--surface-0)', border: 'none', padding: '12px', fontSize: '13px', fontWeight: '600', borderRadius: '4px', cursor: 'pointer', fontFamily: 'inherit', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           <svg width="18" height="18" viewBox="0 0 18 18">
             <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
             <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
@@ -207,7 +207,7 @@ const LoginPage = ({ onLoginSuccess, embedded = false }) => {
           </svg>
           Continue with Google
         </button>
-        <div style={{ textAlign: 'center', fontSize: '13px', color: '#888888' }}>
+        <div style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted-2)' }}>
           {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
           <span
             onClick={() => { setIsSignup(!isSignup); setError(''); setNotice(''); }}
@@ -219,7 +219,7 @@ const LoginPage = ({ onLoginSuccess, embedded = false }) => {
             {isSignup ? 'Sign In' : 'Sign Up'}
           </span>
         </div>
-        <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-faint)', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #1a1a1a' }}>
+        <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-faint)', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--skeleton-highlight)' }}>
           Secured with Firebase Authentication · Your data is encrypted in transit
         </div>
       </div>
@@ -228,7 +228,7 @@ const LoginPage = ({ onLoginSuccess, embedded = false }) => {
   if (embedded) return card;
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#000000', padding: '20px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--surface-0)', padding: '20px' }}>
       {card}
     </div>
   );
