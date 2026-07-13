@@ -1,8 +1,8 @@
 ---
 phase: 3
 slug: observability
-status: draft
-nyquist_compliant: false
+status: planned
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-13
 ---
@@ -40,6 +40,14 @@ created: 2026-07-13
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
+| 03-01-T1 | 03-01 | 1 | OBS-01, OBS-03 | T-03-01 | captureError/captureWebVital send only caller context + metric fields (no PII/secrets); init no-op without DSN | unit (mock @sentry/react) | `CI=true npx react-scripts test --watchAll=false src/utils/observability.test.js` | ❌ Wave 0 | ⬜ pending |
+| 03-01-T2 | 03-01 | 1 | OBS-01 | T-03-01 | ErrorBoundary bridges caught error to captureError with componentStack only | unit (mock ../utils/observability) | `CI=true npx react-scripts test --watchAll=false src/components/ErrorBoundary.test.js` | ❌ Wave 0 | ⬜ pending |
+| 03-02-T1 | 03-02 | 1 | OBS-02 | T-03A-01, T-03A-02 | wrapper flushes before responding; captureException tags carry only api_route+method; no-DSN no-op | unit (mock @sentry/node) | `npm run test:api` | ❌ Wave 0 | ⬜ pending |
+| 03-02-T2 | 03-02 | 1 | OBS-02 | T-03A-03 | handled-500s blind spot logged, not silently accepted | doc | `grep -q "only captures" docs/SAAS_READINESS_AUDIT.md` | n/a | ⬜ pending |
+| 03-03-T1 | 03-03 | 2 | OBS-01 | T-03V-02 | production client error lands in Sentry | human-verify | (deploy + trigger; DSN required) | n/a | ⬜ pending |
+| 03-03-T2 | 03-03 | 2 | OBS-02 | T-03V-03 | production UNCAUGHT serverless throw lands in Sentry | human-verify | (deploy + uncaught throw; DSN required) | n/a | ⬜ pending |
+| 03-03-T3 | 03-03 | 2 | OBS-03 | T-03V-02 | web-vitals messages land in Sentry | human-verify | (deploy + page loads; DSN required) | n/a | ⬜ pending |
+| 03-03-T4 | 03-03 | 2 | OBS-01, OBS-02, OBS-03 | T-03V-01 | changelog records outcome; env var names only | auto | `grep -q "withSentry.test.mjs" docs/SAAS_UPGRADE_CHANGELOG.md` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

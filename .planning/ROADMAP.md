@@ -83,7 +83,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. A serverless function error appears in Sentry via the `withSentry` wrapper, which flushes before responding
   3. Web-vitals metrics from the production app are visible in Sentry via the existing `web-vitals` dependency
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+**Wave 1** *(parallel — no shared files)*
+
+- [ ] 03-01-PLAN.md — Client observability tests: DSN gating + captureError + captureWebVital (observability.test.js) and the ErrorBoundary→captureException bridge (ErrorBoundary.test.js) (OBS-01, OBS-03)
+- [ ] 03-02-PLAN.md — Serverless withSentry wrapper test: no-DSN pass-through + capture-then-flush-before-respond on an uncaught throw; log the handled-500s OBS-02 gap as a finding routed to Phase 5 (OBS-02)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 03-03-PLAN.md — Event-landing human-verify checkpoints (client error, uncaught serverless throw, web-vitals appear in Sentry post-deploy with a live DSN) + Phase 3 changelog entry (OBS-01, OBS-02, OBS-03)
 
 ### Phase 4: Serverless Hardening
 
@@ -168,7 +177,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 |-------|----------------|--------|-----------|
 | 1. Audit, Repo Hygiene & Config Centralization | 3/3 | Complete    | 2026-07-07 |
 | 2. Test Scaffolding | 3/3 | Complete    | 2026-07-13 |
-| 3. Observability | 0/TBD | Not started | - |
+| 3. Observability | 0/3 | Planned | - |
 | 4. Serverless Hardening | 0/TBD | Not started | - |
 | 5. Data Reliability & Infrastructure Headers | 0/TBD | Not started | - |
 | 6. Firestore Rules Hardening | 0/TBD | Not started | - |
