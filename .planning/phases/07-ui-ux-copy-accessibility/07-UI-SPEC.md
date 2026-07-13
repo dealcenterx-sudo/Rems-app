@@ -1,10 +1,11 @@
 ---
 phase: 7
 slug: ui-ux-copy-accessibility
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-13
+reviewed_at: 2026-07-13
 ---
 
 # Phase 7 — UI Design Contract
@@ -225,11 +226,11 @@ No third-party registries or blocks are introduced this phase (locked no-new-dep
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS (with non-blocking FLAG — keep new/edited surfaces to 400/600 weight and one label size per surface; do not widen the effective type scale)
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-07-13 (5 PASS + 1 non-blocking FLAG on Typography)
