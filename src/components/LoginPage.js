@@ -6,39 +6,13 @@ import {
   signInWithPopup,
   sendPasswordResetEmail
 } from 'firebase/auth';
+import { toToastString } from '../utils/errorMessages';
 
 const SIGNUP_ROLES = [
   { value: 'agent', label: 'Agent / Operator', description: 'Manage leads, deals, and properties' },
   { value: 'buyer', label: 'Buyer', description: 'Browse and purchase properties' },
   { value: 'seller', label: 'Seller', description: 'List a property for sale' }
 ];
-
-// Raw Firebase codes read like stack traces; show people something they can act on.
-const friendlyAuthError = (err) => {
-  const code = err?.code || '';
-  if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
-    return 'Incorrect email or password. Please try again.';
-  }
-  if (code === 'auth/email-already-in-use') {
-    return 'An account with this email already exists. Try signing in instead.';
-  }
-  if (code === 'auth/weak-password') {
-    return 'Password must be at least 6 characters.';
-  }
-  if (code === 'auth/invalid-email') {
-    return 'That email address doesn’t look right. Please check it.';
-  }
-  if (code === 'auth/too-many-requests') {
-    return 'Too many attempts. Please wait a moment and try again.';
-  }
-  if (code === 'auth/popup-closed-by-user') {
-    return 'Google sign-in was cancelled.';
-  }
-  if (code === 'auth/network-request-failed') {
-    return 'Network error. Check your connection and try again.';
-  }
-  return err?.message || 'Something went wrong. Please try again.';
-};
 
 const LoginPage = ({ onLoginSuccess, embedded = false }) => {
   const [email, setEmail] = useState('');
@@ -63,7 +37,7 @@ const LoginPage = ({ onLoginSuccess, embedded = false }) => {
       }
       onLoginSuccess();
     } catch (err) {
-      setError(friendlyAuthError(err));
+      setError(toToastString(err));
     } finally {
       setLoading(false);
     }
@@ -80,7 +54,7 @@ const LoginPage = ({ onLoginSuccess, embedded = false }) => {
       await signInWithPopup(auth, googleProvider);
       onLoginSuccess();
     } catch (err) {
-      setError(friendlyAuthError(err));
+      setError(toToastString(err));
     } finally {
       setLoading(false);
     }
@@ -98,7 +72,7 @@ const LoginPage = ({ onLoginSuccess, embedded = false }) => {
       await sendPasswordResetEmail(auth, email);
       setNotice(`Password reset link sent to ${email}. Check your inbox.`);
     } catch (err) {
-      setError(friendlyAuthError(err));
+      setError(toToastString(err));
     } finally {
       setLoading(false);
     }
