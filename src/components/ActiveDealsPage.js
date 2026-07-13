@@ -21,7 +21,7 @@ import PageState from './PageState';
 import Skeleton, { SkeletonCard } from './Skeleton';
 import useDelayedFlag from '../utils/useDelayedFlag';
 import { isAdminUser } from '../utils/helpers';
-import { mapError } from '../utils/errorMessages';
+import { mapError, toToastString } from '../utils/errorMessages';
 
 const DEALS_PAGE_SIZE = 36;
 
@@ -106,10 +106,17 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
   }, [loadDeals]);
 
   const updateDealStatus = async (dealId, newStatus) => {
-    try {
-      const currentDeal = deals.find((d) => d.id === dealId);
-      const previousStatus = currentDeal?.status;
+    const currentDeal = deals.find((d) => d.id === dealId);
+    const previousStatus = currentDeal?.status;
 
+    // Optimistic: reflect the new status immediately (UI-06/D-12). Only `status`
+    // is optimistic; all post-confirm side effects run after a successful write.
+    setDeals((prev) => prev.map((d) => (d.id === dealId ? { ...d, status: newStatus } : d)));
+    if (selectedDeal && selectedDeal.id === dealId) {
+      setSelectedDeal((prev) => (prev ? { ...prev, status: newStatus } : prev));
+    }
+
+    try {
       await updateDoc(doc(db, 'deals', dealId), {
         status: newStatus,
         updatedAt: new Date().toISOString()
@@ -127,9 +134,6 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
       }
 
       loadDeals();
-      if (selectedDeal && selectedDeal.id === dealId) {
-        setSelectedDeal({ ...selectedDeal, status: newStatus });
-      }
       toast.success(`Deal marked ${getStatusLabel(newStatus)}`);
       logActivity('status_changed', 'deal', dealId,
         `Deal "${currentDeal?.propertyAddress || dealId}" marked ${getStatusLabel(newStatus)}`,
@@ -141,7 +145,12 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
       });
     } catch (error) {
       console.error('Error updating deal:', error);
-      toast.error('Error updating deal status');
+      // Silent revert of the optimistic status + one mapped error toast (D-13).
+      setDeals((prev) => prev.map((d) => (d.id === dealId ? { ...d, status: previousStatus } : d)));
+      if (selectedDeal && selectedDeal.id === dealId) {
+        setSelectedDeal((prev) => (prev ? { ...prev, status: previousStatus } : prev));
+      }
+      toast.error(toToastString(error));
     }
   };
 

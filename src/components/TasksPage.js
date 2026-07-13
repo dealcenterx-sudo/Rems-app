@@ -9,7 +9,7 @@ import useDelayedFlag from '../utils/useDelayedFlag';
 import { CheckSquare, Search, AlertCircle } from './Icons';
 import { isAdminUser } from '../utils/helpers';
 import useDebounce from '../utils/useDebounce';
-import { mapError } from '../utils/errorMessages';
+import { mapError, toToastString } from '../utils/errorMessages';
 
 // Icons
 const PlusIcon = ({ size = 20 }) => (
@@ -472,17 +472,35 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
   }, [filterStatus, filterPriority, filterType, filterAssignee, searchTerm, loadData]);
 
   const handleToggleComplete = async (task) => {
+    const previousStatus = task.status;
+    const previousCompletedDate = task.completedDate ?? null;
+    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+    const completedDate = newStatus === 'completed' ? new Date().toISOString() : null;
+
+    // Optimistic: reflect the new status immediately (UI-06/D-12). The optimistic
+    // state is authoritative until the next natural load — no success-path reload.
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, status: newStatus, completedDate } : t))
+    );
+
     try {
-      const newStatus = task.status === 'completed' ? 'pending' : 'completed';
       await updateDoc(doc(db, 'tasks', task.id), {
         status: newStatus,
-        completedDate: newStatus === 'completed' ? new Date().toISOString() : null,
+        completedDate,
         updatedAt: new Date().toISOString()
       });
-      loadData(pageIndex, false);
     } catch (error) {
       console.error('Error updating task:', error);
-      toast.error('Failed to update task. Please try again.');
+      // Silent revert to the prior state + one error toast (message + recovery)
+      // from the central map. No inline error, no Retry (D-13).
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === task.id
+            ? { ...t, status: previousStatus, completedDate: previousCompletedDate }
+            : t
+        )
+      );
+      toast.error(toToastString(error));
     }
   };
 
@@ -1038,6 +1056,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
               >
                 <button
                   onClick={() => handleToggleComplete(task)}
+                  aria-label={task.status === 'completed' ? 'Mark task incomplete' : 'Mark task complete'}
                   style={{
                     width: '24px',
                     height: '24px',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { getDocs, updateDoc } from 'firebase/firestore';
 import { isAdminUser } from '../utils/helpers';
 import { ToastProvider } from './Toast';
@@ -81,9 +81,9 @@ describe('TasksPage optimistic toggle (UI-06, D-12/D-13)', () => {
 
     // Optimistic: the control flips to the completed state immediately, while
     // the write is still in flight (no await on the success path).
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Mark task incomplete' })).toBeInTheDocument()
-    );
+    expect(
+      await screen.findByRole('button', { name: 'Mark task incomplete' })
+    ).toBeInTheDocument();
 
     resolveWrite();
   });
@@ -98,9 +98,9 @@ describe('TasksPage optimistic toggle (UI-06, D-12/D-13)', () => {
     fireEvent.click(toggle);
 
     // Silent revert: the control returns to its prior (incomplete) state.
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Mark task complete' })).toBeInTheDocument()
-    );
+    expect(
+      await screen.findByRole('button', { name: 'Mark task complete' })
+    ).toBeInTheDocument();
 
     // One error toast, copy sourced from errorMessages (message + recovery),
     // never the raw SDK message.
@@ -120,9 +120,9 @@ describe('TasksPage optimistic toggle (UI-06, D-12/D-13)', () => {
     const callsBefore = getDocs.mock.calls.length;
     fireEvent.click(toggle);
 
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Mark task incomplete' })).toBeInTheDocument()
-    );
+    expect(
+      await screen.findByRole('button', { name: 'Mark task incomplete' })
+    ).toBeInTheDocument();
 
     // The optimistic state is authoritative until the next natural load; the
     // old anti-optimistic loadData() reload must be gone.
