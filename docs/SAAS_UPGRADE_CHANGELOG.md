@@ -687,3 +687,50 @@ Phase 4's automatable gate proves the code-wiring halves of SEC-01/SEC-02/SEC-03
 - The Sentry-watched validation soak (SEC-01 external half) is deferred to the same post-deploy DSN bucket as the Phase 3 event-landing items; the automatable accept-path evidence stands in for it until a DSN exists.
 - Existing Cloudinary-backed records without a stored `publicId` still cannot be deleted from Cloudinary by the app; they delete from Firestore as before.
 - Dependency audit debt remains outside this verification pass.
+
+---
+
+## Phase 6 - Firestore Rules Hardening Verification (AUDIT-03) (2026-07-13)
+
+### What
+
+- Closed the LIVE half of SEC-04 — the highest-risk work of the milestone — on top of the emulator-green local half already shipped in 06-01/06-02. No production source or `firestore.rules` was modified in this plan (06-03).
+- Local artifacts carried forward from the automatable half:
+  - `firestore.rules` (06-01) — removed the `match /{document=**}` admin write catch-all so `activity_log`'s `allow update, delete: if false` is the only matching write rule; `isAdmin()` derives admin authority from `users/{uid}.role == "admin"` only (no email literal). (SEC-04)
+  - `tests/rules/firestore.rules.test.js` (06-01) — flipped the Phase-2 characterization test to ASSERT append-only-against-admin (admin `update`/`delete` now `assertFails`); emulator rules suite 15/15 green under JDK 21. (SEC-04)
+  - `docs/TRUST_BOUNDARIES.md` (06-02) — added a per-collection Firestore access matrix (read/create/update/delete/why) derived from and matching the tested rules, making the append-only-against-admin guarantee explicit in prose. (SEC-05)
+- Performed the operator-only live steps this session — the lockout gate, a staged additive-then-subtractive Console publish, and a two-account production smoke — and recorded the results below.
+
+### Why
+
+Firebase does not read `firestore.rules` from git — production enforces whatever was last Published in the Firebase Console. Removing the email fallback and the catch-all only takes effect (and only becomes safe) once the operator confirms the live admin role data and publishes the hardened rules without locking the admin out. Unlike the Phase 3/4 external halves (which remain deferred pending Vercel-only credentials such as `SENTRY_DSN` and the Cloudinary Admin keys), the Phase 6 live verification needs only Firebase Console access plus real admin and non-admin logins — all available this session — so it was actually performed and passed rather than deferred.
+
+### Files Modified
+
+- `firestore.rules` (06-01)
+- `tests/rules/firestore.rules.test.js` (06-01)
+- `docs/TRUST_BOUNDARIES.md` (06-02)
+- `docs/SAAS_UPGRADE_CHANGELOG.md`
+
+### Commands Run
+
+- `JAVA_HOME=/usr/local/opt/openjdk@21 npm run test:rules` (re-confirmed 15/15 green immediately before each publish)
+- `cat firestore.rules | pbcopy` (staged the exact git artifact for the final Console paste)
+- `npm run check:constants`
+
+### Results
+
+- **Lockout gate (Task 1): GO.** The operator confirmed in the Firebase Console that the admin account's `users/{uid}` document carries `role: 'admin'` (every admin account enumerated, none missing the role). Inspecting the LIVE Console rules showed they were still EMAIL-based at Stage 0, so an additive-then-subtractive two-step bridge was chosen over a direct cutover to eliminate any lockout window.
+- **Staged Console publish + two-account smoke (Task 2): PASSED (both stages).**
+  - **Stage A — additive bridge:** published interim rules where `isAdmin()` accepts `role == 'admin'` OR the legacy email (the catch-all was already removed). Two-account smoke PASSED — the admin retained full access with the role path verified live while email was still a fallback, and the non-admin account was unaffected. This interim bridge was a Console-only edit and was never committed to git.
+  - **Stage B — subtractive final:** pasted the final hardened `firestore.rules` (role-only `isAdmin()`, no email literal, no `match /{document=**}` catch-all — the exact emulator-verified 15/15 git artifact) into the Console and Published. Two-account smoke PASSED — the admin retains full CRUD access via the role document ONLY, the non-admin account's scoped access is unaffected, an admin-emitted notification still writes (the flagged notifications create edge case is fine — no `isAdmin()` create branch was required), and the app can no longer edit or delete `activity_log` entries (tamper-proof, including against the admin).
+  - Net result: production Firestore rules now authorize the admin by the role document only, and `activity_log` is append-only even against the admin account.
+- `npm run check:constants` green — the admin email literal remains only in `src/config.js`, `api/_lib/config.js`, and a rules regression test; no admin email literal or secret value was written into this changelog entry or any committed file (the additive bridge existed only in the Console).
+
+### Remaining Risks
+
+- The additive `role OR email` bridge was an intentional interim Console-only state; production is now on the final role-only rules, so no email fallback remains live.
+- Any NEW admin account must have `users/{uid}.role == 'admin'` set in production BEFORE it can gain admin access — email alone no longer grants it (by design).
+- The client UI still uses `ADMIN_EMAIL` in some legacy admin-display/scoping helpers; Firestore enforcement no longer trusts email alone, so those remain UI-only conveniences.
+- Firestore composite indexes from Phase 5 must still be created or verified READY before non-admin query smoke is considered fully complete (Phase 5 scope, not this plan).
+- Dependency audit debt remains outside this verification pass.
