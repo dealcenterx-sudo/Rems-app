@@ -61,7 +61,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Developer can run `npm run test:api` and see passing handler tests covering auth validation, payload validation, and error paths for send-email, accept-invite, and lead-intake
   3. CI runs both new suites alongside the existing lint → test → build pipeline, and `npm run test:ci` (CRA's Jest) behaves exactly as before
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+**Wave 1** *(parallel — no shared files)*
+
+- [ ] 02-01-PLAN.md — Reconcile + verify the API handler suite; deepen with 200-success, missing-token/404, and method-guard characterizations (TEST-02)
+- [ ] 02-02-PLAN.md — Reconcile + verify the Firestore rules suite; add users-block role/assignment immutability (SEC-04 net) and all-six deal-portal coverage (TEST-01)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 02-03-PLAN.md — Verify CI wiring + CRA-Jest isolation and document Java 21 / npm ci run prerequisites in docs/TESTING.md (TEST-03)
 
 ### Phase 3: Observability
 
@@ -158,7 +167,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Audit, Repo Hygiene & Config Centralization | 3/3 | Complete    | 2026-07-07 |
-| 2. Test Scaffolding | 0/TBD | Not started | - |
+| 2. Test Scaffolding | 0/3 | Not started | - |
 | 3. Observability | 0/TBD | Not started | - |
 | 4. Serverless Hardening | 0/TBD | Not started | - |
 | 5. Data Reliability & Infrastructure Headers | 0/TBD | Not started | - |

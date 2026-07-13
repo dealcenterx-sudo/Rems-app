@@ -36,10 +36,15 @@ created: 2026-07-12
 
 ## Per-Task Verification Map
 
-*To be filled by the planner — one row per task, mapping TEST-01..03 to automated commands.*
-
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
+| 02-01-T1 | 01 | 1 | TEST-02 | T-02-01/02 | Handler auth + payload + error paths characterized against live handlers | unit (vitest) | `npm run test:api` | ✅ tests/api/api-handlers.test.mjs | ⬜ pending |
+| 02-01-T2 | 01 | 1 | TEST-02 | T-02-02 | 200 payload shapes, accept-invite missing-token/404, non-POST method guards pinned | unit (vitest) | `npm run test:api && grep -c "it(" tests/api/api-handlers.test.mjs` | ✅ tests/api/api-handlers.test.mjs | ⬜ pending |
+| 02-02-T1 | 02 | 1 | TEST-01 | T-02R-04 | Rules suite reads on-disk firestore.rules; five TEST-01 categories mapped | integration (emulator) | host: `npx vitest list tests/rules`; authoritative: `npm run test:rules` (Java 21 / CI) | ✅ tests/rules/firestore.rules.test.js | ⬜ pending |
+| 02-02-T2 | 02 | 1 | TEST-01 | T-02R-01 | users-block role/assignment immutability (self cannot escalate; admin can) | integration (emulator) | host: `npx vitest list tests/rules`; authoritative: `npm run test:rules` (Java 21 / CI) | ✅ tests/rules/firestore.rules.test.js | ⬜ pending |
+| 02-02-T3 | 02 | 1 | TEST-01 | T-02R-02 | All six deal-portal collections exercise canAccessDeal() incl. write-branch distinctions | integration (emulator) | host: `npx vitest list tests/rules`; authoritative: `npm run test:rules` (Java 21 / CI) | ✅ tests/rules/firestore.rules.test.js | ⬜ pending |
+| 02-03-T1 | 03 | 2 | TEST-03 | T-02C-01/02 | CI runs both suites after test:ci before build; CRA Jest sweeps only src/ | pipeline | `CI=true npm run test:ci` + ci.yml grep gates | ✅ .github/workflows/ci.yml | ⬜ pending |
+| 02-03-T2 | 03 | 2 | TEST-03 | T-02C-03 | Java 21 + npm ci run prerequisites documented; no disallowed literal | docs | `test -f docs/TESTING.md && npm run check:constants` | 🆕 docs/TESTING.md (new) | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
