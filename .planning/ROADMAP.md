@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Audit, Repo Hygiene & Config Centralization** - Audit deliverables in docs/, archive/diagnostics cleanup, admin email + constants centralized with CI grep proof (completed 2026-07-07)
 - [x] **Phase 2: Test Scaffolding** - Emulator-backed Firestore rules tests and API handler tests wired into CI, outside CRA's Jest (completed 2026-07-13)
-- [ ] **Phase 3: Observability** - Sentry client + serverless error capture and web-vitals, verified with a real production error
+- [x] **Phase 3: Observability** - Sentry client + serverless error capture and web-vitals, verified with a real production error (completed 2026-07-13)
 - [ ] **Phase 4: Serverless Hardening** - Zod validation with log-then-enforce rollout, auth audit, documented trust boundaries, Cloudinary delete
 - [ ] **Phase 5: Data Reliability & Infrastructure Headers** - Composite indexes READY, loud fallbacks, cache headers, CSP Report-Only soak begins
 - [ ] **Phase 6: Firestore Rules Hardening** - Admin email fallback removed via additive-then-subtractive Console publishes with two-account smoke tests
@@ -83,7 +83,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. A serverless function error appears in Sentry via the `withSentry` wrapper, which flushes before responding
   3. Web-vitals metrics from the production app are visible in Sentry via the existing `web-vitals` dependency
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 **Wave 1** *(parallel — no shared files)*
 
@@ -92,7 +92,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 03-03-PLAN.md — Event-landing human-verify checkpoints (client error, uncaught serverless throw, web-vitals appear in Sentry post-deploy with a live DSN) + Phase 3 changelog entry (OBS-01, OBS-02, OBS-03)
+- [x] 03-03-PLAN.md — Event-landing human-verify checkpoints (client error, uncaught serverless throw, web-vitals appear in Sentry post-deploy with a live DSN) + Phase 3 changelog entry (OBS-01, OBS-02, OBS-03)
 
 ### Phase 4: Serverless Hardening
 
@@ -177,7 +177,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 |-------|----------------|--------|-----------|
 | 1. Audit, Repo Hygiene & Config Centralization | 3/3 | Complete    | 2026-07-07 |
 | 2. Test Scaffolding | 3/3 | Complete    | 2026-07-13 |
-| 3. Observability | 2/3 | In Progress|  |
+| 3. Observability | 3/3 | Complete   | 2026-07-13 |
 | 4. Serverless Hardening | 0/TBD | Not started | - |
 | 5. Data Reliability & Infrastructure Headers | 0/TBD | Not started | - |
 | 6. Firestore Rules Hardening | 0/TBD | Not started | - |
