@@ -129,7 +129,20 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Static assets serve with `Cache-Control: immutable`, `index.html` serves `no-cache`, and `INLINE_RUNTIME_CHUNK=false` is set (closing the stale-chunk trap and the `'unsafe-inline'` script-src need)
   5. A `Content-Security-Policy-Report-Only` header is live in `vercel.json` with an integration-checklist allowlist, and violation reports are being collected (groundwork for INFRA-01, which completes with enforcement in Phase 8)
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+**Wave 1** *(parallel — disjoint files; reconcile-and-verify local halves)*
+
+- [ ] 05-01-PLAN.md — DATA local: net-new AnalyticsDashboard fallback→captureError test + DATA-01 index-coverage reconcile (DATA-01, DATA-02)
+- [ ] 05-02-PLAN.md — INFRA local: INLINE_RUNTIME_CHUNK=false via package.json build script + CSP Report-Only allowlist additions + INFRA-02 cache-header reconcile (INFRA-02, INFRA-03)
+
+**Wave 2** *(blocked on Wave 1; autonomous:false — LIVE)*
+
+- [ ] 05-03-PLAN.md — Live human-verify: indexes READY in Console + non-admin all-flow smoke + cache/no-inline-runtime/CSP-report-collection (DATA-01, DATA-02, DATA-03, INFRA-02, INFRA-03)
+
+**Wave 3** *(blocked on Waves 1–2)*
+
+- [ ] 05-04-PLAN.md — Phase 5 changelog entry recording automatable results + live-half statuses (AUDIT-03 standing task)
 
 ### Phase 6: Firestore Rules Hardening
 
@@ -197,7 +210,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 2. Test Scaffolding | 3/3 | Complete    | 2026-07-13 |
 | 3. Observability | 3/3 | Complete    | 2026-07-13 |
 | 4. Serverless Hardening | 3/3 | Complete    | 2026-07-13 |
-| 5. Data Reliability & Infrastructure Headers | 0/TBD | Not started | - |
+| 5. Data Reliability & Infrastructure Headers | 0/4 | Not started | - |
 | 6. Firestore Rules Hardening | 3/3 | Complete    | 2026-07-13 |
 | 7. UI/UX, Copy & Accessibility | 0/TBD | Not started | - |
 | 8. Landing Page, Trust & Final Polish | 0/TBD | Not started | - |

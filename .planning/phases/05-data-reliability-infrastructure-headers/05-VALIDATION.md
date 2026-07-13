@@ -1,8 +1,8 @@
 ---
 phase: 5
 slug: data-reliability-infrastructure-headers
-status: draft
-nyquist_compliant: false
+status: planned
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-13
 ---
@@ -40,6 +40,14 @@ created: 2026-07-13
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
+| 05-01-T1 | 01 | 1 | DATA-02 | T-05A-01/02 | Missing-index fallback calls captureError (loud) + preserves userId scope on refetch | unit | `CI=true npx react-scripts test --watchAll=false src/components/AnalyticsDashboard.test.js` | ❌ Wave 0 — net-new | ⬜ pending |
+| 05-01-T2 | 01 | 1 | DATA-01 | — | Index-coverage reconcile (no over-broad def) | static/manual | `node -e "..." firestore.indexes.json` (≥13 defs) | ✅ (verify-only) | ⬜ pending |
+| 05-02-T1 | 02 | 1 | INFRA-03 | T-05B-01 | External runtime chunk removes inline-script 'unsafe-inline' need | config grep + build | `grep -q 'INLINE_RUNTIME_CHUNK=false react-scripts build' package.json`; `npm run build` emits `build/static/js/runtime-*.js` | ✅ (edit) | ⬜ pending |
+| 05-02-T2 | 02 | 1 | INFRA-03 / INFRA-02 | T-05B-02/03 | CSP allowlist scoped to known hosts; stays Report-Only; cache headers intact | config assertion | `node -e "…CSP_ALLOWLIST_OK…"` (3 hosts present, Report-Only preserved, immutable intact) | ✅ (edit) | ⬜ pending |
+| 05-03-T1 | 03 | 2 | DATA-01 | T-05C-02 | Composite indexes READY in Console (two-channel deploy) | human-verify | Firebase Console Indexes / `firebase deploy --only firestore:indexes` | manual-only (live) | ⬜ pending |
+| 05-03-T2 | 03 | 2 | DATA-03 | T-05C-02 | Non-admin completes all six flows, no fallback | human-verify | non-admin prod smoke (Home/Deals/CRM/Properties/Tasks/Analytics) | manual-only (live) | ⬜ pending |
+| 05-03-T3 | 03 | 2 | INFRA-02 / INFRA-03 / DATA-02 | T-05C-01/03 | Cache headers live, no inline runtime, CSP Report-Only reports collecting | human-verify | `curl -sI` headers; view-source no inline runtime; Sentry csp-report-only events | manual-only (live) | ⬜ pending |
+| 05-04-T1 | 04 | 3 | AUDIT-03 (DATA/INFRA) | T-05D-01 | Changelog records outcome; env vars by NAME only | doc grep | `grep -qi 'Phase 5' && grep -q 'INLINE_RUNTIME_CHUNK' docs/SAAS_UPGRADE_CHANGELOG.md` | ✅ (edit) | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
