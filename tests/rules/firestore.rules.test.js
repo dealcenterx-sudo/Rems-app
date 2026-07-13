@@ -90,6 +90,26 @@ const seed = async () => {
       dealId: 'deal-assigned',
       body: 'Existing message'
     });
+    await setDoc(doc(db, 'deal-parties/party-assigned'), {
+      dealId: 'deal-assigned',
+      role: 'buyer'
+    });
+    await setDoc(doc(db, 'deal-channels/channel-assigned'), {
+      dealId: 'deal-assigned',
+      name: 'General'
+    });
+    await setDoc(doc(db, 'deal-documents/document-assigned'), {
+      dealId: 'deal-assigned',
+      name: 'Contract.pdf'
+    });
+    await setDoc(doc(db, 'deal-progress/progress-assigned'), {
+      dealId: 'deal-assigned',
+      stage: 'offer'
+    });
+    await setDoc(doc(db, 'deal-lender-pushes/lender-push-assigned'), {
+      dealId: 'deal-assigned',
+      status: 'sent'
+    });
 
     await setDoc(doc(db, 'activity_log/log-1'), {
       userId: 'agent-a',
@@ -224,6 +244,57 @@ describe('assignment-based access', () => {
     await assertFails(addDoc(collection(db, 'deal-messages'), {
       dealId: 'deal-other',
       body: 'No access'
+    }));
+  });
+});
+
+describe('deal-portal collections', () => {
+  const writeOpenCollections = [
+    { name: 'deal-parties', docId: 'party-assigned' },
+    { name: 'deal-channels', docId: 'channel-assigned' },
+    { name: 'deal-documents', docId: 'document-assigned' },
+    { name: 'deal-progress', docId: 'progress-assigned' }
+  ];
+
+  writeOpenCollections.forEach(({ name, docId }) => {
+    it(`grants ${name} read/create/update/delete via canAccessDeal for assigned users`, async () => {
+      const db = authedDb('agent-a', { email: 'agent@example.com' });
+
+      await assertSucceeds(getDoc(doc(db, `${name}/${docId}`)));
+      await assertSucceeds(addDoc(collection(db, name), {
+        dealId: 'deal-assigned',
+        note: 'assigned'
+      }));
+      await assertFails(addDoc(collection(db, name), {
+        dealId: 'deal-other',
+        note: 'no access'
+      }));
+      await assertSucceeds(updateDoc(doc(db, `${name}/${docId}`), {
+        note: 'updated'
+      }));
+      await assertSucceeds(deleteDoc(doc(db, `${name}/${docId}`)));
+    });
+  });
+
+  it('restricts deal-lender-pushes update/delete to admin while allowing assigned read/create', async () => {
+    const agentDb = authedDb('agent-a', { email: 'agent@example.com' });
+    const adminDb = authedDb('admin-uid', { email: 'admin@example.com' });
+
+    await assertSucceeds(getDoc(doc(agentDb, 'deal-lender-pushes/lender-push-assigned')));
+    await assertSucceeds(addDoc(collection(agentDb, 'deal-lender-pushes'), {
+      dealId: 'deal-assigned',
+      status: 'sent'
+    }));
+    await assertFails(addDoc(collection(agentDb, 'deal-lender-pushes'), {
+      dealId: 'deal-other',
+      status: 'sent'
+    }));
+    await assertFails(updateDoc(doc(agentDb, 'deal-lender-pushes/lender-push-assigned'), {
+      status: 'acknowledged'
+    }));
+    await assertFails(deleteDoc(doc(agentDb, 'deal-lender-pushes/lender-push-assigned')));
+    await assertSucceeds(updateDoc(doc(adminDb, 'deal-lender-pushes/lender-push-assigned'), {
+      status: 'acknowledged'
     }));
   });
 });
