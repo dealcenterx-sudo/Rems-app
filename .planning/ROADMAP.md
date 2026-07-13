@@ -105,11 +105,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. A reviewer can read documented trust boundaries, and auth-token verification is audited and confirmed across all endpoints
   3. Deleting media in the app removes the asset from Cloudinary via an auth-verified `api/delete-media.js` (signed Admin API call) — or the audit documents an explicit, reasoned deferral
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 **Wave 1** *(parallel — no shared files)*
 
-- [ ] 04-01-PLAN.md — SEC-01 accept-path schema tests (live-client payloads pass) + SEC-03 delete-media not-found-200/provider-502 deltas (SEC-01, SEC-03)
+- [x] 04-01-PLAN.md — SEC-01 accept-path schema tests (live-client payloads pass) + SEC-03 delete-media not-found-200/provider-502 deltas (SEC-01, SEC-03)
 - [ ] 04-02-PLAN.md — SEC-02 csp-report.js row + rationale in TRUST_BOUNDARIES.md + auth-audit completeness test (SEC-02)
 
 **Wave 2** *(blocked on Wave 1)*
@@ -187,7 +187,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Audit, Repo Hygiene & Config Centralization | 3/3 | Complete    | 2026-07-07 |
 | 2. Test Scaffolding | 3/3 | Complete    | 2026-07-13 |
 | 3. Observability | 3/3 | Complete   | 2026-07-13 |
-| 4. Serverless Hardening | 0/3 | Not started | - |
+| 4. Serverless Hardening | 1/3 | In Progress|  |
 | 5. Data Reliability & Infrastructure Headers | 0/TBD | Not started | - |
 | 6. Firestore Rules Hardening | 0/TBD | Not started | - |
 | 7. UI/UX, Copy & Accessibility | 0/TBD | Not started | - |

@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 03
-current_phase_name: Observability
+current_phase: 04
+current_phase_name: Serverless Hardening
 status: executing
 stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-07-13T06:08:17.102Z"
+last_updated: "2026-07-13T06:12:25.767Z"
 last_activity: 2026-07-13
-last_activity_desc: Phase 03 execution started
+last_activity_desc: Phase 04 execution started
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 10
   percent: 38
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-06)
 
 **Core value:** The product must feel and function like a serious production SaaS — every major flow polished, secured server-side, and explainable — without breaking any current production workflow.
-**Current focus:** Phase 03 — Observability
+**Current focus:** Phase 04 — Serverless Hardening
 
 ## Current Position
 
-Phase: 03 (Observability) — EXECUTING
-Plan: 3 of 3
+Phase: 04 (Serverless Hardening) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-07-13 — Phase 03 execution started
+Last activity: 2026-07-13 — Phase 04 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 P01 | 8min | 2 tasks | 2 files |
 | Phase 03 P02 | 5min | 2 tasks | 2 files |
 | Phase 03 P03 | 10min | 4 tasks | 2 files |
+| Phase 04 P01 | 5m | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 03-01: Used explicit jest.mock('@sentry/react') factory instead of auto-mock (auto-mock fails on package export shape)
 - [Phase ?]: OBS-02 test drives an actual uncaught throw; handled 500s never enter the wrapper catch (blind spot routed to Phase 5 / DATA-02)
 - [Phase ?]: [03-03]: OBS-01/02/03 event-landing DEFERRED post-deploy (no DSN); code-wiring half verified by Wave 1/2 tests — only live Sentry smoke outstanding
+- [Phase 04]: Plan 04-01: accept-path written as direct schema unit tests; no log-then-enforce toggle added (SEC-01 enforce-only)
 
 ### Pending Todos
 
@@ -106,6 +108,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T05:22:07.249Z
+Last session: 2026-07-13T06:11:35.667Z
 Stopped at: Completed 03-02-PLAN.md
 Resume file: None

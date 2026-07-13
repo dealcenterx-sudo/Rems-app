@@ -35,9 +35,9 @@
 
 ### Security & Auth Hardening
 
-- [ ] **SEC-01**: Every serverless endpoint validates input with zod schemas and returns uniform 400s for bad payloads (log-then-enforce rollout so live clients never break)
+- [x] **SEC-01**: Every serverless endpoint validates input with zod schemas and returns uniform 400s for bad payloads (log-then-enforce rollout so live clients never break)
 - [ ] **SEC-02**: Auth-token verification is audited across all endpoints and the client/server trust boundary is documented
-- [ ] **SEC-03**: User-deleted media is actually deleted from Cloudinary via a new auth-verified `api/delete-media.js` (signed Admin API call)
+- [x] **SEC-03**: User-deleted media is actually deleted from Cloudinary via a new auth-verified `api/delete-media.js` (signed Admin API call)
 - [ ] **SEC-04**: Firestore rules no longer contain the admin email fallback — removed only after production data verification (`users/{adminUid}.role == 'admin'`) and green rules tests, via additive-then-subtractive Console publishes with two-account smoke tests
 - [ ] **SEC-05**: A reviewer can read documented Firestore access-model assumptions (who can read/write what, and why) matching the tested rules
 
@@ -130,9 +130,9 @@ Deferred to future milestone:
 | OBS-01 | Phase 3 | Complete |
 | OBS-02 | Phase 3 | Complete |
 | OBS-03 | Phase 3 | Complete |
-| SEC-01 | Phase 4 | Pending |
+| SEC-01 | Phase 4 | Complete |
 | SEC-02 | Phase 4 | Pending |
-| SEC-03 | Phase 4 | Pending |
+| SEC-03 | Phase 4 | Complete |
 | SEC-04 | Phase 6 | Pending |
 | SEC-05 | Phase 6 | Pending |
 | DATA-01 | Phase 5 | Pending |
