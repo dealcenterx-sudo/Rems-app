@@ -1,10 +1,19 @@
 ---
 phase: 02-test-scaffolding
 verified: 2026-07-12T00:00:00Z
-status: human_needed
-score: 14/15 must-haves verified
-behavior_unverified: 1 # test:rules emulator green pass — present + wired + assertions traced, but emulator not executable on this host (Java 8; needs JDK 21 / green CI)
+status: passed
+score: 15/15 must-haves verified
+behavior_unverified: 0 # RESOLVED this session — JDK 21 (openjdk@21 via brew) installed and `npm run test:rules` executed: 15/15 green after reconciling the activity_log test to actual behavior
 overrides_applied: 0
+resolution: |
+  The behavior-unverified item (test:rules emulator green pass) was resolved this session:
+  installed openjdk@21 locally and ran the emulator suite. First run was 14/15 — the
+  activity_log append-only test failed because the `match /{document=**}` admin catch-all
+  (firestore.rules:207-209) overrides `allow update, delete: if false`, so admin can edit/
+  delete audit entries. Per user decision, Phase 2 characterizes this ACTUAL behavior
+  (test updated to assertSucceeds with a SEC-04 pointer) and the append-only gap is logged
+  as a HIGH finding in docs/SAAS_READINESS_AUDIT.md, deferred to Phase 6 / SEC-04. Suite is
+  now 15/15 green under JDK 21.
 behavior_unverified_items:
   - truth: "Developer can run `npm run test:rules` and see PASSING emulator-backed rules tests (TEST-01 / Roadmap SC-1)"
     test: "In a JDK-21 environment (or via a CI run that provisions temurin 21), run `npm run test:rules` and confirm the Firestore emulator boots and all 15 collected cases pass green."
