@@ -180,7 +180,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Hardcoded hex values are migrated to `:root` design tokens BEFORE any token values change (two separate passes), then text contrast meets WCAG 2.2 AA (4.5:1) and the #00ff88 focus ring (3:1) is fixed at the token level so it propagates everywhere
   5. All modals trap focus and close on Escape, interactive elements are keyboard-reachable with semantic HTML on major pages, meaning is never conveyed by color alone, and `plugin:jsx-a11y/recommended` passes in lint
 
-**Plans**: 2/12 plans executed
+**Plans**: 3/12 plans executed
 **UI hint**: yes
 
 **Wave 1** *(parallel — disjoint files)*
@@ -190,7 +190,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 2** *(parallel — new files vs page files)*
 
-- [ ] 07-03-PLAN.md — Reusable primitives: Skeleton + useDelayedFlag + useFocusTrap (UI-02, A11Y-02)
+- [x] 07-03-PLAN.md — Reusable primitives: Skeleton + useDelayedFlag + useFocusTrap (UI-02, A11Y-02)
 - [ ] 07-04-PLAN.md — Empty & error states across list/dashboard surfaces incl. client shell (UI-01, COPY-03)
 
 **Wave 3** *(parallel — shared components vs page files)*
@@ -245,7 +245,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 4. Serverless Hardening | 3/3 | Complete    | 2026-07-13 |
 | 5. Data Reliability & Infrastructure Headers | 2/4 | In Progress|  |
 | 6. Firestore Rules Hardening | 3/3 | Complete    | 2026-07-13 |
-| 7. UI/UX, Copy & Accessibility | 2/12 | In Progress|  |
+| 7. UI/UX, Copy & Accessibility | 3/12 | In Progress|  |
 | 8. Landing Page, Trust & Final Polish | 0/TBD | Not started | - |
 
 ## Coverage

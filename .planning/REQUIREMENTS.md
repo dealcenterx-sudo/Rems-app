@@ -56,7 +56,7 @@
 ### UI/UX Modernization
 
 - [ ] **UI-01**: Every list/dashboard surface (~10+, including the buyer/seller client shell) shows a designed empty state with first-use and no-results variants that guide the next action
-- [ ] **UI-02**: Loads over ~500ms show skeleton loaders that mirror final layout (Home, Deals, CRM, Contacts, Properties, Tasks, Documents); no layout shift
+- [x] **UI-02**: Loads over ~500ms show skeleton loaders that mirror final layout (Home, Deals, CRM, Contacts, Properties, Tasks, Documents); no layout shift
 - [ ] **UI-03**: Home KPIs render instantly from cache and refresh in the background (SWR pattern)
 - [ ] **UI-04**: Every submit/destructive button shows a pending state while its action is in flight
 - [ ] **UI-05**: Hardcoded hex values in components are migrated to `:root` design tokens BEFORE any token values change (two separate passes)
@@ -71,7 +71,7 @@
 ### Accessibility & Performance
 
 - [ ] **A11Y-01**: Text contrast meets WCAG 2.2 AA (4.5:1) and focus indicators (#00ff88 ring, 3:1) are fixed at the token level so they propagate
-- [ ] **A11Y-02**: All modals trap focus and close on Escape; interactive elements are keyboard-reachable; semantic HTML on major pages; meaning never conveyed by color alone
+- [x] **A11Y-02**: All modals trap focus and close on Escape; interactive elements are keyboard-reachable; semantic HTML on major pages; meaning never conveyed by color alone
 - [ ] **A11Y-03**: `eslint-plugin-jsx-a11y` recommended ruleset is enabled and passing in lint
 
 ### Landing Page & Trust
@@ -142,7 +142,7 @@ Deferred to future milestone:
 | INFRA-02 | Phase 5 | Complete |
 | INFRA-03 | Phase 5 | Complete |
 | UI-01 | Phase 7 | Pending |
-| UI-02 | Phase 7 | Pending |
+| UI-02 | Phase 7 | Complete |
 | UI-03 | Phase 7 | Pending |
 | UI-04 | Phase 7 | Pending |
 | UI-05 | Phase 7 | In Progress |
@@ -151,7 +151,7 @@ Deferred to future milestone:
 | COPY-02 | Phase 7 | Complete |
 | COPY-03 | Phase 7 | Pending |
 | A11Y-01 | Phase 7 | Pending |
-| A11Y-02 | Phase 7 | Pending |
+| A11Y-02 | Phase 7 | Complete |
 | A11Y-03 | Phase 7 | Pending |
 | LAND-01 | Phase 8 | Pending |
 | LAND-02 | Phase 8 | Pending |
