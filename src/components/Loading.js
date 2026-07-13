@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const LoadingSpinner = ({ size = 40, color = '#00ff88' }) => (
+export const LoadingSpinner = ({ size = 40, color = 'var(--accent)' }) => (
   <div
     aria-hidden="true"
     style={{
@@ -38,9 +38,9 @@ export const LoadingOverlay = ({ message = 'Loading...' }) => (
   </div>
 );
 
-export const LoadingButton = ({ loading, children, ...props }) => {
+export const LoadingButton = ({ loading, pendingLabel, children, ...props }) => {
   const { style, ...restProps } = props;
-  
+
   return (
     <button
       {...restProps}
@@ -52,11 +52,11 @@ export const LoadingButton = ({ loading, children, ...props }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '8px'
+        gap: 'var(--space-2)'
       }}
     >
-      {loading && <LoadingSpinner size={16} color={style?.color || '#ffffff'} />}
-      {loading ? 'Loading...' : children}
+      {loading && <LoadingSpinner size={16} color={style?.color || 'var(--white)'} />}
+      {loading ? (pendingLabel || 'Loading…') : children}
     </button>
   );
 };
