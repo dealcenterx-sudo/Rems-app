@@ -57,9 +57,9 @@ const TASK_TYPES = [
 ];
 
 const PRIORITIES = [
-  { value: 'high', label: 'High', color: '#ff3333' },
-  { value: 'medium', label: 'Medium', color: '#ffaa00' },
-  { value: 'low', label: 'Low', color: '#0088ff' }
+  { value: 'high', label: 'High', color: 'var(--danger)' },
+  { value: 'medium', label: 'Medium', color: 'var(--warning)' },
+  { value: 'low', label: 'Low', color: 'var(--info)' }
 ];
 
 const TASKS_PAGE_SIZE = 40;
@@ -161,14 +161,14 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
   return (
     <div className="modal-overlay" role="presentation" onClick={onClose}>
       <div className="modal-content" role="presentation" onClick={(e) => e.stopPropagation()} style={{
-        border: '2px solid #0088ff',
+        border: '2px solid var(--info)',
         padding: '30px',
         maxWidth: '600px',
         width: '100%',
         maxHeight: '90vh'
       }}>
         <div className="modal-header" style={{ marginBottom: '25px' }}>
-          <h2 style={{ fontSize: '20px', color: '#0088ff', margin: 0, fontWeight: '700' }}>
+          <h2 style={{ fontSize: '20px', color: 'var(--info)', margin: 0, fontWeight: '700' }}>
             {task ? 'Edit Task' : 'New Task'}
           </h2>
           <button onClick={onClose} className="icon-button">
@@ -198,8 +198,8 @@ const TaskModal = ({ task, deals, contacts, properties, onClose, onSave }) => {
               rows={3}
               style={{
                 width: '100%',
-                background: '#0f0f0f',
-                border: '1px solid #1a1a1a',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--skeleton-highlight)',
                 borderRadius: '4px',
                 padding: '12px',
                 color: '#e0e0e0',
@@ -705,7 +705,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
     <div className="page-content">
       <div className="responsive-header" style={{ marginBottom: '25px' }}>
         <div>
-          <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', margin: '0 0 5px 0' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--white)', margin: '0 0 5px 0' }}>
             Tasks
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-faint)', margin: 0 }}>
@@ -719,9 +719,9 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                 key={mode}
                 onClick={() => setViewMode(mode)}
                 style={{
-                  background: viewMode === mode ? '#1a1a1a' : '#0a0a0a',
-                  color: viewMode === mode ? '#ffffff' : '#888888',
-                  border: `1px solid ${viewMode === mode ? '#0088ff' : '#1a1a1a'}`,
+                  background: viewMode === mode ? 'var(--skeleton-highlight)' : 'var(--surface-1)',
+                  color: viewMode === mode ? 'var(--white)' : 'var(--text-muted-2)',
+                  border: `1px solid ${viewMode === mode ? 'var(--info)' : 'var(--skeleton-highlight)'}`,
                   padding: '8px 12px',
                   borderRadius: '4px',
                   cursor: 'pointer',
@@ -759,15 +759,15 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
             }
           }}
           style={{
-            background: filterStatus === 'all' ? '#0f0f0f' : '#0a0a0a',
-            border: filterStatus === 'all' ? '1px solid #0088ff' : '1px solid #1a1a1a',
+            background: filterStatus === 'all' ? 'var(--surface-2)' : 'var(--surface-1)',
+            border: filterStatus === 'all' ? '1px solid var(--info)' : '1px solid var(--skeleton-highlight)',
             borderRadius: '4px',
             padding: '15px',
             cursor: 'pointer',
             transition: 'all 0.2s'
           }}
         >
-          <div style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff' }}>{stats.total}</div>
+          <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--white)' }}>{stats.total}</div>
           <div style={{ fontSize: '11px', color: 'var(--text-faint)' }}>Total Tasks</div>
         </div>
 
@@ -783,15 +783,15 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
             }
           }}
           style={{
-            background: filterStatus === 'pending' ? '#0f0f0f' : '#0a0a0a',
-            border: filterStatus === 'pending' ? '1px solid #0088ff' : '1px solid #1a1a1a',
+            background: filterStatus === 'pending' ? 'var(--surface-2)' : 'var(--surface-1)',
+            border: filterStatus === 'pending' ? '1px solid var(--info)' : '1px solid var(--skeleton-highlight)',
             borderRadius: '4px',
             padding: '15px',
             cursor: 'pointer',
             transition: 'all 0.2s'
           }}
         >
-          <div style={{ fontSize: '24px', fontWeight: '700', color: '#0088ff' }}>{stats.pending}</div>
+          <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--info)' }}>{stats.pending}</div>
           <div style={{ fontSize: '11px', color: 'var(--text-faint)' }}>Pending</div>
         </div>
 
@@ -807,15 +807,15 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
             }
           }}
           style={{
-            background: filterStatus === 'overdue' ? '#0f0f0f' : '#0a0a0a',
-            border: filterStatus === 'overdue' ? '1px solid #ff3333' : '1px solid #1a1a1a',
+            background: filterStatus === 'overdue' ? 'var(--surface-2)' : 'var(--surface-1)',
+            border: filterStatus === 'overdue' ? '1px solid var(--danger)' : '1px solid var(--skeleton-highlight)',
             borderRadius: '4px',
             padding: '15px',
             cursor: 'pointer',
             transition: 'all 0.2s'
           }}
         >
-          <div style={{ fontSize: '24px', fontWeight: '700', color: '#ff3333' }}>{stats.overdue}</div>
+          <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--danger)' }}>{stats.overdue}</div>
           <div style={{ fontSize: '11px', color: 'var(--text-faint)' }}>Overdue</div>
         </div>
 
@@ -831,22 +831,22 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
             }
           }}
           style={{
-            background: filterStatus === 'completed' ? '#0f0f0f' : '#0a0a0a',
-            border: filterStatus === 'completed' ? '1px solid #00ff88' : '1px solid #1a1a1a',
+            background: filterStatus === 'completed' ? 'var(--surface-2)' : 'var(--surface-1)',
+            border: filterStatus === 'completed' ? '1px solid var(--accent)' : '1px solid var(--skeleton-highlight)',
             borderRadius: '4px',
             padding: '15px',
             cursor: 'pointer',
             transition: 'all 0.2s'
           }}
         >
-          <div style={{ fontSize: '24px', fontWeight: '700', color: '#00ff88' }}>{stats.completed}</div>
+          <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--accent)' }}>{stats.completed}</div>
           <div style={{ fontSize: '11px', color: 'var(--text-faint)' }}>Completed</div>
         </div>
       </div>
 
       <div style={{
-        background: '#0a0a0a',
-        border: '1px solid #1a1a1a',
+        background: 'var(--surface-1)',
+        border: '1px solid var(--skeleton-highlight)',
         borderRadius: '8px',
         padding: '16px',
         marginBottom: '20px'
@@ -864,10 +864,10 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
               flex: '1 1 240px',
               minWidth: '200px',
               padding: '10px 12px',
-              background: '#0f0f0f',
-              border: '1px solid #1a1a1a',
+              background: 'var(--surface-2)',
+              border: '1px solid var(--skeleton-highlight)',
               borderRadius: '6px',
-              color: '#ffffff',
+              color: 'var(--white)',
               fontSize: '13px'
             }}
           />
@@ -876,10 +876,10 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
             onChange={(e) => setFilterPriority(e.target.value)}
             style={{
               padding: '10px 12px',
-              background: '#0f0f0f',
-              border: '1px solid #1a1a1a',
+              background: 'var(--surface-2)',
+              border: '1px solid var(--skeleton-highlight)',
               borderRadius: '6px',
-              color: '#ffffff',
+              color: 'var(--white)',
               fontSize: '13px'
             }}
           >
@@ -893,10 +893,10 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
             onChange={(e) => setFilterType(e.target.value)}
             style={{
               padding: '10px 12px',
-              background: '#0f0f0f',
-              border: '1px solid #1a1a1a',
+              background: 'var(--surface-2)',
+              border: '1px solid var(--skeleton-highlight)',
               borderRadius: '6px',
-              color: '#ffffff',
+              color: 'var(--white)',
               fontSize: '13px'
             }}
           >
@@ -910,10 +910,10 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
             onChange={(e) => setFilterAssignee(e.target.value)}
             style={{
               padding: '10px 12px',
-              background: '#0f0f0f',
-              border: '1px solid #1a1a1a',
+              background: 'var(--surface-2)',
+              border: '1px solid var(--skeleton-highlight)',
               borderRadius: '6px',
-              color: '#ffffff',
+              color: 'var(--white)',
               fontSize: '13px'
             }}
           >
@@ -930,31 +930,31 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
 
       {viewMode === 'calendar' ? (
         <div style={{
-          background: '#0a0a0a',
-          border: '1px solid #1a1a1a',
+          background: 'var(--surface-1)',
+          border: '1px solid var(--skeleton-highlight)',
           borderRadius: '10px',
           padding: '20px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
-            <div style={{ fontSize: '16px', fontWeight: '700', color: '#ffffff' }}>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--white)' }}>
               {calendarDate.toLocaleString('default', { month: 'long' })} {calendarDate.getFullYear()}
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))}
-                style={{ background: '#1a1a1a', color: '#ffffff', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}
+                style={{ background: 'var(--skeleton-highlight)', color: 'var(--white)', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}
               >
                 ←
               </button>
               <button
                 onClick={() => setCalendarDate(new Date())}
-                style={{ background: '#0f0f0f', color: '#ffffff', border: '1px solid #1a1a1a', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}
+                style={{ background: 'var(--surface-2)', color: 'var(--white)', border: '1px solid var(--skeleton-highlight)', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}
               >
                 Today
               </button>
               <button
                 onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))}
-                style={{ background: '#1a1a1a', color: '#ffffff', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}
+                style={{ background: 'var(--skeleton-highlight)', color: 'var(--white)', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}
               >
                 →
               </button>
@@ -993,8 +993,8 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                     minHeight: '80px',
                     padding: '8px',
                     borderRadius: '8px',
-                    border: isSelected ? '1px solid #00ff88' : '1px solid #1a1a1a',
-                    background: isSelected ? '#00ff8815' : '#0f0f0f',
+                    border: isSelected ? '1px solid var(--accent)' : '1px solid var(--skeleton-highlight)',
+                    background: isSelected ? '#00ff8815' : 'var(--surface-2)',
                     opacity: isCurrentMonth ? 1 : 0.4,
                     cursor: 'pointer',
                     position: 'relative'
@@ -1002,7 +1002,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                 >
                   <div style={{
                     fontSize: '12px',
-                    color: isToday ? '#00ff88' : '#ffffff',
+                    color: isToday ? 'var(--accent)' : 'var(--white)',
                     fontWeight: isToday ? '700' : '600'
                   }}>
                     {date.getDate()}
@@ -1012,8 +1012,8 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                       {dayTasks.slice(0, 3).map((task) => (
                         <div key={task.id} style={{
                           fontSize: '11px',
-                          color: '#ffffff',
-                          background: '#1a1a1a',
+                          color: 'var(--white)',
+                          background: 'var(--skeleton-highlight)',
                           padding: '3px 6px',
                           borderRadius: '4px',
                           whiteSpace: 'nowrap',
@@ -1024,7 +1024,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                         </div>
                       ))}
                       {dayTasks.length > 3 && (
-                        <div style={{ fontSize: '11px', color: '#888888' }}>+{dayTasks.length - 3} more</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted-2)' }}>+{dayTasks.length - 3} more</div>
                       )}
                     </div>
                   )}
@@ -1034,7 +1034,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
           </div>
 
           <div style={{ marginTop: '20px' }}>
-            <div style={{ fontSize: '12px', color: '#888888', marginBottom: '8px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', marginBottom: '8px' }}>
               {selectedDate ? `Tasks for ${selectedDate.toLocaleDateString()}` : 'Select a day to view tasks'}
             </div>
             {selectedDate && tasksForSelectedDate.length === 0 && (
@@ -1045,9 +1045,9 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                 {tasksForSelectedDate.map((task) => {
                   const priority = PRIORITIES.find(p => p.value === task.priority);
                   return (
-                    <div key={task.id} style={{ background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', padding: '12px' }}>
-                      <div style={{ fontSize: '13px', fontWeight: '600', color: '#ffffff' }}>{task.title}</div>
-                      <div style={{ fontSize: '11px', color: '#888888', marginTop: '4px' }}>
+                    <div key={task.id} style={{ background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', padding: '12px' }}>
+                      <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--white)' }}>{task.title}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', marginTop: '4px' }}>
                         {task.assignedToName || 'Unassigned'} • {priority?.label || 'Medium'}
                       </div>
                     </div>
@@ -1093,8 +1093,8 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
               <div
                 key={task.id}
                 style={{
-                  background: '#0a0a0a',
-                  border: overdue ? '1px solid #ff3333' : '1px solid #1a1a1a',
+                  background: 'var(--surface-1)',
+                  border: overdue ? '1px solid var(--danger)' : '1px solid var(--skeleton-highlight)',
                   borderRadius: '4px',
                   padding: '15px 20px',
                   display: 'flex',
@@ -1103,10 +1103,10 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#0f0f0f';
+                  e.currentTarget.style.background = 'var(--surface-2)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#0a0a0a';
+                  e.currentTarget.style.background = 'var(--surface-1)';
                 }}
               >
                 <button
@@ -1116,8 +1116,8 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                     width: '24px',
                     height: '24px',
                     borderRadius: '4px',
-                    border: task.status === 'completed' ? 'none' : '2px solid #1a1a1a',
-                    background: task.status === 'completed' ? '#00ff88' : 'transparent',
+                    border: task.status === 'completed' ? 'none' : '2px solid var(--skeleton-highlight)',
+                    background: task.status === 'completed' ? 'var(--accent)' : 'transparent',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1138,7 +1138,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                     <h3 style={{
                       fontSize: '14px',
                       fontWeight: '600',
-                      color: task.status === 'completed' ? '#666666' : '#ffffff',
+                      color: task.status === 'completed' ? 'var(--gray-666)' : 'var(--white)',
                       margin: 0,
                       textDecoration: task.status === 'completed' ? 'line-through' : 'none'
                     }}>
@@ -1163,7 +1163,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
                     {task.description && (
                       <p style={{
                         fontSize: '12px',
-                        color: '#888888',
+                        color: 'var(--text-muted-2)',
                         margin: '0 0 5px 0'
                       }}>
                         {task.description}
@@ -1205,7 +1205,7 @@ const TasksPage = ({ globalSearch = '', onSearchChange }) => {
             );
           })}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ fontSize: '12px', color: '#888888' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>
               Showing {filteredTasks.length} task{filteredTasks.length === 1 ? '' : 's'} on this page
               {hasNextPage ? ' · more available' : ''}
             </div>

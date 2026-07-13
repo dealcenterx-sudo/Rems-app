@@ -441,12 +441,12 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
   const getStatusColor = (status) => {
     const colors = {
-      available: '#00ff88',
-      'under-contract': '#ffaa00',
-      pending: '#0088ff',
-      sold: '#ff3333'
+      available: 'var(--accent)',
+      'under-contract': 'var(--warning)',
+      pending: 'var(--info)',
+      sold: 'var(--danger)'
     };
-    return colors[status] || '#888888';
+    return colors[status] || 'var(--text-muted-2)';
   };
 
   // Memoised — only recomputes when source data or any filter/sort dependency changes
@@ -533,10 +533,10 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
       {/* Header */}
       <div className="responsive-header" style={{ marginBottom: '30px' }}>
         <div>
-          <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '700', margin: 0, marginBottom: '4px' }}>
+          <h2 style={{ fontSize: '20px', color: 'var(--white)', fontWeight: '700', margin: 0, marginBottom: '4px' }}>
             Properties
           </h2>
-          <p style={{ fontSize: '13px', color: '#888888', margin: 0 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted-2)', margin: 0 }}>
             Showing {filteredAndSortedProperties.length} of {properties.length} properties
           </p>
         </div>
@@ -557,23 +557,23 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
             setSearchInput(e.target.value);
             if (onSearchChange) onSearchChange(e.target.value);
           }}
-          style={{ width: '100%', padding: '14px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', color: '#ffffff', fontSize: '14px', transition: 'all 0.3s' }}
+          style={{ width: '100%', padding: '14px 16px', background: 'var(--surface-1)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', color: 'var(--white)', fontSize: '14px', transition: 'all 0.3s' }}
           onFocus={(e) => {
-            e.target.style.borderColor = '#00ff88';
+            e.target.style.borderColor = 'var(--accent)';
             e.target.style.boxShadow = '0 0 0 3px rgba(0, 255, 136, 0.1)';
           }}
           onBlur={(e) => {
-            e.target.style.borderColor = '#1a1a1a';
+            e.target.style.borderColor = 'var(--skeleton-highlight)';
             e.target.style.boxShadow = 'none';
           }}
         />
       </div>
 
       {/* Filters Row */}
-      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '20px', marginBottom: '25px' }}>
+      <div style={{ background: 'var(--surface-1)', border: '1px solid var(--skeleton-highlight)', borderRadius: '12px', padding: '20px', marginBottom: '25px' }}>
         {/* Status Filters */}
         <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Status</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Status</div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {statusOptions.map((option) => (
               <div
@@ -590,8 +590,8 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                 }}
                 style={{
                   padding: '8px 16px',
-                  background: filterStatus === option.value ? '#00ff88' : '#0f0f0f',
-                  border: `1px solid ${filterStatus === option.value ? '#00ff88' : '#1a1a1a'}`,
+                  background: filterStatus === option.value ? 'var(--accent)' : 'var(--surface-2)',
+                  border: `1px solid ${filterStatus === option.value ? 'var(--accent)' : 'var(--skeleton-highlight)'}`,
                   borderRadius: '6px',
                   cursor: 'pointer',
                   display: 'flex',
@@ -600,10 +600,10 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                   transition: 'all 0.2s'
                 }}
               >
-                <span style={{ fontSize: '12px', fontWeight: '600', color: filterStatus === option.value ? '#000000' : '#ffffff' }}>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: filterStatus === option.value ? 'var(--surface-0)' : 'var(--white)' }}>
                   {option.label}
                 </span>
-                <span style={{ fontSize: '11px', fontWeight: '700', color: filterStatus === option.value ? '#000000' : '#888888', background: filterStatus === option.value ? 'rgba(0,0,0,0.2)' : '#1a1a1a', padding: '2px 6px', borderRadius: '8px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: filterStatus === option.value ? 'var(--surface-0)' : 'var(--text-muted-2)', background: filterStatus === option.value ? 'rgba(0,0,0,0.2)' : 'var(--skeleton-highlight)', padding: '2px 6px', borderRadius: '8px' }}>
                   {option.count}
                 </span>
               </div>
@@ -613,21 +613,21 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
         {/* Price Range */}
         <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Price Range</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Price Range</div>
           <div className="grid-two" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <input
               type="number"
               placeholder="Min Price"
               value={priceRange.min}
               onChange={(e) => setPriceRange({...priceRange, min: e.target.value})}
-              style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '13px' }}
+              style={{ padding: '10px 12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '13px' }}
             />
             <input
               type="number"
               placeholder="Max Price"
               value={priceRange.max}
               onChange={(e) => setPriceRange({...priceRange, max: e.target.value})}
-              style={{ padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '13px' }}
+              style={{ padding: '10px 12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '13px' }}
             />
           </div>
         </div>
@@ -636,7 +636,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
         <div className="grid-three" style={{ gridTemplateColumns: '1fr 1fr 1fr', marginBottom: '20px' }}>
           {/* Beds */}
           <div>
-            <div style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Beds</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Beds</div>
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {bedsOptions.map((bed) => (
                 <button
@@ -646,14 +646,14 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                   aria-pressed={bedsFilter === bed}
                   style={{
                     padding: '8px 14px',
-                    background: bedsFilter === bed ? '#0088ff' : '#0f0f0f',
-                    border: `1px solid ${bedsFilter === bed ? '#0088ff' : '#1a1a1a'}`,
+                    background: bedsFilter === bed ? 'var(--info)' : 'var(--surface-2)',
+                    border: `1px solid ${bedsFilter === bed ? 'var(--info)' : 'var(--skeleton-highlight)'}`,
                     borderRadius: '6px',
                     cursor: 'pointer',
                     fontSize: '12px',
                     fontWeight: '600',
                     fontFamily: 'inherit',
-                    color: bedsFilter === bed ? '#ffffff' : '#888888',
+                    color: bedsFilter === bed ? 'var(--white)' : 'var(--text-muted-2)',
                     transition: 'all 0.2s',
                     textTransform: 'capitalize'
                   }}
@@ -666,7 +666,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
           {/* Baths */}
           <div>
-            <div style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Baths</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Baths</div>
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {bathsOptions.map((bath) => (
                 <button
@@ -676,14 +676,14 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                   aria-pressed={bathsFilter === bath}
                   style={{
                     padding: '8px 14px',
-                    background: bathsFilter === bath ? '#0088ff' : '#0f0f0f',
-                    border: `1px solid ${bathsFilter === bath ? '#0088ff' : '#1a1a1a'}`,
+                    background: bathsFilter === bath ? 'var(--info)' : 'var(--surface-2)',
+                    border: `1px solid ${bathsFilter === bath ? 'var(--info)' : 'var(--skeleton-highlight)'}`,
                     borderRadius: '6px',
                     cursor: 'pointer',
                     fontSize: '12px',
                     fontWeight: '600',
                     fontFamily: 'inherit',
-                    color: bathsFilter === bath ? '#ffffff' : '#888888',
+                    color: bathsFilter === bath ? 'var(--white)' : 'var(--text-muted-2)',
                     transition: 'all 0.2s',
                     textTransform: 'capitalize'
                   }}
@@ -696,12 +696,12 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
           {/* Sort By */}
           <div>
-            <label htmlFor="properties-sortBy" style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Sort By</label>
+            <label htmlFor="properties-sortBy" style={{ fontSize: '11px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>Sort By</label>
             <select
               id="properties-sortBy"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '13px', fontWeight: '500' }}
+              style={{ width: '100%', padding: '10px 12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '13px', fontWeight: '500' }}
             >
               <option value="date-desc">Newest First</option>
               <option value="date-asc">Oldest First</option>
@@ -715,8 +715,8 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
         {/* Active Filters & Clear All */}
         {getActiveFiltersCount() > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '15px', borderTop: '1px solid #1a1a1a' }}>
-            <div style={{ fontSize: '12px', color: '#888888' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '15px', borderTop: '1px solid var(--skeleton-highlight)' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>
               {getActiveFiltersCount()} filter{getActiveFiltersCount() > 1 ? 's' : ''} active
             </div>
             <button
@@ -724,9 +724,9 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
               style={{
                 padding: '6px 14px',
                 background: 'transparent',
-                border: '1px solid #ff3333',
+                border: '1px solid var(--danger)',
                 borderRadius: '6px',
-                color: '#ff3333',
+                color: 'var(--danger)',
                 fontSize: '11px',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -734,12 +734,12 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                 transition: 'all 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.target.style.background = '#ff3333';
-                e.target.style.color = '#ffffff';
+                e.target.style.background = 'var(--danger)';
+                e.target.style.color = 'var(--white)';
               }}
               onMouseLeave={(e) => {
                 e.target.style.background = 'transparent';
-                e.target.style.color = '#ff3333';
+                e.target.style.color = 'var(--danger)';
               }}
             >
               Clear All
@@ -806,7 +806,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                 e.currentTarget.style.boxShadow = `0 12px 30px ${getStatusColor(property.status)}30`;
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#1a1a1a';
+                e.currentTarget.style.borderColor = 'var(--skeleton-highlight)';
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = 'none';
               }}
@@ -828,7 +828,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                   height: '200px', 
                   background: property.featuredImage 
                     ? `url(${property.featuredImage.replace('/upload/', '/upload/w_400,h_300,c_fill/')})` 
-                    : 'linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%)',
+                    : 'linear-gradient(135deg, var(--skeleton-highlight) 0%, var(--surface-2) 100%)',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   position: 'relative'
@@ -841,7 +841,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                   right: '12px',
                   fontSize: '11px',
                   fontWeight: '700',
-                  color: '#000000',
+                  color: 'var(--surface-0)',
                   background: getStatusColor(property.status),
                   padding: '6px 12px',
                   borderRadius: '20px',
@@ -859,7 +859,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                     right: '12px',
                     fontSize: '12px',
                     fontWeight: '600',
-                    color: '#ffffff',
+                    color: 'var(--white)',
                     background: 'rgba(0, 0, 0, 0.7)',
                     padding: '6px 12px',
                     borderRadius: '20px',
@@ -887,15 +887,15 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
               {/* Property Info */}
               <div style={{ padding: '20px' }}>
                 {/* Price */}
-                <div style={{ fontSize: '24px', fontWeight: '700', color: '#00ff88', marginBottom: '10px' }}>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--accent)', marginBottom: '10px' }}>
                   {property.price ? `$${property.price.toLocaleString()}` : 'Price TBD'}
                 </div>
 
                 {/* Address */}
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff', marginBottom: '4px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)', marginBottom: '4px' }}>
                   {property.address}
                 </div>
-                <div style={{ fontSize: '12px', color: '#888888', marginBottom: '15px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', marginBottom: '15px' }}>
                   {property.city}, {property.state} {property.zipCode}
                 </div>
 
@@ -906,19 +906,19 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                   gap: '10px', 
                   marginBottom: '15px',
                   paddingTop: '15px',
-                  borderTop: '1px solid #1a1a1a'
+                  borderTop: '1px solid var(--skeleton-highlight)'
                 }}>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>{property.beds ?? '—'}</div>
-                    <div style={{ fontSize: '11px', color: '#888888', textTransform: 'uppercase' }}>Beds</div>
+                    <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--white)' }}>{property.beds ?? '—'}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase' }}>Beds</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>{property.baths ?? '—'}</div>
-                    <div style={{ fontSize: '11px', color: '#888888', textTransform: 'uppercase' }}>Baths</div>
+                    <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--white)' }}>{property.baths ?? '—'}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase' }}>Baths</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>{property.sqft ? property.sqft.toLocaleString() : '—'}</div>
-                    <div style={{ fontSize: '11px', color: '#888888', textTransform: 'uppercase' }}>Sqft</div>
+                    <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--white)' }}>{property.sqft ? property.sqft.toLocaleString() : '—'}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase' }}>Sqft</div>
                   </div>
                 </div>
 
@@ -928,7 +928,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                 </div>
 
                 {property.sellerName && (
-                  <div style={{ fontSize: '11px', color: '#00ff88', marginBottom: '15px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--accent)', marginBottom: '15px' }}>
                     Seller: {property.sellerName}
                   </div>
                 )}
@@ -957,7 +957,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
       )}
       {filteredAndSortedProperties.length > 0 && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', flexWrap: 'wrap', gap: '10px' }}>
-          <div style={{ fontSize: '12px', color: '#888888' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>
             Showing {filteredAndSortedProperties.length} property{filteredAndSortedProperties.length === 1 ? '' : 's'} on this page
             {hasNextPage ? ' · more available' : ''}
           </div>
@@ -985,7 +985,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
         <div className="modal-overlay" role="presentation" onClick={closeModal}>
           <div className="modal-content" role="presentation" style={{ padding: '30px', maxWidth: '800px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header" style={{ marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '20px', color: '#ffffff', fontWeight: '600', margin: 0 }}>
+              <h2 style={{ fontSize: '20px', color: 'var(--white)', fontWeight: '600', margin: 0 }}>
                 {editingProperty ? 'Edit Property' : 'Add New Property'}
               </h2>
               <button onClick={closeModal} className="icon-button">×</button>
@@ -995,32 +995,32 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                 <div style={{ display: 'grid', gap: '20px' }}>
                 {/* Address */}
                 <div>
-                  <label htmlFor="property-address" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Address *</label>
+                  <label htmlFor="property-address" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Address *</label>
                   <input
                     id="property-address"
                     type="text"
                     value={formData.address}
                     onChange={(e) => setFormData({...formData, address: e.target.value})}
                     required
-                    style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }}
                   />
                 </div>
 
                 {/* City, State, Zip */}
                 <div className="grid-city-state-zip" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '15px' }}>
                   <div>
-                    <label htmlFor="property-city" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>City *</label>
+                    <label htmlFor="property-city" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>City *</label>
                     <input
                       id="property-city"
                       type="text"
                       value={formData.city}
                       onChange={(e) => setFormData({...formData, city: e.target.value})}
                       required
-                      style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }}
                     />
                   </div>
                   <div>
-                    <label htmlFor="property-state" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>State *</label>
+                    <label htmlFor="property-state" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>State *</label>
                     <input
                       id="property-state"
                       type="text"
@@ -1028,18 +1028,18 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                       onChange={(e) => setFormData({...formData, state: e.target.value})}
                       required
                       maxLength={2}
-                      style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', textTransform: 'uppercase' }}
+                      style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px', textTransform: 'uppercase' }}
                     />
                   </div>
                   <div>
-                    <label htmlFor="property-zip" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Zip *</label>
+                    <label htmlFor="property-zip" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Zip *</label>
                     <input
                       id="property-zip"
                       type="text"
                       value={formData.zipCode}
                       onChange={(e) => setFormData({...formData, zipCode: e.target.value})}
                       required
-                      style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }}
                     />
                   </div>
                 </div>
@@ -1047,7 +1047,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                 {/* Price, Beds, Baths, Sqft */}
                 <div className="grid-four" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px' }}>
                   <div>
-                    <label htmlFor="property-price" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Price *</label>
+                    <label htmlFor="property-price" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Price *</label>
                     <input
                       id="property-price"
                       type="number"
@@ -1055,16 +1055,16 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                       onChange={(e) => setFormData({...formData, price: e.target.value})}
                       placeholder="475000"
                       required
-                      style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }}
                     />
                   </div>
                   <div>
-                    <label htmlFor="property-beds" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Beds</label>
+                    <label htmlFor="property-beds" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Beds</label>
                     <select
                       id="property-beds"
                       value={formData.beds}
                       onChange={(e) => setFormData({...formData, beds: e.target.value})}
-                      style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }}
                     >
                       <option value="">Select</option>
                       <option value="0">Studio</option>
@@ -1079,12 +1079,12 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="property-baths" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Baths</label>
+                    <label htmlFor="property-baths" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Baths</label>
                     <select
                       id="property-baths"
                       value={formData.baths}
                       onChange={(e) => setFormData({...formData, baths: e.target.value})}
-                      style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }}
                     >
                       <option value="">Select</option>
                       <option value="1">1</option>
@@ -1099,14 +1099,14 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="property-sqft" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Sqft</label>
+                    <label htmlFor="property-sqft" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Sqft</label>
                     <input
                       id="property-sqft"
                       type="number"
                       value={formData.sqft}
                       onChange={(e) => setFormData({...formData, sqft: e.target.value})}
                       placeholder="2400"
-                      style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }}
                     />
                   </div>
                 </div>
@@ -1114,12 +1114,12 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                 {/* Property Type & Status */}
                 <div className="grid-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                   <div>
-                    <label htmlFor="property-type" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Property Type</label>
+                    <label htmlFor="property-type" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Property Type</label>
                     <select
                       id="property-type"
                       value={formData.propertyType}
                       onChange={(e) => setFormData({...formData, propertyType: e.target.value})}
-                      style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }}
                     >
                       <option value="single-family">Single Family</option>
                       <option value="condo">Condo</option>
@@ -1130,12 +1130,12 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="property-status" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Status</label>
+                    <label htmlFor="property-status" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Status</label>
                     <select
                       id="property-status"
                       value={formData.status}
                       onChange={(e) => setFormData({...formData, status: e.target.value})}
-                      style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }}
                     >
                       <option value="available">Available</option>
                       <option value="under-contract">Under Contract</option>
@@ -1146,7 +1146,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                 </div>
 
                 <div>
-                  <label htmlFor="property-seller" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Associated Seller</label>
+                  <label htmlFor="property-seller" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Associated Seller</label>
                   <select
                     id="property-seller"
                     value={formData.sellerId}
@@ -1158,7 +1158,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                         sellerName: selectedSeller ? `${selectedSeller.firstName} ${selectedSeller.lastName}` : ''
                       });
                     }}
-                    style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }}
                   >
                     <option value="">None selected</option>
                     {sellers.map((seller) => (
@@ -1171,19 +1171,19 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
 
                 {/* Description */}
                 <div>
-                  <label htmlFor="property-description" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Description</label>
+                  <label htmlFor="property-description" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>Description</label>
                   <textarea
                     id="property-description"
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     rows={3}
-                    style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px', resize: 'vertical' }}
+                    style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px', resize: 'vertical' }}
                   />
                 </div>
 
                 {/* Image Upload */}
                 <div>
-                  <label htmlFor="property-photos" style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>
+                  <label htmlFor="property-photos" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>
                     Upload Photos (Multiple)
                   </label>
                   <input
@@ -1192,10 +1192,10 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                     multiple
                     accept="image/*"
                     onChange={handleImageSelect}
-                    style={{ width: '100%', padding: '12px', background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ffffff', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '6px', color: 'var(--white)', fontSize: '14px' }}
                   />
                   {imageFiles.length > 0 && (
-                    <div style={{ marginTop: '10px', fontSize: '12px', color: '#00ff88' }}>
+                    <div style={{ marginTop: '10px', fontSize: '12px', color: 'var(--accent)' }}>
                       {imageFiles.length} file(s) selected
                     </div>
                   )}
@@ -1204,12 +1204,12 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                 {/* Existing Images */}
                 {editingProperty && formData.images && formData.images.length > 0 && (
                   <div>
-                    <label style={{ fontSize: '12px', color: '#888888', display: 'block', marginBottom: '10px', fontWeight: '600', textTransform: 'uppercase' }}>
+                    <label style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '10px', fontWeight: '600', textTransform: 'uppercase' }}>
                       Existing Photos ({formData.images.length})
                     </label>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px' }}>
                       {formData.images.map((img, idx) => (
-                        <div key={idx} style={{ position: 'relative', paddingTop: '100%', borderRadius: '6px', overflow: 'hidden', border: '1px solid #1a1a1a' }}>
+                        <div key={idx} style={{ position: 'relative', paddingTop: '100%', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--skeleton-highlight)' }}>
                           <img 
                             src={img.thumbnail || img.url} 
                             alt={`Property ${idx + 1}`}
@@ -1264,7 +1264,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                 right: '0',
                 background: 'transparent',
                 border: 'none',
-                color: '#ffffff',
+                color: 'var(--white)',
                 fontSize: '36px',
                 cursor: 'pointer',
                 padding: '10px',
@@ -1279,7 +1279,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
               position: 'absolute',
               top: '-50px',
               left: '0',
-              color: '#ffffff',
+              color: 'var(--white)',
               fontSize: '14px',
               fontWeight: '600'
             }} className="gallery-counter">
@@ -1317,7 +1317,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                       left: '20px',
                       background: 'rgba(0, 0, 0, 0.7)',
                       border: 'none',
-                      color: '#ffffff',
+                      color: 'var(--white)',
                       fontSize: '32px',
                       padding: '20px 25px',
                       borderRadius: '50%',
@@ -1335,7 +1335,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                       right: '20px',
                       background: 'rgba(0, 0, 0, 0.7)',
                       border: 'none',
-                      color: '#ffffff',
+                      color: 'var(--white)',
                       fontSize: '32px',
                       padding: '20px 25px',
                       borderRadius: '50%',
@@ -1381,7 +1381,7 @@ const PropertiesPage = ({ globalSearch = '', onSearchChange }) => {
                       borderRadius: '6px',
                       overflow: 'hidden',
                       cursor: 'pointer',
-                      border: idx === currentImageIndex ? '3px solid #00ff88' : '3px solid transparent',
+                      border: idx === currentImageIndex ? '3px solid var(--accent)' : '3px solid transparent',
                       opacity: idx === currentImageIndex ? 1 : 0.6,
                       transition: 'all 0.2s',
                       flexShrink: 0

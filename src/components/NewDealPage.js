@@ -163,8 +163,8 @@ const querySnapshot = isAdmin
             }
           }}
           style={{
-            background: dealData.buyer ? '#0f0f0f' : '#0a0a0a',
-            borderColor: dealData.buyer ? '#0088ff' : '#1a1a1a'
+            background: dealData.buyer ? 'var(--surface-2)' : 'var(--surface-1)',
+            borderColor: dealData.buyer ? 'var(--info)' : 'var(--skeleton-highlight)'
           }}
         >
           <div className="deal-icon-circle" style={{ background: '#0088ff15' }}>
@@ -174,23 +174,23 @@ const querySnapshot = isAdmin
           {dealData.buyer ? (
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
               <div style={{
-                background: '#0088ff',
-                color: '#000000',
+                background: 'var(--info)',
+                color: 'var(--surface-0)',
                 padding: '8px 16px',
                 borderRadius: '20px',
                 fontSize: '24px',
                 marginBottom: '15px'
               }}>✓</div>
-              <div style={{ fontSize: '14px', color: '#ffffff', fontWeight: '600', marginBottom: '4px' }}>
+              <div style={{ fontSize: '14px', color: 'var(--white)', fontWeight: '600', marginBottom: '4px' }}>
                 {getSelectedBuyer()?.firstName} {getSelectedBuyer()?.lastName}
               </div>
-              <div style={{ fontSize: '11px', color: '#888888' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted-2)' }}>
                 {getSelectedBuyer()?.email}
               </div>
             </div>
           ) : (
             <>
-              <div className="deal-plus-button" style={{ background: '#0088ff' }}>
+              <div className="deal-plus-button" style={{ background: 'var(--info)' }}>
                 <Plus size={32} color="#000000" />
               </div>
               <h3>Add Buyer</h3>
@@ -211,8 +211,8 @@ const querySnapshot = isAdmin
             }
           }}
           style={{
-            background: dealData.seller ? '#0f0f0f' : '#0a0a0a',
-            borderColor: dealData.seller ? '#00ff88' : '#1a1a1a'
+            background: dealData.seller ? 'var(--surface-2)' : 'var(--surface-1)',
+            borderColor: dealData.seller ? 'var(--accent)' : 'var(--skeleton-highlight)'
           }}
         >
           <div className="deal-icon-circle" style={{ background: '#00ff8815' }}>
@@ -222,23 +222,23 @@ const querySnapshot = isAdmin
           {dealData.seller ? (
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
               <div style={{
-                background: '#00ff88',
-                color: '#000000',
+                background: 'var(--accent)',
+                color: 'var(--surface-0)',
                 padding: '8px 16px',
                 borderRadius: '20px',
                 fontSize: '24px',
                 marginBottom: '15px'
               }}>✓</div>
-              <div style={{ fontSize: '14px', color: '#ffffff', fontWeight: '600', marginBottom: '4px' }}>
+              <div style={{ fontSize: '14px', color: 'var(--white)', fontWeight: '600', marginBottom: '4px' }}>
                 {getSelectedSeller()?.firstName} {getSelectedSeller()?.lastName}
               </div>
-              <div style={{ fontSize: '11px', color: '#888888' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted-2)' }}>
                 {getSelectedSeller()?.email}
               </div>
             </div>
           ) : (
             <>
-              <div className="deal-plus-button" style={{ background: '#00ff88' }}>
+              <div className="deal-plus-button" style={{ background: 'var(--accent)' }}>
                 <Plus size={32} color="#000000" />
               </div>
               <h3>Add Seller</h3>
@@ -259,8 +259,8 @@ const querySnapshot = isAdmin
             }
           }}
           style={{
-            background: dealData.property ? '#0f0f0f' : '#0a0a0a',
-            borderColor: dealData.property ? '#ffaa00' : '#1a1a1a'
+            background: dealData.property ? 'var(--surface-2)' : 'var(--surface-1)',
+            borderColor: dealData.property ? 'var(--warning)' : 'var(--skeleton-highlight)'
           }}
         >
           <div className="deal-icon-circle" style={{ background: '#ffaa0015' }}>
@@ -270,20 +270,20 @@ const querySnapshot = isAdmin
           {dealData.property ? (
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
               <div style={{
-                background: '#ffaa00',
-                color: '#000000',
+                background: 'var(--warning)',
+                color: 'var(--surface-0)',
                 padding: '8px 16px',
                 borderRadius: '20px',
                 fontSize: '24px',
                 marginBottom: '15px'
               }}>✓</div>
-              <div style={{ fontSize: '14px', color: '#ffffff', fontWeight: '600', wordBreak: 'break-word', padding: '0 10px' }}>
+              <div style={{ fontSize: '14px', color: 'var(--white)', fontWeight: '600', wordBreak: 'break-word', padding: '0 10px' }}>
                 {dealData.property}
               </div>
             </div>
           ) : (
             <>
-              <div className="deal-plus-button" style={{ background: '#ffaa00' }}>
+              <div className="deal-plus-button" style={{ background: 'var(--warning)' }}>
                 <Plus size={32} color="#000000" />
               </div>
               <h3>Add Property</h3>
@@ -337,9 +337,9 @@ const querySnapshot = isAdmin
       {/* Buyer Selection Modal */}
       {showBuyerModal && (
         <div className="modal-overlay" role="presentation" onClick={() => setShowBuyerModal(false)}>
-          <div className="modal-content" role="presentation" onClick={(e) => e.stopPropagation()} style={{ borderColor: '#0088ff', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
+          <div className="modal-content" role="presentation" onClick={(e) => e.stopPropagation()} style={{ borderColor: 'var(--info)', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '20px', color: '#0088ff', margin: 0 }}>Select Buyer</h2>
+              <h2 style={{ fontSize: '20px', color: 'var(--info)', margin: 0 }}>Select Buyer</h2>
               <button
                 onClick={() => setShowBuyerModal(false)}
                 className="icon-button"
@@ -348,8 +348,8 @@ const querySnapshot = isAdmin
 
             {buyers.length === 0 ? (
               <div style={{
-                background: '#0f0f0f',
-                border: '1px solid #1a1a1a',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--skeleton-highlight)',
                 padding: '30px',
                 textAlign: 'center',
                 color: 'var(--text-faint)',
@@ -376,8 +376,8 @@ const querySnapshot = isAdmin
                       }
                     }}
                     style={{
-                      background: dealData.buyer === contact.id ? '#1a1a1a' : '#0f0f0f',
-                      border: dealData.buyer === contact.id ? '1px solid #0088ff' : '1px solid #1a1a1a',
+                      background: dealData.buyer === contact.id ? 'var(--skeleton-highlight)' : 'var(--surface-2)',
+                      border: dealData.buyer === contact.id ? '1px solid var(--info)' : '1px solid var(--skeleton-highlight)',
                       padding: '15px 20px',
                       borderRadius: '4px',
                       cursor: 'pointer',
@@ -390,18 +390,18 @@ const querySnapshot = isAdmin
                     }}
                     onMouseLeave={(e) => {
                       if (dealData.buyer !== contact.id) {
-                        e.currentTarget.style.background = '#0f0f0f';
+                        e.currentTarget.style.background = 'var(--surface-2)';
                       }
                     }}
                   >
-                    <div style={{ fontSize: '14px', color: '#ffffff', fontWeight: '600', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '14px', color: 'var(--white)', fontWeight: '600', marginBottom: '4px' }}>
                       {contact.firstName} {contact.lastName}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#888888' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>
                       {contact.email} • {contact.phone}
                     </div>
                     {contact.buyerType && (
-                      <div style={{ fontSize: '11px', color: '#0088ff', marginTop: '4px', textTransform: 'capitalize' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--info)', marginTop: '4px', textTransform: 'capitalize' }}>
                         {contact.buyerType}
                       </div>
                     )}
@@ -416,9 +416,9 @@ const querySnapshot = isAdmin
       {/* Seller Selection Modal */}
       {showSellerModal && (
         <div className="modal-overlay" role="presentation" onClick={() => setShowSellerModal(false)}>
-          <div className="modal-content" role="presentation" onClick={(e) => e.stopPropagation()} style={{ borderColor: '#00ff88', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
+          <div className="modal-content" role="presentation" onClick={(e) => e.stopPropagation()} style={{ borderColor: 'var(--accent)', padding: '30px', maxWidth: '600px', width: '90%', maxHeight: '80vh' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '20px', color: '#00ff88', margin: 0 }}>Select Seller</h2>
+              <h2 style={{ fontSize: '20px', color: 'var(--accent)', margin: 0 }}>Select Seller</h2>
               <button
                 onClick={() => setShowSellerModal(false)}
                 className="icon-button"
@@ -427,8 +427,8 @@ const querySnapshot = isAdmin
 
             {sellers.length === 0 ? (
               <div style={{
-                background: '#0f0f0f',
-                border: '1px solid #1a1a1a',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--skeleton-highlight)',
                 padding: '30px',
                 textAlign: 'center',
                 color: 'var(--text-faint)',
@@ -455,8 +455,8 @@ const querySnapshot = isAdmin
                       }
                     }}
                     style={{
-                      background: dealData.seller === contact.id ? '#1a1a1a' : '#0f0f0f',
-                      border: dealData.seller === contact.id ? '1px solid #00ff88' : '1px solid #1a1a1a',
+                      background: dealData.seller === contact.id ? 'var(--skeleton-highlight)' : 'var(--surface-2)',
+                      border: dealData.seller === contact.id ? '1px solid var(--accent)' : '1px solid var(--skeleton-highlight)',
                       padding: '15px 20px',
                       borderRadius: '4px',
                       cursor: 'pointer',
@@ -469,14 +469,14 @@ const querySnapshot = isAdmin
                     }}
                     onMouseLeave={(e) => {
                       if (dealData.seller !== contact.id) {
-                        e.currentTarget.style.background = '#0f0f0f';
+                        e.currentTarget.style.background = 'var(--surface-2)';
                       }
                     }}
                   >
-                    <div style={{ fontSize: '14px', color: '#ffffff', fontWeight: '600', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '14px', color: 'var(--white)', fontWeight: '600', marginBottom: '4px' }}>
                       {contact.firstName} {contact.lastName}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#888888' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted-2)' }}>
                       {contact.email} • {contact.phone}
                     </div>
                   </div>
@@ -490,9 +490,9 @@ const querySnapshot = isAdmin
       {/* Property Input Modal */}
       {showPropertyModal && (
         <div className="modal-overlay" role="presentation" onClick={() => setShowPropertyModal(false)}>
-          <div className="modal-content" role="presentation" onClick={(e) => e.stopPropagation()} style={{ borderColor: '#ffaa00', padding: '30px', maxWidth: '500px', width: '90%' }}>
+          <div className="modal-content" role="presentation" onClick={(e) => e.stopPropagation()} style={{ borderColor: 'var(--warning)', padding: '30px', maxWidth: '500px', width: '90%' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '20px', color: '#ffaa00', margin: 0 }}>Enter Property Address</h2>
+              <h2 style={{ fontSize: '20px', color: 'var(--warning)', margin: 0 }}>Enter Property Address</h2>
               <button
                 onClick={() => setShowPropertyModal(false)}
                 className="icon-button"
@@ -510,8 +510,8 @@ const querySnapshot = isAdmin
                 onChange={(e) => setPropertyInput(e.target.value)}
                 style={{
                   width: '100%',
-                  background: '#0f0f0f',
-                  border: '1px solid #1a1a1a',
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--skeleton-highlight)',
                   padding: '12px 15px',
                   color: '#e0e0e0',
                   fontSize: '14px',

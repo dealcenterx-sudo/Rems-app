@@ -237,6 +237,8 @@ const AnalyticsDashboard = () => {
     const conversionRate = filteredDeals.length > 0 ? ((closedDeals / filteredDeals.length) * 100).toFixed(1) : 0;
     const avgDaysToClose = closedWithDateCount > 0 ? (totalDaysToClose / closedWithDateCount) : 0;
 
+    // Chart-series colors feed Recharts <Cell fill={entry.color}> (SVG presentation
+    // attribute); var() does not resolve there, so these stay raw hex by design (D-16).
     const dealStatusData = [
       { name: 'New', value: dealStatusByType.new, color: '#ffaa00' },
       { name: 'Active', value: dealStatusByType.active, color: '#00ff88' },
@@ -302,17 +304,17 @@ const AnalyticsDashboard = () => {
     <div className="page-content">
       {/* Header */}
       <div className="page-header" style={{ marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '24px', color: '#ffffff', fontWeight: '700', margin: 0, marginBottom: '8px' }}>
+        <h2 style={{ fontSize: '24px', color: 'var(--white)', fontWeight: '700', margin: 0, marginBottom: '8px' }}>
           Analytics Dashboard
         </h2>
-        <p style={{ fontSize: '14px', color: '#888888', margin: 0 }}>
+        <p style={{ fontSize: '14px', color: 'var(--text-muted-2)', margin: 0 }}>
           Real-time business intelligence and performance metrics
         </p>
       </div>
 
       {/* Date Range Filters */}
       <div className="card-surface" style={{ padding: '20px', marginBottom: '30px' }}>
-        <div style={{ fontSize: '11px', color: '#888888', display: 'block', marginBottom: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
+        <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
           Date Range
         </div>
         {queryError && (
@@ -344,24 +346,24 @@ const AnalyticsDashboard = () => {
                 onChange={(e) => setCustomStartDate(e.target.value)}
                 style={{
                   padding: '10px 15px',
-                  background: '#0f0f0f',
-                  border: '1px solid #1a1a1a',
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--skeleton-highlight)',
                   borderRadius: '8px',
-                  color: '#ffffff',
+                  color: 'var(--white)',
                   fontSize: '13px'
                 }}
               />
-              <span style={{ color: '#888888' }}>to</span>
+              <span style={{ color: 'var(--text-muted-2)' }}>to</span>
               <input
                 type="date"
                 value={customEndDate}
                 onChange={(e) => setCustomEndDate(e.target.value)}
                 style={{
                   padding: '10px 15px',
-                  background: '#0f0f0f',
-                  border: '1px solid #1a1a1a',
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--skeleton-highlight)',
                   borderRadius: '8px',
-                  color: '#ffffff',
+                  color: 'var(--white)',
                   fontSize: '13px'
                 }}
               />
@@ -373,57 +375,57 @@ const AnalyticsDashboard = () => {
       {/* Key Metrics Row */}
       <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '30px' }}>
         {/* Total Revenue */}
-        <div className="card-surface" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 100%)', position: 'relative', overflow: 'hidden' }}>
+        <div className="card-surface" style={{ background: 'linear-gradient(135deg, var(--surface-1) 0%, var(--surface-2) 100%)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-20px', right: '-20px', fontSize: '80px', opacity: 0.05 }}>💰</div>
-          <div style={{ fontSize: '12px', color: '#00ff88', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
             Total Revenue
           </div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '4px' }}>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--white)', marginBottom: '4px' }}>
             ${(totalRevenue / 1000000).toFixed(2)}M
           </div>
-          <div style={{ fontSize: '11px', color: '#888888' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted-2)' }}>
             From {filteredProperties.filter(p => p.status === 'sold').length} sold properties
           </div>
         </div>
 
         {/* Avg Deal Size */}
-        <div className="card-surface" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 100%)', position: 'relative', overflow: 'hidden' }}>
+        <div className="card-surface" style={{ background: 'linear-gradient(135deg, var(--surface-1) 0%, var(--surface-2) 100%)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-20px', right: '-20px', fontSize: '80px', opacity: 0.05 }}>📊</div>
-          <div style={{ fontSize: '12px', color: '#0088ff', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--info)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
             Avg Deal Size
           </div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '4px' }}>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--white)', marginBottom: '4px' }}>
             ${(avgDealSize / 1000).toFixed(0)}K
           </div>
-          <div style={{ fontSize: '11px', color: '#888888' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted-2)' }}>
             Average property value
           </div>
         </div>
 
         {/* Deal Velocity */}
-        <div className="card-surface" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 100%)', position: 'relative', overflow: 'hidden' }}>
+        <div className="card-surface" style={{ background: 'linear-gradient(135deg, var(--surface-1) 0%, var(--surface-2) 100%)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-20px', right: '-20px', fontSize: '80px', opacity: 0.05 }}>⚡</div>
-          <div style={{ fontSize: '12px', color: '#ffaa00', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--warning)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
             Deal Velocity
           </div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '4px' }}>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--white)', marginBottom: '4px' }}>
             {Math.round(avgDaysToClose)} days
           </div>
-          <div style={{ fontSize: '11px', color: '#888888' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted-2)' }}>
             Average time to close
           </div>
         </div>
 
         {/* Conversion Rate */}
-        <div className="card-surface" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 100%)', position: 'relative', overflow: 'hidden' }}>
+        <div className="card-surface" style={{ background: 'linear-gradient(135deg, var(--surface-1) 0%, var(--surface-2) 100%)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-20px', right: '-20px', fontSize: '80px', opacity: 0.05 }}>🎯</div>
           <div style={{ fontSize: '12px', color: '#aa00ff', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
             Conversion Rate
           </div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', marginBottom: '4px' }}>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--white)', marginBottom: '4px' }}>
             {conversionRate}%
           </div>
-          <div style={{ fontSize: '11px', color: '#888888' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted-2)' }}>
             {closedDeals} closed / {filteredDeals.length} total
           </div>
         </div>
@@ -433,7 +435,7 @@ const AnalyticsDashboard = () => {
       <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', marginBottom: '30px' }}>
         {/* Monthly Trend */}
         <div className="card-surface">
-          <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', color: 'var(--white)', fontWeight: '700', marginBottom: '20px' }}>
             Monthly Trend
           </h3>
           <ResponsiveContainer width="100%" height={250}>
@@ -442,10 +444,10 @@ const AnalyticsDashboard = () => {
               <XAxis dataKey="month" stroke="#888888" style={{ fontSize: '12px' }} />
               <YAxis stroke="#888888" style={{ fontSize: '12px' }} />
               <Tooltip 
-                contentStyle={{ background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '8px', color: '#ffffff' }}
-                labelStyle={{ color: '#888888' }}
+                contentStyle={{ background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', color: 'var(--white)' }}
+                labelStyle={{ color: 'var(--text-muted-2)' }}
               />
-              <Legend wrapperStyle={{ fontSize: '12px', color: '#888888' }} />
+              <Legend wrapperStyle={{ fontSize: '12px', color: 'var(--text-muted-2)' }} />
               <Line type="monotone" dataKey="deals" stroke="#00ff88" strokeWidth={2} name="Deals" />
               <Line type="monotone" dataKey="properties" stroke="#0088ff" strokeWidth={2} name="Properties" />
             </LineChart>
@@ -454,7 +456,7 @@ const AnalyticsDashboard = () => {
 
         {/* Revenue Trend */}
         <div className="card-surface">
-          <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', color: 'var(--white)', fontWeight: '700', marginBottom: '20px' }}>
             Revenue Trend (in $1000s)
           </h3>
           <ResponsiveContainer width="100%" height={250}>
@@ -463,8 +465,8 @@ const AnalyticsDashboard = () => {
               <XAxis dataKey="month" stroke="#888888" style={{ fontSize: '12px' }} />
               <YAxis stroke="#888888" style={{ fontSize: '12px' }} />
               <Tooltip 
-                contentStyle={{ background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '8px', color: '#ffffff' }}
-                labelStyle={{ color: '#888888' }}
+                contentStyle={{ background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', color: 'var(--white)' }}
+                labelStyle={{ color: 'var(--text-muted-2)' }}
               />
               <Bar dataKey="revenue" fill="#00ff88" radius={[8, 8, 0, 0]} name="Revenue ($1000s)" />
             </BarChart>
@@ -477,7 +479,7 @@ const AnalyticsDashboard = () => {
         {/* Deal Status Breakdown */}
         {dealStatusData.length > 0 && (
           <div className="card-surface">
-            <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', color: 'var(--white)', fontWeight: '700', marginBottom: '20px' }}>
               Deal Status Breakdown
             </h3>
             <ResponsiveContainer width="100%" height={250}>
@@ -497,7 +499,7 @@ const AnalyticsDashboard = () => {
                   ))}
                 </Pie>
                 <Tooltip 
-                  contentStyle={{ background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '8px', color: '#ffffff' }}
+                  contentStyle={{ background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', color: 'var(--white)' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -507,7 +509,7 @@ const AnalyticsDashboard = () => {
         {/* Property Status Breakdown */}
         {propertyStatusData.length > 0 && (
           <div className="card-surface">
-            <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', color: 'var(--white)', fontWeight: '700', marginBottom: '20px' }}>
               Property Status Breakdown
             </h3>
             <ResponsiveContainer width="100%" height={250}>
@@ -527,7 +529,7 @@ const AnalyticsDashboard = () => {
                   ))}
                 </Pie>
                 <Tooltip 
-                  contentStyle={{ background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '8px', color: '#ffffff' }}
+                  contentStyle={{ background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', color: 'var(--white)' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -537,7 +539,7 @@ const AnalyticsDashboard = () => {
         {/* Avg Price by Type */}
         {avgPriceData.length > 0 && (
           <div className="card-surface">
-            <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', color: 'var(--white)', fontWeight: '700', marginBottom: '20px' }}>
               Avg Price by Type ($1000s)
             </h3>
             <ResponsiveContainer width="100%" height={250}>
@@ -546,8 +548,8 @@ const AnalyticsDashboard = () => {
                 <XAxis type="number" stroke="#888888" style={{ fontSize: '11px' }} />
                 <YAxis dataKey="type" type="category" stroke="#888888" style={{ fontSize: '11px' }} width={100} />
                 <Tooltip 
-                  contentStyle={{ background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: '8px', color: '#ffffff' }}
-                  labelStyle={{ color: '#888888' }}
+                  contentStyle={{ background: 'var(--surface-2)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', color: 'var(--white)' }}
+                  labelStyle={{ color: 'var(--text-muted-2)' }}
                 />
                 <Bar dataKey="avgPrice" fill="#0088ff" radius={[0, 8, 8, 0]} name="Avg Price ($1000s)" />
               </BarChart>
@@ -559,7 +561,7 @@ const AnalyticsDashboard = () => {
       {/* Top Performers */}
       {topBuyersData.length > 0 && (
         <div className="card-surface">
-          <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', color: 'var(--white)', fontWeight: '700', marginBottom: '20px' }}>
             Top Buyers by Deal Count
           </h3>
           <div style={{ display: 'grid', gap: '12px' }}>
@@ -571,34 +573,34 @@ const AnalyticsDashboard = () => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '16px 20px',
-                  background: '#0f0f0f',
-                  border: '1px solid #1a1a1a',
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--skeleton-highlight)',
                   borderRadius: '8px',
                   transition: 'all 0.2s'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#00ff88'}
-                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#1a1a1a'}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--accent)'}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--skeleton-highlight)'}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                   <div style={{
                     width: '32px',
                     height: '32px',
-                    background: index === 0 ? 'linear-gradient(135deg, #00ff88, #00cc6a)' : '#1a1a1a',
+                    background: index === 0 ? 'linear-gradient(135deg, var(--accent), var(--accent-strong))' : 'var(--skeleton-highlight)',
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: '14px',
                     fontWeight: '700',
-                    color: index === 0 ? '#000000' : '#888888'
+                    color: index === 0 ? 'var(--surface-0)' : 'var(--text-muted-2)'
                   }}>
                     {index + 1}
                   </div>
                   <div>
-                    <div style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)' }}>
                       {buyer.name}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#888888' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted-2)' }}>
                       {buyer.deals} deal{buyer.deals > 1 ? 's' : ''}
                     </div>
                   </div>
@@ -606,7 +608,7 @@ const AnalyticsDashboard = () => {
                 <div style={{
                   fontSize: '20px',
                   fontWeight: '700',
-                  color: index === 0 ? '#00ff88' : '#ffffff'
+                  color: index === 0 ? 'var(--accent)' : 'var(--white)'
                 }}>
                   {buyer.deals}
                 </div>
