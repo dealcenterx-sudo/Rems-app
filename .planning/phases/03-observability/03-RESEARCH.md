@@ -260,9 +260,11 @@ jest.mock('@sentry/react');
 | A3 | The event-landing half of all 3 criteria will be verified as human/CI checkpoints post-deploy with a real DSN (matching Phase 1/2 precedent) | Local-vs-Prod split | If the phase gate demands local proof of events, it's un-satisfiable in this environment |
 | A4 | No `REACT_APP_SENTRY_DSN`/`SENTRY_DSN` is configured in this environment (clean no-op is the current, intended state) | Env behavior | If a DSN is actually set somewhere at build, no-op assumption is wrong |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **OBS-02 semantics — throw vs instrument (A1)**
+> Both resolved by user-locked decisions at plan time: Q1 → Option A (verify the wrapper's uncaught-throw path; the handled-500s blind spot is logged as a finding in docs/SAAS_READINESS_AUDIT.md routed to Phase 5 / DATA-02 — no catch-block instrumentation this phase). Q2 → DSN provisioning + post-deploy smoke are human-verify checkpoints (plan 03-03, autonomous:false); the automatable code-wiring half is covered by Wave 0 unit tests.
+
+1. **OBS-02 semantics — throw vs instrument (A1)** *(RESOLVED → Option A; gap logged for Phase 5 / DATA-02.)*
    - What we know: `withSentry` flushes correctly but only on thrown errors; handlers swallow their own.
    - What's unclear: Whether the user wants Option A (accept, smoke via uncaught throw) or Option B (instrument catch blocks).
    - Recommendation: Route to `/gsd-discuss-phase`; default to Option A, flag Option B as Phase 5 (DATA-02 "loud not silent") candidate.
