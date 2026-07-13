@@ -159,14 +159,14 @@ const DealChatTab = ({ dealId, deal }) => {
   ];
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 240px)', borderRadius: '8px', overflow: 'hidden', border: '1px solid #1a1a1a' }}>
+    <div style={{ display: 'flex', height: 'calc(100vh - 240px)', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--skeleton-highlight)' }}>
       {/* Channel Sidebar */}
-      <div style={{ width: '240px', background: '#0a0a0a', borderRight: '1px solid #1a1a1a', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-        <div style={{ padding: '16px', borderBottom: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>Channels</span>
+      <div style={{ width: '240px', background: 'var(--surface-1)', borderRight: '1px solid var(--skeleton-highlight)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid var(--skeleton-highlight)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--white)' }}>Channels</span>
           <button
             onClick={() => setShowCreateChannel(true)}
-            style={{ background: 'none', border: 'none', color: '#00ff88', cursor: 'pointer', fontSize: '18px', padding: '0 4px' }}
+            style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '18px', padding: '0 4px' }}
             title="Create channel"
           >+</button>
         </div>
@@ -186,18 +186,18 @@ const DealChatTab = ({ dealId, deal }) => {
                   borderRadius: '6px',
                   cursor: 'pointer',
                   marginBottom: '2px',
-                  background: isActive ? '#1a1a1a' : 'transparent',
+                  background: isActive ? 'var(--skeleton-highlight)' : 'transparent',
                   transition: 'background 0.15s'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '14px' }}>{ch.icon || '#'}</span>
-                  <span style={{ fontSize: '13px', color: isActive ? '#00ff88' : '#ccc', fontWeight: isActive ? '600' : '400' }}>
+                  <span style={{ fontSize: '13px', color: isActive ? 'var(--accent)' : '#ccc', fontWeight: isActive ? '600' : '400' }}>
                     {ch.name}
                   </span>
                 </div>
                 {ch.description && (
-                  <div style={{ fontSize: '11px', color: '#555', marginTop: '2px', marginLeft: '22px' }}>{ch.description}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--gray-555)', marginTop: '2px', marginLeft: '22px' }}>{ch.description}</div>
                 )}
               </div>
             );
@@ -205,14 +205,14 @@ const DealChatTab = ({ dealId, deal }) => {
         </div>
 
         {/* Online Parties */}
-        <div style={{ borderTop: '1px solid #1a1a1a', padding: '12px' }}>
+        <div style={{ borderTop: '1px solid var(--skeleton-highlight)', padding: '12px' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
             Participants ({parties.length})
           </div>
           <div style={{ maxHeight: '120px', overflowY: 'auto' }}>
             {parties.slice(0, 8).map((p) => (
               <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0' }}>
-                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: p.status === 'joined' ? '#00ff88' : '#555' }} />
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: p.status === 'joined' ? 'var(--accent)' : 'var(--gray-555)' }} />
                 <span style={{ fontSize: '11px', color: '#999' }}>{p.name}</span>
               </div>
             ))}
@@ -221,11 +221,11 @@ const DealChatTab = ({ dealId, deal }) => {
       </div>
 
       {/* Chat Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#000' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--surface-0)' }}>
         {/* Channel Header */}
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--skeleton-highlight)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: '600', color: '#fff' }}>{getActiveChannelName()}</div>
+            <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--white)' }}>{getActiveChannelName()}</div>
             <div style={{ fontSize: '11px', color: 'var(--text-faint)', marginTop: '2px' }}>
               {channels.find((c) => (c.channelId || c.id) === activeChannel)?.description || ''}
             </div>
@@ -240,10 +240,10 @@ const DealChatTab = ({ dealId, deal }) => {
           {loadingMessages ? (
             <div style={{ textAlign: 'center', color: 'var(--text-faint)', padding: '40px' }}>Loading messages...</div>
           ) : messages.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#444', padding: '60px 20px' }}>
+            <div style={{ textAlign: 'center', color: 'var(--gray-444)', padding: '60px 20px' }}>
               <div style={{ fontSize: '32px', marginBottom: '12px' }}>💬</div>
               <div style={{ fontSize: '14px', marginBottom: '4px' }}>No messages yet</div>
-              <div style={{ fontSize: '12px', color: '#555' }}>Start the conversation in #{getActiveChannelName()}</div>
+              <div style={{ fontSize: '12px', color: 'var(--gray-555)' }}>Start the conversation in #{getActiveChannelName()}</div>
             </div>
           ) : (
             messages.map((msg, i) => {
@@ -256,14 +256,14 @@ const DealChatTab = ({ dealId, deal }) => {
                       <div style={{
                         width: '32px', height: '32px', borderRadius: '50%',
                         background: isOwn ? '#00ff8820' : '#0088ff20',
-                        color: isOwn ? '#00ff88' : '#0088ff',
+                        color: isOwn ? 'var(--accent)' : 'var(--info)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: '11px', fontWeight: '700'
                       }}>
                         {getInitials(msg.senderName)}
                       </div>
-                      <span style={{ fontSize: '13px', fontWeight: '600', color: isOwn ? '#00ff88' : '#0088ff' }}>{msg.senderName}</span>
-                      <span style={{ fontSize: '11px', color: '#555' }}>{formatTime(msg.createdAt)}</span>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: isOwn ? 'var(--accent)' : 'var(--info)' }}>{msg.senderName}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--gray-555)' }}>{formatTime(msg.createdAt)}</span>
                     </div>
                   )}
                   <div style={{ paddingLeft: '42px' }}>
@@ -277,7 +277,7 @@ const DealChatTab = ({ dealId, deal }) => {
         </div>
 
         {/* Message Input */}
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #1a1a1a' }}>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--skeleton-highlight)' }}>
           <div style={{ display: 'flex', gap: '10px' }}>
             <input
               type="text"
@@ -286,7 +286,7 @@ const DealChatTab = ({ dealId, deal }) => {
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
               placeholder={`Message #${getActiveChannelName()}...`}
               style={{
-                flex: 1, background: '#111', color: '#fff', border: '1px solid #333',
+                flex: 1, background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)',
                 padding: '10px 14px', borderRadius: '6px', fontSize: '13px', outline: 'none'
               }}
             />
@@ -307,35 +307,35 @@ const DealChatTab = ({ dealId, deal }) => {
         <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setShowCreateChannel(false); }}>
           <div className="modal-content" style={{ maxWidth: '460px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Create Channel</h2>
+              <h2 style={{ fontSize: '18px', color: 'var(--white)', fontWeight: '600' }}>Create Channel</h2>
               <button onClick={() => setShowCreateChannel(false)} className="icon-button">×</button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label htmlFor="dealchat-channelName" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Channel Name *</label>
+                <label htmlFor="dealchat-channelName" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Channel Name *</label>
                 <input
                   id="dealchat-channelName"
                   type="text"
                   value={newChannelForm.name}
                   onChange={(e) => setNewChannelForm({ ...newChannelForm, name: e.target.value })}
                   placeholder="e.g. Inspection Updates"
-                  style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
+                  style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
                 />
               </div>
               <div>
-                <label htmlFor="dealchat-channelDescription" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</label>
+                <label htmlFor="dealchat-channelDescription" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</label>
                 <input
                   id="dealchat-channelDescription"
                   type="text"
                   value={newChannelForm.description}
                   onChange={(e) => setNewChannelForm({ ...newChannelForm, description: e.target.value })}
                   placeholder="What is this channel for?"
-                  style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
+                  style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
                 />
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Assign Roles (who can see this)</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Assign Roles (who can see this)</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {ROLE_OPTIONS.map((role) => {
                     const selected = newChannelForm.assignedRoles.includes(role);
@@ -350,9 +350,9 @@ const DealChatTab = ({ dealId, deal }) => {
                         }}
                         style={{
                           padding: '6px 12px', borderRadius: '14px', fontSize: '11px', cursor: 'pointer',
-                          border: selected ? '1px solid #00ff88' : '1px solid #333',
-                          background: selected ? '#00ff8815' : '#111',
-                          color: selected ? '#00ff88' : '#888'
+                          border: selected ? '1px solid var(--accent)' : '1px solid var(--gray-333)',
+                          background: selected ? '#00ff8815' : 'var(--gray-111)',
+                          color: selected ? 'var(--accent)' : 'var(--text-muted-2)'
                         }}
                       >
                         {role.replace(/-/g, ' ')}
@@ -360,11 +360,11 @@ const DealChatTab = ({ dealId, deal }) => {
                     );
                   })}
                 </div>
-                <div style={{ fontSize: '11px', color: '#555', marginTop: '6px' }}>Leave empty to allow all parties</div>
+                <div style={{ fontSize: '11px', color: 'var(--gray-555)', marginTop: '6px' }}>Leave empty to allow all parties</div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--skeleton-highlight)' }}>
               <button onClick={createChannel} className="btn-primary btn-block">Create Channel</button>
               <button onClick={() => setShowCreateChannel(false)} className="btn-secondary btn-block">Cancel</button>
             </div>

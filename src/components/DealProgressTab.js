@@ -169,7 +169,7 @@ const DealProgressTab = ({ dealId, deal }) => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <div style={{ fontSize: '16px', fontWeight: '600', color: '#fff' }}>Deal Progress</div>
+          <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--white)' }}>Deal Progress</div>
           <div style={{ fontSize: '12px', color: 'var(--text-faint)', marginTop: '4px' }}>Track every step from offer to closing</div>
         </div>
         <button
@@ -182,16 +182,16 @@ const DealProgressTab = ({ dealId, deal }) => {
       </div>
 
       {/* Progress Bar */}
-      <div style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '20px', marginBottom: '24px' }}>
+      <div style={{ background: 'var(--surface-1)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', padding: '20px', marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <span style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>Overall Progress</span>
-          <span style={{ fontSize: '24px', fontWeight: '700', color: '#00ff88' }}>{progressPct}%</span>
+          <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)' }}>Overall Progress</span>
+          <span style={{ fontSize: '24px', fontWeight: '700', color: 'var(--accent)' }}>{progressPct}%</span>
         </div>
-        <div style={{ height: '8px', background: '#1a1a1a', borderRadius: '4px', overflow: 'hidden' }}>
+        <div style={{ height: '8px', background: 'var(--skeleton-highlight)', borderRadius: '4px', overflow: 'hidden' }}>
           <div style={{
             height: '100%',
             width: `${progressPct}%`,
-            background: progressPct === 100 ? '#00ff88' : progressPct > 60 ? '#00cc66' : progressPct > 30 ? '#ffaa00' : '#ff4444',
+            background: progressPct === 100 ? 'var(--accent)' : progressPct > 60 ? '#00cc66' : progressPct > 30 ? 'var(--warning)' : 'var(--danger-alt)',
             borderRadius: '4px',
             transition: 'width 0.5s ease'
           }} />
@@ -209,11 +209,11 @@ const DealProgressTab = ({ dealId, deal }) => {
         const allPhaseCompleted = phaseCompleted + phaseCustom.filter((i) => i.completed).length;
 
         return (
-          <div key={phase.phase} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', marginBottom: '16px', overflow: 'hidden' }}>
+          <div key={phase.phase} style={{ background: 'var(--surface-1)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', marginBottom: '16px', overflow: 'hidden' }}>
             {/* Phase Header */}
-            <div style={{ padding: '14px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--skeleton-highlight)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '14px', fontWeight: '600', color: allPhaseCompleted === allPhaseItems && allPhaseItems > 0 ? '#00ff88' : '#fff' }}>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: allPhaseCompleted === allPhaseItems && allPhaseItems > 0 ? 'var(--accent)' : 'var(--white)' }}>
                   {phase.phase}
                 </span>
                 {allPhaseCompleted === allPhaseItems && allPhaseItems > 0 && (
@@ -237,39 +237,39 @@ const DealProgressTab = ({ dealId, deal }) => {
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleItem(item.key, item.label); } }}
                   style={{
                     padding: '12px 16px',
-                    borderBottom: '1px solid #111',
+                    borderBottom: '1px solid var(--gray-111)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '14px',
                     cursor: 'pointer',
                     transition: 'background 0.15s'
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#111'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--gray-111)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   {/* Checkbox */}
                   <div style={{
                     width: '22px', height: '22px', borderRadius: '4px', flexShrink: 0,
-                    border: isCompleted ? '2px solid #00ff88' : '2px solid #333',
+                    border: isCompleted ? '2px solid var(--accent)' : '2px solid var(--gray-333)',
                     background: isCompleted ? '#00ff8820' : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                   }}>
-                    {isCompleted && <span style={{ color: '#00ff88', fontSize: '14px', fontWeight: '700' }}>✓</span>}
+                    {isCompleted && <span style={{ color: 'var(--accent)', fontSize: '14px', fontWeight: '700' }}>✓</span>}
                   </div>
                   {/* Label */}
                   <div style={{ flex: 1 }}>
                     <div style={{
                       fontSize: '13px', fontWeight: '500',
-                      color: isCompleted ? '#00ff88' : '#ccc',
+                      color: isCompleted ? 'var(--accent)' : '#ccc',
                       textDecoration: isCompleted ? 'line-through' : 'none'
                     }}>
                       {item.label}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#555', marginTop: '2px' }}>{item.description}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--gray-555)', marginTop: '2px' }}>{item.description}</div>
                   </div>
                   {/* Completed info */}
                   {isCompleted && state?.completedBy && (
-                    <div style={{ fontSize: '11px', color: '#555', textAlign: 'right' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--gray-555)', textAlign: 'right' }}>
                       <div>{state.completedBy}</div>
                       <div>{state.completedAt ? new Date(state.completedAt).toLocaleDateString() : ''}</div>
                     </div>
@@ -289,7 +289,7 @@ const DealProgressTab = ({ dealId, deal }) => {
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCustomItem(item); } }}
                 style={{
                   padding: '12px 16px',
-                  borderBottom: '1px solid #111',
+                  borderBottom: '1px solid var(--gray-111)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '14px',
@@ -299,21 +299,21 @@ const DealProgressTab = ({ dealId, deal }) => {
               >
                 <div style={{
                   width: '22px', height: '22px', borderRadius: '4px', flexShrink: 0,
-                  border: item.completed ? '2px solid #0088ff' : '2px solid #333',
+                  border: item.completed ? '2px solid var(--info)' : '2px solid var(--gray-333)',
                   background: item.completed ? '#0088ff20' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}>
-                  {item.completed && <span style={{ color: '#0088ff', fontSize: '14px', fontWeight: '700' }}>✓</span>}
+                  {item.completed && <span style={{ color: 'var(--info)', fontSize: '14px', fontWeight: '700' }}>✓</span>}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{
                     fontSize: '13px', fontWeight: '500',
-                    color: item.completed ? '#0088ff' : '#ccc',
+                    color: item.completed ? 'var(--info)' : '#ccc',
                     textDecoration: item.completed ? 'line-through' : 'none'
                   }}>
-                    {item.label} <span style={{ fontSize: '11px', color: '#555' }}>(custom)</span>
+                    {item.label} <span style={{ fontSize: '11px', color: 'var(--gray-555)' }}>(custom)</span>
                   </div>
-                  {item.description && <div style={{ fontSize: '11px', color: '#555', marginTop: '2px' }}>{item.description}</div>}
+                  {item.description && <div style={{ fontSize: '11px', color: 'var(--gray-555)', marginTop: '2px' }}>{item.description}</div>}
                 </div>
               </div>
             ))}
@@ -326,28 +326,28 @@ const DealProgressTab = ({ dealId, deal }) => {
         <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setShowAddItem(false); }}>
           <div className="modal-content" style={{ maxWidth: '460px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Add Checklist Item</h2>
+              <h2 style={{ fontSize: '18px', color: 'var(--white)', fontWeight: '600' }}>Add Checklist Item</h2>
               <button onClick={() => setShowAddItem(false)} className="icon-button">×</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label htmlFor="dealprog-label" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Label *</label>
+                <label htmlFor="dealprog-label" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Label *</label>
                 <input
                   id="dealprog-label"
                   type="text"
                   value={newItemForm.label}
                   onChange={(e) => setNewItemForm({ ...newItemForm, label: e.target.value })}
                   placeholder="e.g. Termite Inspection"
-                  style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
+                  style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
                 />
               </div>
               <div>
-                <label htmlFor="dealprog-phase" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phase</label>
+                <label htmlFor="dealprog-phase" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phase</label>
                 <select
                   id="dealprog-phase"
                   value={newItemForm.phase}
                   onChange={(e) => setNewItemForm({ ...newItemForm, phase: e.target.value })}
-                  style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
+                  style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
                 >
                   {DEFAULT_CHECKLIST.map((p) => (
                     <option key={p.phase} value={p.phase}>{p.phase}</option>
@@ -355,18 +355,18 @@ const DealProgressTab = ({ dealId, deal }) => {
                 </select>
               </div>
               <div>
-                <label htmlFor="dealprog-description" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</label>
+                <label htmlFor="dealprog-description" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</label>
                 <input
                   id="dealprog-description"
                   type="text"
                   value={newItemForm.description}
                   onChange={(e) => setNewItemForm({ ...newItemForm, description: e.target.value })}
                   placeholder="Optional details"
-                  style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
+                  style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
                 />
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '10px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--skeleton-highlight)' }}>
               <button onClick={addCustomItem} className="btn-primary btn-block">Add Item</button>
               <button onClick={() => setShowAddItem(false)} className="btn-secondary btn-block">Cancel</button>
             </div>

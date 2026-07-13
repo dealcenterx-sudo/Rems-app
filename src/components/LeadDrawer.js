@@ -22,8 +22,8 @@ const fmtTime = (iso) => {
 };
 
 const warmthColor = (w = '') => {
-  const map = { hot: '#ff4444', warm: '#ffaa00', cold: '#0088ff', closed: '#aa00ff', dead: '#555555' };
-  return map[(w || '').toLowerCase()] || '#888888';
+  const map = { hot: 'var(--danger-alt)', warm: 'var(--warning)', cold: 'var(--info)', closed: '#aa00ff', dead: 'var(--gray-555)' };
+  return map[(w || '').toLowerCase()] || 'var(--text-muted-2)';
 };
 
 const WARMTH_OPTIONS = ['Cold', 'Warm', 'Hot', 'Closed', 'Dead'];
@@ -61,8 +61,8 @@ const Tab = ({ id, label, active, onClick, badge }) => (
     style={{
       background: 'none', border: 'none', cursor: 'pointer',
       padding: '10px 16px', fontSize: '13px', fontWeight: active ? '600' : '400',
-      color: active ? '#00ff88' : '#888888',
-      borderBottom: active ? '2px solid #00ff88' : '2px solid transparent',
+      color: active ? 'var(--accent)' : 'var(--text-muted-2)',
+      borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
       transition: 'all 0.15s', position: 'relative', whiteSpace: 'nowrap',
       fontFamily: 'inherit'
     }}
@@ -70,7 +70,7 @@ const Tab = ({ id, label, active, onClick, badge }) => (
     {label}
     {badge > 0 && (
       <span style={{
-        marginLeft: '6px', background: '#00ff88', color: '#000', borderRadius: '999px',
+        marginLeft: '6px', background: 'var(--accent)', color: 'var(--surface-0)', borderRadius: '999px',
         fontSize: '11px', fontWeight: '700', padding: '1px 6px'
       }}>{badge}</span>
     )}
@@ -97,7 +97,7 @@ const FieldRow = ({ label, value, onSave, type = 'text', options }) => {
   if (editing) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '14px' }}>
-        <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
+        <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
         {options ? (
           <select
             ref={editRef}
@@ -140,20 +140,20 @@ const FieldRow = ({ label, value, onSave, type = 'text', options }) => {
         cursor: 'text', padding: '6px 8px', borderRadius: '6px',
         transition: 'background 0.15s'
       }}
-      onMouseEnter={e => { e.currentTarget.style.background = '#1a1a1a'; }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'var(--skeleton-highlight)'; }}
       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-      onFocus={e => { e.currentTarget.style.background = '#1a1a1a'; }}
+      onFocus={e => { e.currentTarget.style.background = 'var(--skeleton-highlight)'; }}
       onBlur={e => { e.currentTarget.style.background = 'transparent'; }}
     >
-      <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
-      <div style={{ fontSize: '14px', color: value ? '#fff' : '#555' }}>{value || 'Click to edit…'}</div>
+      <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
+      <div style={{ fontSize: '14px', color: value ? 'var(--white)' : 'var(--gray-555)' }}>{value || 'Click to edit…'}</div>
     </div>
   );
 };
 
 const inputStyle = {
-  background: '#1a1a1a', border: '1px solid #00ff88', borderRadius: '6px',
-  color: '#fff', fontSize: '14px', padding: '8px 10px', outline: 'none',
+  background: 'var(--skeleton-highlight)', border: '1px solid var(--accent)', borderRadius: '6px',
+  color: 'var(--white)', fontSize: '14px', padding: '8px 10px', outline: 'none',
   width: '100%', fontFamily: 'inherit', boxSizing: 'border-box'
 };
 
@@ -168,8 +168,8 @@ const DetailsTab = ({ lead, onFieldSave }) => (
       <FieldRow label="Service" value={lead.serviceType || lead.service} onSave={v => onFieldSave('serviceType', v)} />
       <FieldRow label="Warmth" value={lead.warmth} onSave={v => onFieldSave('warmth', v)} options={WARMTH_OPTIONS} />
     </div>
-    <div style={{ borderTop: '1px solid #1a1a1a', paddingTop: '16px', marginTop: '4px' }}>
-      <div style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>Address</div>
+    <div style={{ borderTop: '1px solid var(--skeleton-highlight)', paddingTop: '16px', marginTop: '4px' }}>
+      <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>Address</div>
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0 16px' }}>
         <FieldRow label="Street" value={lead.street || lead.address?.street} onSave={v => onFieldSave('street', v)} />
         <FieldRow label="City" value={lead.city || lead.address?.city} onSave={v => onFieldSave('city', v)} />
@@ -177,8 +177,8 @@ const DetailsTab = ({ lead, onFieldSave }) => (
       </div>
       <FieldRow label="ZIP" value={lead.zipCode || lead.zip} onSave={v => onFieldSave('zipCode', v)} />
     </div>
-    <div style={{ borderTop: '1px solid #1a1a1a', paddingTop: '16px', marginTop: '4px' }}>
-      <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Submitted</div>
+    <div style={{ borderTop: '1px solid var(--skeleton-highlight)', paddingTop: '16px', marginTop: '4px' }}>
+      <div style={{ fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Submitted</div>
       <div style={{ fontSize: '13px', color: '#aaa' }}>{fmt(lead.submittedAt || lead.createdAt)}</div>
     </div>
   </div>
@@ -213,17 +213,17 @@ const ActivityTab = ({ lead, activities, onAddActivity }) => {
   return (
     <div style={{ padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <div style={{ fontSize: '13px', color: '#888' }}>{all.length} event{all.length !== 1 ? 's' : ''}</div>
+        <div style={{ fontSize: '13px', color: 'var(--text-muted-2)' }}>{all.length} event{all.length !== 1 ? 's' : ''}</div>
         <button onClick={() => setComposing(true)} style={actionBtnStyle}>+ Log Activity</button>
       </div>
 
       {composing && (
-        <div style={{ background: '#111', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
+        <div style={{ background: 'var(--gray-111)', border: '1px solid var(--border-strong)', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
             {['note', 'call', 'email', 'text', 'meeting'].map(t => (
               <button key={t} onClick={() => setType(t)} style={{
                 ...pillStyle, background: type === t ? '#00ff8820' : 'transparent',
-                color: type === t ? '#00ff88' : '#888', border: `1px solid ${type === t ? '#00ff88' : '#333'}`
+                color: type === t ? 'var(--accent)' : 'var(--text-muted-2)', border: `1px solid ${type === t ? 'var(--accent)' : 'var(--gray-333)'}`
               }}>{t}</button>
             ))}
           </div>
@@ -242,15 +242,15 @@ const ActivityTab = ({ lead, activities, onAddActivity }) => {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {all.length === 0 && <div style={{ color: '#444', fontSize: '13px', textAlign: 'center', padding: '30px 0' }}>No activity yet</div>}
+        {all.length === 0 && <div style={{ color: 'var(--gray-444)', fontSize: '13px', textAlign: 'center', padding: '30px 0' }}>No activity yet</div>}
         {all.map(ev => (
           <div key={ev.id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--skeleton-highlight)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
               <ActivityIcon type={ev.type} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '13px', color: '#ddd', lineHeight: '1.4' }}>{ev.body || ev.title || ev.summary}</div>
-              <div style={{ fontSize: '11px', color: '#555', marginTop: '3px' }}>{fmtTime(ev.ts || ev.sentAt || ev.createdAt)}</div>
+              <div style={{ fontSize: '11px', color: 'var(--gray-555)', marginTop: '3px' }}>{fmtTime(ev.ts || ev.sentAt || ev.createdAt)}</div>
             </div>
           </div>
         ))}
@@ -282,7 +282,7 @@ const NotesTab = ({ lead, onSaveNotes }) => {
         placeholder="Add notes about this lead…"
         style={{
           ...inputStyle, resize: 'none', flex: 1, minHeight: '300px',
-          lineHeight: '1.6', border: '1px solid #2a2a2a'
+          lineHeight: '1.6', border: '1px solid var(--border-strong)'
         }}
       />
       {dirty && (
@@ -336,17 +336,17 @@ const EmailTab = ({ lead }) => {
 
 // ─── Shared styles ─────────────────────────────────────────────────────────────
 const actionBtnStyle = {
-  background: '#00ff88', color: '#000', border: 'none', borderRadius: '6px',
+  background: 'var(--accent)', color: 'var(--surface-0)', border: 'none', borderRadius: '6px',
   padding: '8px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit'
 };
 const ghostBtnStyle = {
-  background: 'transparent', color: '#888', border: '1px solid #333', borderRadius: '6px',
+  background: 'transparent', color: 'var(--text-muted-2)', border: '1px solid var(--gray-333)', borderRadius: '6px',
   padding: '8px 16px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit'
 };
 const pillStyle = {
   borderRadius: '999px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit'
 };
-const fieldLabelStyle = { fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' };
+const fieldLabelStyle = { fontSize: '11px', color: 'var(--text-muted-2)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' };
 
 // ─── Main Drawer ───────────────────────────────────────────────────────────────
 const LeadDrawer = ({ leadId, onClose, onOpenFullDetail }) => {
@@ -455,16 +455,16 @@ const LeadDrawer = ({ leadId, onClose, onOpenFullDetail }) => {
 
         {/* Header */}
         <div style={{
-          padding: '20px 24px 0', borderBottom: '1px solid #1a1a1a',
+          padding: '20px 24px 0', borderBottom: '1px solid var(--skeleton-highlight)',
           flexShrink: 0
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               {loading ? (
-                <div style={{ height: '24px', width: '200px', background: '#1a1a1a', borderRadius: '4px' }} />
+                <div style={{ height: '24px', width: '200px', background: 'var(--skeleton-highlight)', borderRadius: '4px' }} />
               ) : lead ? (
                 <>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--white)', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {lead.name || lead.fullName || lead.entityName || 'Unnamed Lead'}
                   </div>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -474,13 +474,13 @@ const LeadDrawer = ({ leadId, onClose, onOpenFullDetail }) => {
                       border: `1px solid ${warmthColor(lead.warmth)}44`,
                       borderRadius: '999px', padding: '2px 10px', fontSize: '12px', fontWeight: '600'
                     }}>{lead.warmth || 'Cold'}</span>
-                    <span style={{ fontSize: '12px', color: '#555' }}>{lead.serviceType || lead.service || '—'}</span>
-                    <span style={{ fontSize: '12px', color: '#555' }}>{lead.source || lead.leadSource || ''}</span>
-                    {saving && <span style={{ fontSize: '11px', color: '#00ff88' }}>Saving…</span>}
+                    <span style={{ fontSize: '12px', color: 'var(--gray-555)' }}>{lead.serviceType || lead.service || '—'}</span>
+                    <span style={{ fontSize: '12px', color: 'var(--gray-555)' }}>{lead.source || lead.leadSource || ''}</span>
+                    {saving && <span style={{ fontSize: '11px', color: 'var(--accent)' }}>Saving…</span>}
                   </div>
                 </>
               ) : (
-                <div style={{ color: '#555' }}>Lead not found</div>
+                <div style={{ color: 'var(--gray-555)' }}>Lead not found</div>
               )}
             </div>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0, marginLeft: '16px' }}>
@@ -515,7 +515,7 @@ const LeadDrawer = ({ leadId, onClose, onOpenFullDetail }) => {
         {/* Body */}
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {loading ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#555' }}>Loading…</div>
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--gray-555)' }}>Loading…</div>
           ) : lead ? (
             <>
               {tab === 'details' && <DetailsTab lead={lead} onFieldSave={handleFieldSave} />}
@@ -524,7 +524,7 @@ const LeadDrawer = ({ leadId, onClose, onOpenFullDetail }) => {
               {tab === 'email' && <EmailTab lead={lead} />}
             </>
           ) : (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#555' }}>Lead not found</div>
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--gray-555)' }}>Lead not found</div>
           )}
         </div>
       </div>

@@ -8,15 +8,15 @@ import { logActivity } from '../utils/auditLog';
 import { sendEmailViaApi } from '../utils/emailService';
 
 const PARTY_ROLES = [
-  { value: 'buyers-agent', label: "Buyer's Agent", color: '#0088ff' },
-  { value: 'sellers-agent', label: "Seller's Agent", color: '#00ff88' },
-  { value: 'buyer', label: 'Buyer', color: '#0088ff' },
-  { value: 'seller', label: 'Seller', color: '#00ff88' },
+  { value: 'buyers-agent', label: "Buyer's Agent", color: 'var(--info)' },
+  { value: 'sellers-agent', label: "Seller's Agent", color: 'var(--accent)' },
+  { value: 'buyer', label: 'Buyer', color: 'var(--info)' },
+  { value: 'seller', label: 'Seller', color: 'var(--accent)' },
   { value: 'attorney', label: 'Attorney', color: '#ff8800' },
   { value: 'lender', label: 'Lender / Mortgage Broker', color: '#aa00ff' },
   { value: 'title-company', label: 'Title Company', color: '#ff0088' },
-  { value: 'inspector', label: 'Inspector', color: '#888888' },
-  { value: 'appraiser', label: 'Appraiser', color: '#888888' }
+  { value: 'inspector', label: 'Inspector', color: 'var(--text-muted-2)' },
+  { value: 'appraiser', label: 'Appraiser', color: 'var(--text-muted-2)' }
 ];
 
 const DealPartiesTab = ({ dealId, deal }) => {
@@ -147,7 +147,7 @@ const DealPartiesTab = ({ dealId, deal }) => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <div style={{ fontSize: '16px', fontWeight: '600', color: '#fff' }}>Deal Parties</div>
+          <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--white)' }}>Deal Parties</div>
           <div style={{ fontSize: '12px', color: 'var(--text-faint)', marginTop: '4px' }}>{parties.length} participant{parties.length !== 1 ? 's' : ''} in this deal</div>
         </div>
         <button
@@ -172,14 +172,14 @@ const DealPartiesTab = ({ dealId, deal }) => {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {groupedParties.map((group) => (
-            <div key={group.value} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', overflow: 'hidden' }}>
-              <div style={{ padding: '12px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div key={group.value} style={{ background: 'var(--surface-1)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', overflow: 'hidden' }}>
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--skeleton-highlight)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: group.color }} />
                 <span style={{ fontSize: '13px', fontWeight: '600', color: group.color }}>{group.label}</span>
                 <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>({group.members.length})</span>
               </div>
               {group.members.map((party) => (
-                <div key={party.id} style={{ padding: '14px 16px', borderBottom: '1px solid #111', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div key={party.id} style={{ padding: '14px 16px', borderBottom: '1px solid var(--gray-111)', display: 'flex', alignItems: 'center', gap: '14px' }}>
                   {/* Avatar */}
                   <div style={{
                     width: '40px', height: '40px', borderRadius: '50%',
@@ -191,8 +191,8 @@ const DealPartiesTab = ({ dealId, deal }) => {
                   </div>
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>{party.name}</div>
-                    <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)' }}>{party.name}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted-2)', marginTop: '2px' }}>
                       {party.email}
                       {party.company ? ` • ${party.company}` : ''}
                     </div>
@@ -202,7 +202,7 @@ const DealPartiesTab = ({ dealId, deal }) => {
                     <span style={{
                       fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px',
                       padding: '3px 10px', borderRadius: '10px',
-                      color: party.status === 'joined' ? '#00ff88' : '#ffaa00',
+                      color: party.status === 'joined' ? 'var(--accent)' : 'var(--warning)',
                       background: party.status === 'joined' ? '#00ff8815' : '#ffaa0015'
                     }}>
                       {party.status === 'joined' ? 'Active' : 'Invited'}
@@ -210,14 +210,14 @@ const DealPartiesTab = ({ dealId, deal }) => {
                     {party.status === 'invited' && (
                       <button
                         onClick={() => resendInvite(party)}
-                        style={{ background: 'none', border: '1px solid #333', color: '#888', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
+                        style={{ background: 'none', border: '1px solid var(--gray-333)', color: 'var(--text-muted-2)', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
                       >
                         Resend
                       </button>
                     )}
                     <button
                       onClick={() => setConfirmRemove({ open: true, party })}
-                      style={{ background: 'none', border: '1px solid #331111', color: '#ff4444', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
+                      style={{ background: 'none', border: '1px solid #331111', color: 'var(--danger-alt)', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
                     >
                       Remove
                     </button>
@@ -234,20 +234,20 @@ const DealPartiesTab = ({ dealId, deal }) => {
         <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setShowInviteModal(false); }}>
           <div className="modal-content" style={{ maxWidth: '500px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Invite Party to Deal</h2>
+              <h2 style={{ fontSize: '18px', color: 'var(--white)', fontWeight: '600' }}>Invite Party to Deal</h2>
               <button onClick={() => setShowInviteModal(false)} className="icon-button">×</button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Role */}
               <div>
-                <label htmlFor="dealparty-role" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Role</label>
+                <label htmlFor="dealparty-role" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Role</label>
                 <select
                   id="dealparty-role"
                   value={inviteForm.role}
                   onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
                   className="form-input"
-                  style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
+                  style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
                 >
                   {PARTY_ROLES.map((r) => (
                     <option key={r.value} value={r.value}>{r.label}</option>
@@ -257,7 +257,7 @@ const DealPartiesTab = ({ dealId, deal }) => {
 
               {/* Name */}
               <div>
-                <label htmlFor="dealparty-name" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Name *</label>
+                <label htmlFor="dealparty-name" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Name *</label>
                 <input
                   id="dealparty-name"
                   type="text"
@@ -265,13 +265,13 @@ const DealPartiesTab = ({ dealId, deal }) => {
                   onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
                   placeholder="John Smith"
                   className="form-input"
-                  style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
+                  style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label htmlFor="dealparty-email" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email Address *</label>
+                <label htmlFor="dealparty-email" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email Address *</label>
                 <input
                   id="dealparty-email"
                   type="email"
@@ -279,13 +279,13 @@ const DealPartiesTab = ({ dealId, deal }) => {
                   onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
                   placeholder="john@example.com"
                   className="form-input"
-                  style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
+                  style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
                 />
               </div>
 
               {/* Phone */}
               <div>
-                <label htmlFor="dealparty-phone" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phone</label>
+                <label htmlFor="dealparty-phone" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phone</label>
                 <input
                   id="dealparty-phone"
                   type="tel"
@@ -293,13 +293,13 @@ const DealPartiesTab = ({ dealId, deal }) => {
                   onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
                   placeholder="(555) 123-4567"
                   className="form-input"
-                  style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
+                  style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
                 />
               </div>
 
               {/* Company */}
               <div>
-                <label htmlFor="dealparty-company" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Company / Firm</label>
+                <label htmlFor="dealparty-company" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Company / Firm</label>
                 <input
                   id="dealparty-company"
                   type="text"
@@ -307,12 +307,12 @@ const DealPartiesTab = ({ dealId, deal }) => {
                   onChange={(e) => setInviteForm({ ...inviteForm, company: e.target.value })}
                   placeholder="ABC Realty, Smith Law Firm, etc."
                   className="form-input"
-                  style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
+                  style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
                 />
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--skeleton-highlight)' }}>
               <button
                 onClick={handleInvite}
                 disabled={sending}
@@ -323,7 +323,7 @@ const DealPartiesTab = ({ dealId, deal }) => {
               <button onClick={() => setShowInviteModal(false)} className="btn-secondary btn-block">Cancel</button>
             </div>
 
-            <div style={{ marginTop: '16px', padding: '12px', background: '#0a0a0a', borderRadius: '6px', border: '1px solid #1a1a1a' }}>
+            <div style={{ marginTop: '16px', padding: '12px', background: 'var(--surface-1)', borderRadius: '6px', border: '1px solid var(--skeleton-highlight)' }}>
               <div style={{ fontSize: '11px', color: 'var(--text-faint)', lineHeight: '1.5' }}>
                 An email invitation will be sent with a link to join this deal portal. Once they create credentials, they'll have access to view deal details, chat, and documents based on their role.
               </div>

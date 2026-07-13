@@ -197,7 +197,7 @@ const DealDocumentsTab = ({ dealId, deal }) => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <div style={{ fontSize: '16px', fontWeight: '600', color: '#fff' }}>Deal Documents</div>
+          <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--white)' }}>Deal Documents</div>
           <div style={{ fontSize: '12px', color: 'var(--text-faint)', marginTop: '4px' }}>{documents.length} document{documents.length !== 1 ? 's' : ''}</div>
         </div>
         <button onClick={() => setShowUploadModal(true)} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px' }}>
@@ -214,7 +214,7 @@ const DealDocumentsTab = ({ dealId, deal }) => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search documents..."
-            style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '8px 12px 8px 32px', borderRadius: '6px', width: '100%', fontSize: '13px' }}
+            style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '8px 12px 8px 32px', borderRadius: '6px', width: '100%', fontSize: '13px' }}
           />
         </div>
         <div style={{ display: 'flex', gap: '6px', overflowX: 'auto' }}>
@@ -222,9 +222,9 @@ const DealDocumentsTab = ({ dealId, deal }) => {
             onClick={() => setFilterCategory('all')}
             style={{
               padding: '6px 14px', borderRadius: '14px', fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap',
-              border: filterCategory === 'all' ? '1px solid #00ff88' : '1px solid #333',
-              background: filterCategory === 'all' ? '#00ff8815' : '#111',
-              color: filterCategory === 'all' ? '#00ff88' : '#888'
+              border: filterCategory === 'all' ? '1px solid var(--accent)' : '1px solid var(--gray-333)',
+              background: filterCategory === 'all' ? '#00ff8815' : 'var(--gray-111)',
+              color: filterCategory === 'all' ? 'var(--accent)' : 'var(--text-muted-2)'
             }}
           >All</button>
           {DOC_CATEGORIES.slice(0, 6).map((cat) => (
@@ -233,9 +233,9 @@ const DealDocumentsTab = ({ dealId, deal }) => {
               onClick={() => setFilterCategory(cat.value)}
               style={{
                 padding: '6px 14px', borderRadius: '14px', fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap',
-                border: filterCategory === cat.value ? '1px solid #00ff88' : '1px solid #333',
-                background: filterCategory === cat.value ? '#00ff8815' : '#111',
-                color: filterCategory === cat.value ? '#00ff88' : '#888'
+                border: filterCategory === cat.value ? '1px solid var(--accent)' : '1px solid var(--gray-333)',
+                background: filterCategory === cat.value ? '#00ff8815' : 'var(--gray-111)',
+                color: filterCategory === cat.value ? 'var(--accent)' : 'var(--text-muted-2)'
               }}
             >{cat.icon} {cat.label}</button>
           ))}
@@ -254,17 +254,17 @@ const DealDocumentsTab = ({ dealId, deal }) => {
           {filteredDocs.map((item) => {
             const catInfo = getCategoryInfo(item.category);
             return (
-              <div key={item.id} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div key={item.id} style={{ background: 'var(--surface-1)', border: '1px solid var(--skeleton-highlight)', borderRadius: '8px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ fontSize: '24px', flexShrink: 0 }}>{catInfo.icon}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '4px' }}>{item.name}</div>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--white)', marginBottom: '4px' }}>{item.name}</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-faint)', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                     <span>{catInfo.label}</span>
                     <span>{formatSize(item.fileSize)}</span>
                     <span>by {item.uploadedByName}</span>
                     <span>{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}</span>
                   </div>
-                  {item.notes && <div style={{ fontSize: '11px', color: '#555', marginTop: '4px' }}>{item.notes}</div>}
+                  {item.notes && <div style={{ fontSize: '11px', color: 'var(--gray-555)', marginTop: '4px' }}>{item.notes}</div>}
                 </div>
 
                 {/* Signature status */}
@@ -273,14 +273,14 @@ const DealDocumentsTab = ({ dealId, deal }) => {
                     <span style={{
                       fontSize: '11px', fontWeight: '700', textTransform: 'uppercase',
                       padding: '3px 10px', borderRadius: '10px',
-                      color: item.signatureStatus === 'signed' ? '#00ff88' : '#ffaa00',
+                      color: item.signatureStatus === 'signed' ? 'var(--accent)' : 'var(--warning)',
                       background: item.signatureStatus === 'signed' ? '#00ff8815' : '#ffaa0015'
                     }}>
                       {item.signatureStatus === 'signed' ? `Signed (${(item.signedBy || []).length})` : 'Needs Signature'}
                     </span>
                     <button
                       onClick={() => markAsSigned(item)}
-                      style={{ background: 'none', border: '1px solid #333', color: '#0088ff', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
+                      style={{ background: 'none', border: '1px solid var(--gray-333)', color: 'var(--info)', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
                     >
                       Sign
                     </button>
@@ -294,14 +294,14 @@ const DealDocumentsTab = ({ dealId, deal }) => {
                       href={item.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ background: 'none', border: '1px solid #333', color: '#0088ff', padding: '6px 12px', borderRadius: '4px', fontSize: '11px', textDecoration: 'none' }}
+                      style={{ background: 'none', border: '1px solid var(--gray-333)', color: 'var(--info)', padding: '6px 12px', borderRadius: '4px', fontSize: '11px', textDecoration: 'none' }}
                     >
                       View
                     </a>
                   )}
                   <button
                     onClick={() => setConfirmDelete({ open: true, document: item })}
-                    style={{ background: 'none', border: '1px solid #331111', color: '#ff4444', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
+                    style={{ background: 'none', border: '1px solid #331111', color: 'var(--danger-alt)', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
                   >
                     Delete
                   </button>
@@ -317,14 +317,14 @@ const DealDocumentsTab = ({ dealId, deal }) => {
         <div className="modal-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setShowUploadModal(false); }}>
           <div className="modal-content" style={{ maxWidth: '500px', padding: '30px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: '600' }}>Upload Document</h2>
+              <h2 style={{ fontSize: '18px', color: 'var(--white)', fontWeight: '600' }}>Upload Document</h2>
               <button onClick={() => setShowUploadModal(false)} className="icon-button">×</button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* File Input */}
               <div>
-                <label htmlFor="dealdoc-file" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>File *</label>
+                <label htmlFor="dealdoc-file" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>File *</label>
                 <input
                   id="dealdoc-file"
                   ref={fileInputRef}
@@ -336,12 +336,12 @@ const DealDocumentsTab = ({ dealId, deal }) => {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   style={{
-                    width: '100%', padding: '20px', background: '#111', border: '2px dashed #333',
-                    borderRadius: '8px', color: '#888', cursor: 'pointer', fontSize: '13px', textAlign: 'center'
+                    width: '100%', padding: '20px', background: 'var(--gray-111)', border: '2px dashed var(--gray-333)',
+                    borderRadius: '8px', color: 'var(--text-muted-2)', cursor: 'pointer', fontSize: '13px', textAlign: 'center'
                   }}
                 >
                   {selectedFile ? (
-                    <span style={{ color: '#00ff88' }}>{selectedFile.name} ({formatSize(selectedFile.size)})</span>
+                    <span style={{ color: 'var(--accent)' }}>{selectedFile.name} ({formatSize(selectedFile.size)})</span>
                   ) : (
                     'Click to select file or drag & drop'
                   )}
@@ -349,24 +349,24 @@ const DealDocumentsTab = ({ dealId, deal }) => {
               </div>
 
               <div>
-                <label htmlFor="dealdoc-name" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Document Name</label>
+                <label htmlFor="dealdoc-name" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Document Name</label>
                 <input
                   id="dealdoc-name"
                   type="text"
                   value={uploadForm.name}
                   onChange={(e) => setUploadForm({ ...uploadForm, name: e.target.value })}
                   placeholder="e.g. Purchase Agreement - 123 Main St"
-                  style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
+                  style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
                 />
               </div>
 
               <div>
-                <label htmlFor="dealdoc-category" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Category</label>
+                <label htmlFor="dealdoc-category" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Category</label>
                 <select
                   id="dealdoc-category"
                   value={uploadForm.category}
                   onChange={(e) => setUploadForm({ ...uploadForm, category: e.target.value })}
-                  style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
+                  style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px' }}
                 >
                   {DOC_CATEGORIES.map((c) => (
                     <option key={c.value} value={c.value}>{c.icon} {c.label}</option>
@@ -375,14 +375,14 @@ const DealDocumentsTab = ({ dealId, deal }) => {
               </div>
 
               <div>
-                <label htmlFor="dealdoc-notes" style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Notes</label>
+                <label htmlFor="dealdoc-notes" style={{ fontSize: '12px', color: 'var(--text-muted-2)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Notes</label>
                 <textarea
                   id="dealdoc-notes"
                   value={uploadForm.notes}
                   onChange={(e) => setUploadForm({ ...uploadForm, notes: e.target.value })}
                   placeholder="Optional notes about this document..."
                   rows={2}
-                  style={{ background: '#111', color: '#fff', border: '1px solid #333', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px', resize: 'vertical' }}
+                  style={{ background: 'var(--gray-111)', color: 'var(--white)', border: '1px solid var(--gray-333)', padding: '10px 12px', borderRadius: '6px', width: '100%', fontSize: '14px', resize: 'vertical' }}
                 />
               </div>
 
@@ -391,13 +391,13 @@ const DealDocumentsTab = ({ dealId, deal }) => {
                   type="checkbox"
                   checked={uploadForm.requiresSignature}
                   onChange={(e) => setUploadForm({ ...uploadForm, requiresSignature: e.target.checked })}
-                  style={{ width: '16px', height: '16px', accentColor: '#00ff88' }}
+                  style={{ width: '16px', height: '16px', accentColor: 'var(--accent)' }}
                 />
                 <span style={{ fontSize: '13px', color: '#ccc' }}>Requires signature (DocuSign)</span>
               </label>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #1a1a1a' }}>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--skeleton-highlight)' }}>
               <button onClick={uploadDocument} disabled={uploading || !selectedFile} className="btn-primary btn-block">
                 {uploading ? 'Uploading...' : 'Upload Document'}
               </button>
