@@ -64,8 +64,8 @@
 
 ### Content & Copy
 
-- [ ] **COPY-01**: A one-page copy standard exists (sentence case, verb+object buttons, one term per concept, error format, no fluff) before any sweep begins
-- [ ] **COPY-02**: Firebase/API error codes map to human messages with recovery actions
+- [x] **COPY-01**: A one-page copy standard exists (sentence case, verb+object buttons, one term per concept, error format, no fluff) before any sweep begins
+- [x] **COPY-02**: Firebase/API error codes map to human messages with recovery actions
 - [ ] **COPY-03**: All dashboard labels, form helper text, empty states, and confirmations follow the standard — destructive-action copy verified against actual handler behavior before rewriting
 
 ### Accessibility & Performance
@@ -147,8 +147,8 @@ Deferred to future milestone:
 | UI-04 | Phase 7 | Pending |
 | UI-05 | Phase 7 | Pending |
 | UI-06 | Phase 7 | Pending |
-| COPY-01 | Phase 7 | Pending |
-| COPY-02 | Phase 7 | Pending |
+| COPY-01 | Phase 7 | Complete |
+| COPY-02 | Phase 7 | Complete |
 | COPY-03 | Phase 7 | Pending |
 | A11Y-01 | Phase 7 | Pending |
 | A11Y-02 | Phase 7 | Pending |
