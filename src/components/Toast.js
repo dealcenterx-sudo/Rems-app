@@ -105,21 +105,26 @@ const Toast = ({ toast, onClose }) => {
   const config = {
     success: {
       icon: CheckCircleIcon,
+      // bg alpha-suffixed (#00ff88 @ 0x15) has no byte-identical token; --accent-soft
+      // is rgba(...,0.1) which differs — deferred to Pass 2 / plan 12 (RC-01).
       bg: '#00ff8815',
-      border: '#00ff88',
-      color: '#00ff88'
+      border: 'var(--accent)',
+      color: 'var(--accent)'
     },
     error: {
       icon: AlertCircleIcon,
+      // bg alpha-suffixed (#ff3333 @ 0x15) has no byte-identical token; --danger-soft
+      // is rgba(...,0.08) which differs — deferred to Pass 2 / plan 12 (RC-01).
       bg: '#ff333315',
-      border: '#ff3333',
-      color: '#ff3333'
+      border: 'var(--danger)',
+      color: 'var(--danger)'
     },
     info: {
       icon: InfoIcon,
+      // bg alpha-suffixed (#0088ff @ 0x15) has no soft-info token — deferred to Pass 2 / plan 12 (RC-01).
       bg: '#0088ff15',
-      border: '#0088ff',
-      color: '#0088ff'
+      border: 'var(--info)',
+      color: 'var(--info)'
     }
   };
 
@@ -145,7 +150,7 @@ const Toast = ({ toast, onClose }) => {
       <span style={{
         flex: 1,
         fontSize: '13px',
-        color: '#ffffff',
+        color: 'var(--white)',
         fontWeight: '500'
       }}>
         {message}
@@ -155,7 +160,7 @@ const Toast = ({ toast, onClose }) => {
         style={{
           background: 'transparent',
           border: 'none',
-          color: '#888888',
+          color: 'var(--text-muted-2)',
           cursor: 'pointer',
           padding: '4px',
           display: 'flex',
