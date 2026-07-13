@@ -1,70 +1,73 @@
 ---
 phase: 02-test-scaffolding
-verified: 2026-07-12T00:00:00Z
+verified: 2026-07-13T00:07:00Z
 status: passed
 score: 15/15 must-haves verified
-behavior_unverified: 0 # RESOLVED this session — JDK 21 (openjdk@21 via brew) installed and `npm run test:rules` executed: 15/15 green after reconciling the activity_log test to actual behavior
+behavior_unverified: 0 # RESOLVED — JDK 21 installed (openjdk@21); `npm run test:rules` executed by the verifier this session: emulator booted, 15/15 green (exit 0)
 overrides_applied: 0
 resolution: |
-  The behavior-unverified item (test:rules emulator green pass) was resolved this session:
-  installed openjdk@21 locally and ran the emulator suite. First run was 14/15 — the
-  activity_log append-only test failed because the `match /{document=**}` admin catch-all
-  (firestore.rules:207-209) overrides `allow update, delete: if false`, so admin can edit/
-  delete audit entries. Per user decision, Phase 2 characterizes this ACTUAL behavior
-  (test updated to assertSucceeds with a SEC-04 pointer) and the append-only gap is logged
-  as a HIGH finding in docs/SAAS_READINESS_AUDIT.md, deferred to Phase 6 / SEC-04. Suite is
-  now 15/15 green under JDK 21.
-behavior_unverified_items:
-  - truth: "Developer can run `npm run test:rules` and see PASSING emulator-backed rules tests (TEST-01 / Roadmap SC-1)"
-    test: "In a JDK-21 environment (or via a CI run that provisions temurin 21), run `npm run test:rules` and confirm the Firestore emulator boots and all 15 collected cases pass green."
-    expected: "firebase emulators:exec boots the Firestore emulator on 127.0.0.1:8080 and `vitest run tests/rules` exits 0 with 15 passing cases (userId scoping, admin override, assignment access, deal-portal canAccessDeal across all six collections, users-block immutability, activity_log append-only)."
-    why_human: "The dev host runs Java 8; firebase-tools 15.x requires Java 21 to start the emulator, so the emulator-backed assertions cannot be exercised locally. Suite parses, collects 15 cases, and every assertion was hand-traced against on-disk firestore.rules — but the runtime green pass is behavior grep/collection cannot observe. Documented environment constraint (02-VALIDATION.md Manual-Only; docs/TESTING.md), not a code gap."
-human_verification:
-  - test: "Run `npm run test:rules` in a JDK-21 environment or confirm a green CI run of the 'Firestore rules tests' step in .github/workflows/ci.yml."
-    expected: "Firestore emulator boots and all 15 rules cases pass."
-    why_human: "Emulator requires Java 21; dev host has Java 8. Authoritative TEST-01 pass is delegated to CI (temurin 21) or a local JDK 21."
+  The behavior-unverified item (test:rules emulator green pass) was resolved and
+  INDEPENDENTLY RE-RUN by the verifier this session under openjdk@21
+  (/usr/local/opt/openjdk@21): `npm run test:rules` booted the Firestore emulator
+  and reported 15/15 passing (exit 0).
+
+  The emulator run corrected a static-trace error in the initial verification: the
+  activity_log append-only assertions. The `match /{document=**}` admin catch-all
+  (firestore.rules:207-209, `allow read, write: if isAdmin()`) is OR'd with — and
+  overrides — activity_log's `allow update, delete: if false` (firestore.rules:194),
+  so an admin CAN edit/delete audit entries. Per user decision, Phase 2 characterizes
+  this ACTUAL behavior (the test asserts admin update/delete succeeds, with a SEC-04
+  pointer) and the append-only violation is logged as a HIGH audit-integrity finding
+  in docs/SAAS_READINESS_AUDIT.md, deferred to Phase 6 / SEC-04. This is a
+  characterization phase — capturing true current behavior is the goal, and the gap is
+  tracked, not hidden.
 ---
 
 # Phase 2: Test Scaffolding Verification Report
 
 **Phase Goal:** The two riskiest change surfaces — Firestore rules (deployed by manual Console paste, invisible to CI) and serverless handlers — are covered by characterization tests of current behavior before any phase changes them
-**Verified:** 2026-07-12
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Verified:** 2026-07-13
+**Status:** passed
+**Re-verification:** Yes — after the JDK-21 emulator run resolved the one human-verification item
 
 ## Goal Achievement
 
-The characterization coverage for both risky surfaces exists, is substantive, and is wired into CI. The serverless-handler surface is fully verified by direct execution (`npm run test:api` → 23/23 green). The Firestore-rules surface is present, honest (every assertion hand-traced against on-disk `firestore.rules`), and collects 15 cases — but its authoritative emulator-backed green pass cannot run on this host (Java 8; requires JDK 21) and is delegated to CI per the phase's documented Manual-Only constraint. That one runtime pass is the sole item routed to human verification.
+Both risky change surfaces are covered by executing characterization tests of current behavior:
+
+- **Serverless handlers** — `npm run test:api` → 23/23 green (executed). All three required handlers (send-email, accept-invite, lead-intake) have auth (401), payload (400 zod contract), and error-path assertions, plus 200 payload-shape, missing-token/404, and 405 method-guard deepenings.
+- **Firestore rules** — `npm run test:rules` → 15/15 green (executed by the verifier under openjdk@21, emulator booted, exit 0). Covers userId scoping, admin override, assignedProperties/assignedDeals access, deal-portal `canAccessDeal()` across all six collections, users-block role/assignment immutability, and activity_log append-only behavior.
+
+The emulator run also earned its keep: it surfaced a real HIGH audit-integrity gap (the `match /{document=**}` admin catch-all defeats activity_log append-only against the admin account) that static hand-tracing missed. Per the characterization-phase goal, the test now pins the true current behavior and the gap is logged for Phase 6 / SEC-04 — exactly the "safety net before hardening" this phase exists to provide.
 
 ### Observable Truths
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | `npm run test:rules` shows PASSING emulator tests covering the 5 categories (Roadmap SC-1 / TEST-01) | ⚠️ PRESENT_BEHAVIOR_UNVERIFIED | `npx vitest list tests/rules` collects 15 cases spanning all 5 categories; assertions hand-traced against firestore.rules (all correct); emulator green pass not executable here (Java 8) → human/CI |
-| 2 | `npm run test:api` shows passing handler tests: auth/payload/error for send-email, accept-invite, lead-intake (Roadmap SC-2 / TEST-02) | ✓ VERIFIED | `npm run test:api` → 23/23 green (executed this session) |
+| 1 | `npm run test:rules` shows PASSING emulator tests covering the 5 categories (Roadmap SC-1 / TEST-01) | ✓ VERIFIED | Verifier ran `npm run test:rules` under openjdk@21 → 15/15 green, exit 0; emulator booted on 127.0.0.1:8080 |
+| 2 | `npm run test:api` shows passing handler tests: auth/payload/error for send-email, accept-invite, lead-intake (Roadmap SC-2 / TEST-02) | ✓ VERIFIED | `npm run test:api` → 23/23 green (executed) |
 | 3 | CI runs both suites alongside lint→test→build, and `test:ci` behaves exactly as before (Roadmap SC-3 / TEST-03) | ✓ VERIFIED | ci.yml lines 45-49 run test:api then test:rules after Test (41) before Build (51); `CI=true npm run test:ci` → 29/29, 3 suites all under src/ |
 | 4 | Rules suite reads firestore.rules from disk (readFileSync) — honest across Console-paste deploy | ✓ VERIFIED | firestore.rules.test.js:127 `rules: readFileSync('firestore.rules', 'utf8')` |
-| 5 | Users-block role/assignment immutability pinned — SEC-04 safety net (G-R2) | ✓ VERIFIED | `describe('users self-service rules')` 3 it-blocks; assertFails on self admin-create, role escalation, self-reassignment; assertSucceeds benign + admin bypass — traced to rules 35-56 |
-| 6 | Each of six deal-portal collections exercises canAccessDeal() read/create-allowed/create-denied (G-R1) | ✓ VERIFIED | `describe('deal-portal collections')` covers parties/channels/documents/progress (write-open) + lender-pushes (admin-only mutate) + deal-messages (existing); traced to rules 105-136 |
-| 7 | Rules suite covers userId scoping + admin override + admin-email-without-role denied | ✓ VERIFIED | vitest list shows the three userId-scoped it-blocks; traced to rules 13-17, 60-64 |
-| 8 | Rules suite covers assignedProperties + assignedDeals access | ✓ VERIFIED | `describe('assignment-based access')`; traced to rules 141-152 (properties) and 75-84 (deals) |
-| 9 | Rules suite covers activity_log append-only | ✓ VERIFIED | `describe('activity_log append-only behavior')`; traced to rules 191-195 (update/delete: if false) |
-| 10 | send-email/accept-invite/lead-intake each have 401 auth, 400 payload (zod contract), and error-path assertions | ✓ VERIFIED | grep shows `Invalid request payload` + `details` arrayContaining path at lines 120-121, 233-234, 412-413; error paths 502/503/403/401 present |
+| 5 | Users-block role/assignment immutability pinned — SEC-04 safety net (G-R2) | ✓ VERIFIED | `describe('users self-service rules')` 3 it-blocks; passed on the emulator run; traced to rules 35-56 |
+| 6 | Each of six deal-portal collections exercises canAccessDeal() read/create-allowed/create-denied (G-R1) | ✓ VERIFIED | `describe('deal-portal collections')` covers parties/channels/documents/progress + lender-pushes + deal-messages; passed on emulator; traced to rules 105-136 |
+| 7 | Rules suite covers userId scoping + admin override + admin-email-without-role denied | ✓ VERIFIED | 3 userId-scoped it-blocks; passed on emulator; traced to rules 13-17, 60-64 |
+| 8 | Rules suite covers assignedProperties + assignedDeals access | ✓ VERIFIED | `describe('assignment-based access')`; passed on emulator; traced to rules 141-152, 75-84 |
+| 9 | Rules suite covers activity_log append-only (current behavior characterized) | ✓ VERIFIED | Passed on emulator; append-only holds for non-admins; admin edit/delete succeeds (catch-all override) — characterized with SEC-04 pointer + HIGH audit finding |
+| 10 | send-email/accept-invite/lead-intake each have 401 auth, 400 payload (zod contract), and error-path assertions | ✓ VERIFIED | `Invalid request payload` + `details` arrayContaining path at lines 120-121, 233-234, 412-413; error paths 502/503/403/401 |
 | 11 | 400 assertions check zod contract (error === 'Invalid request payload' + details with field path) | ✓ VERIFIED | api-handlers.test.mjs lines 120-121, 233-234, 412-413, 490-491 |
 | 12 | send-email + accept-invite have 200 success payload-shape assertions (G-A1) | ✓ VERIFIED | it-blocks at lines 149 ({ ok, id }) and 270 ({ ok, dealId, propertyAddress }) |
 | 13 | accept-invite missing-token 401 + invite-not-found 404 branches (G-A2) | ✓ VERIFIED | lines 315/330 (Missing auth token), 333/354 (Invite not found or already used) |
-| 14 | send-email/accept-invite/lead-intake each reject non-POST with 405 (G-A3) | ✓ VERIFIED | 405 'Method not allowed' asserted at lines 171/177, 357/368, 455/461 |
-| 15 | Developer can find documented run prerequisites (Java 21, clean npm ci) in docs/TESTING.md | ✓ VERIFIED | docs/TESTING.md references test:ci/test:api/test:rules, Java 21 prereq, npm ci rolldown fix, CRA isolation invariant; check:constants green |
+| 14 | send-email/accept-invite/lead-intake each reject non-POST with 405 (G-A3) | ✓ VERIFIED | 405 'Method not allowed' at lines 171/177, 357/368, 455/461 |
+| 15 | Developer can find documented run prerequisites (Java 21, clean npm ci) in docs/TESTING.md | ✓ VERIFIED | docs/TESTING.md references all 3 lanes + Java 21 + npm ci fix + CRA isolation invariant; check:constants green |
 
-**Score:** 14/15 truths verified (1 present, behavior-unverified)
+**Score:** 15/15 truths verified
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `tests/api/api-handlers.test.mjs` | Serverless handler characterization | ✓ VERIFIED | 18KB, 23 it-blocks, 5 describe blocks; executes green |
-| `tests/rules/firestore.rules.test.js` | Emulator rules characterization | ✓ VERIFIED (parse/collect) | 10KB, reads rules from disk, collects 15 cases; emulator run deferred to JDK-21/CI |
-| `docs/TESTING.md` | Run prerequisites documented | ✓ VERIFIED | 3.8KB, all 3 lanes + Java 21 + npm ci + isolation invariant |
+| `tests/api/api-handlers.test.mjs` | Serverless handler characterization | ✓ VERIFIED | 23 it-blocks, 5 describe blocks; executes green |
+| `tests/rules/firestore.rules.test.js` | Emulator rules characterization | ✓ VERIFIED | Reads rules from disk; 15/15 green under JDK-21 emulator (verifier-run) |
+| `docs/TESTING.md` | Run prerequisites documented | ✓ VERIFIED | All 3 lanes + Java 21 + npm ci + isolation invariant |
 | `.github/workflows/ci.yml` | Both suites wired + Java 21 | ✓ VERIFIED | Setup Java temurin 21; test:api + test:rules between Test and Build |
 
 ### Key Link Verification
@@ -81,16 +84,15 @@ The characterization coverage for both risky surfaces exists, is substantive, an
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
 | API suite green | `npm run test:api` | 23 passed (23) | ✓ PASS |
-| Rules suite parses/collects | `npx vitest list tests/rules` | 15 cases enumerated | ✓ PASS |
+| Rules emulator green | `npm run test:rules` (JDK 21) | 15 passed (15), exit 0, emulator booted | ✓ PASS |
 | CRA Jest isolation | `CI=true npm run test:ci` | 29 passed, 3 suites, all src/ | ✓ PASS |
-| Rules emulator green | `npm run test:rules` | Not run — Java 8 host (needs JDK 21) | ? SKIP → human |
 | Constants gate over docs | `npm run check:constants` | OK | ✓ PASS |
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|-------------|-------------|--------|----------|
-| TEST-01 | 02-02 | Emulator-backed rules tests cover userId scoping, admin override, assignments, canAccessDeal inheritance, activity_log append-only | ? NEEDS HUMAN | Coverage present + traced + CI-wired; emulator green pass needs JDK-21/CI |
+| TEST-01 | 02-02 | Emulator-backed rules tests cover userId scoping, admin override, assignments, canAccessDeal inheritance, activity_log append-only | ✓ SATISFIED | 15/15 green under JDK-21 emulator (verifier-run) |
 | TEST-02 | 02-01 | `npm run test:api` covers auth/payload/error for send-email, accept-invite, lead-intake | ✓ SATISFIED | 23/23 green, executed |
 | TEST-03 | 02-03 | CI runs rules + API suites alongside lint→test→build without disturbing CRA Jest | ✓ SATISFIED | CI wired; test:ci isolation verified (29/29, src/ only) |
 
@@ -98,21 +100,17 @@ All three declared requirement IDs (TEST-01, TEST-02, TEST-03) are accounted for
 
 ### Anti-Patterns Found
 
-None. Scanned `tests/api/api-handlers.test.mjs`, `tests/rules/firestore.rules.test.js`, `docs/TESTING.md` — no TBD/FIXME/XXX/PLACEHOLDER/stub markers. `firestore.rules` confirmed unmodified by phase commits (last touched in base commit dd6364a; phase test commits 77a6fb7/d6adefc/9acead5 are test-only).
+None. Scanned `tests/api/api-handlers.test.mjs`, `tests/rules/firestore.rules.test.js`, `docs/TESTING.md` — no TBD/FIXME/XXX/PLACEHOLDER/stub markers. `firestore.rules` unmodified by phase commits (last touched in base commit dd6364a; phase commits are test/docs-only).
 
-### Human Verification Required
+### Notable Finding (tracked, not a Phase 2 gap)
 
-#### 1. Firestore rules emulator green pass (TEST-01)
-
-**Test:** In a JDK-21 environment run `npm run test:rules`, OR confirm a green run of the "Firestore rules tests" step in `.github/workflows/ci.yml` on CI (which provisions temurin 21).
-**Expected:** The Firestore emulator boots on 127.0.0.1:8080 and all 15 collected cases pass.
-**Why human:** This host runs Java 8; firebase-tools 15.x requires Java 21 to start the emulator. Suite parses, collects 15 cases, and every assertion was hand-traced against on-disk `firestore.rules` and matches — but the runtime green pass is behavior that cannot be observed without a JDK-21 runtime. This is the documented Manual-Only constraint (02-VALIDATION.md; docs/TESTING.md), not a code defect.
+**HIGH — activity_log append-only is not enforced against the admin account.** The `match /{document=**}` admin catch-all (`firestore.rules:207-209`, `allow read, write: if isAdmin()`) is OR'd with and overrides `activity_log`'s `allow update, delete: if false` (`firestore.rules:194`), so an admin can edit/delete audit-trail entries — defeating the tamper-evidence CLAUDE.md documents. Proven by this session's emulator run (admin `updateDoc`/`deleteDoc` succeed). Phase 2 correctly characterizes this current behavior (the test asserts success with a SEC-04 pointer) rather than asserting a guarantee that does not hold. Logged as a HIGH finding in `docs/SAAS_READINESS_AUDIT.md`, deferred to Phase 6 / SEC-04 (rules hardening; requires manual Console publish). This does not block Phase 2 — the phase's job is to characterize the real surface before hardening, which it did, and this finding is the safety net working as intended.
 
 ### Gaps Summary
 
-No gaps. The two risky surfaces are covered by honest characterization tests. The serverless-handler suite is verified by direct green execution. The rules suite is present, reads the on-disk rules, collects all 15 cases, and every assertion traces correctly to `firestore.rules` — the only unverified element is the emulator's runtime green pass, which is blocked by a known, documented host constraint (Java 8 vs required Java 21) and delegated to CI. Per the phase's explicit instruction, this is a human/CI verification item, not a gap. Once a green CI run (or local JDK-21 run) of `test:rules` is confirmed, all 15 truths are VERIFIED and the phase is fully passed.
+No gaps. Both risky surfaces are covered by executing characterization tests: handlers 23/23 green, rules 15/15 green under a JDK-21 emulator (independently re-run by the verifier). CI wires both suites with Java 21 provisioning, and CRA-Jest isolation is intact (29/29, src/ only). The phase goal — characterization of current behavior before any hardening phase touches these surfaces — is achieved, and the emulator run additionally surfaced a real HIGH audit-integrity gap now tracked for Phase 6 / SEC-04.
 
 ---
 
-_Verified: 2026-07-12_
+_Verified: 2026-07-13_
 _Verifier: Claude (gsd-verifier)_
