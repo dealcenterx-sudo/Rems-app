@@ -6,14 +6,14 @@ current_phase: 07
 current_phase_name: ui-ux-copy-accessibility
 status: executing
 stopped_at: Completed 07-06-PLAN.md
-last_updated: "2026-07-13T11:32:48.887Z"
+last_updated: "2026-07-13T11:44:16.938Z"
 last_activity: 2026-07-13
 last_activity_desc: Phase 07 execution started
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 31
-  completed_plans: 23
+  completed_plans: 24
   percent: 63
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 ## Current Position
 
 Phase: 07 (ui-ux-copy-accessibility) — EXECUTING
-Plan: 7 of 12
+Plan: 8 of 12
 Status: Ready to execute
 Last activity: 2026-07-13 — Phase 07 execution started
 
@@ -81,6 +81,7 @@ Progress: [██████░░░░] 63%
 | Phase 07 P04 | 20m | 2 tasks | 8 files |
 | Phase 07 P05 | ~12m | 3 tasks | 3 files |
 | Phase 07 P06 | 25min | 2 tasks | 7 files |
+| Phase 07 P07 | 12min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,7 @@ Recent decisions affecting current work:
 - [Phase 07]: [07-05]: Standardized LoadingButton (pendingLabel), ConfirmModal (useFocusTrap + LoadingButton confirm), Toast (tokenized); D-07 verified for all 9 ConfirmModal callers — confirmCloseDeal is updateDoc(status) not delete; Toast alpha bg deferred to Pass 2
 - [Phase ?]: 07-06: HomePage KPI cache reads stale-but-usable payload (isStale flag) for silent SWR — render cached KPIs instantly, refetch in background, no visible refresh indicator
 - [Phase ?]: 07-06: Loading branches gated by useDelayedFlag(loading,400) — layout-mirroring skeletons only past threshold, sub-threshold loads swap straight to content
+- [Phase 07]: [07-07]: Optimistic toggles revert state-only on write failure (no Firestore reload on the success hot path); rollback toast composed via errorMessages.toToastString (message+recovery), never raw err.message
 
 ### Pending Todos
 
@@ -137,6 +139,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T11:32:48.824Z
+Last session: 2026-07-13T11:43:46.546Z
 Stopped at: Completed 07-06-PLAN.md
 Resume file: None

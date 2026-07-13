@@ -60,7 +60,7 @@
 - [x] **UI-03**: Home KPIs render instantly from cache and refresh in the background (SWR pattern)
 - [x] **UI-04**: Every submit/destructive button shows a pending state while its action is in flight
 - [ ] **UI-05**: Hardcoded hex values in components are migrated to `:root` design tokens BEFORE any token values change (two separate passes)
-- [ ] **UI-06**: Task/status toggles respond optimistically with rollback on Firestore failure
+- [x] **UI-06**: Task/status toggles respond optimistically with rollback on Firestore failure
 
 ### Content & Copy
 
@@ -146,7 +146,7 @@ Deferred to future milestone:
 | UI-03 | Phase 7 | Complete |
 | UI-04 | Phase 7 | Complete |
 | UI-05 | Phase 7 | In Progress |
-| UI-06 | Phase 7 | Pending |
+| UI-06 | Phase 7 | Complete |
 | COPY-01 | Phase 7 | Complete |
 | COPY-02 | Phase 7 | Complete |
 | COPY-03 | Phase 7 | Complete |
