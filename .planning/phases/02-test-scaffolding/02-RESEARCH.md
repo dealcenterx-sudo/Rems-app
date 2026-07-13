@@ -6,7 +6,7 @@
 
 ## Summary
 
-This phase's code was **already shipped** by a prior automated run (commit `dd6364a`) and is being **reconciled and verified** under GSD — not built greenfield. The artifacts exist and are wired: `tests/rules/firestore.rules.test.js` (10 assertions across 5 `it` blocks), `tests/api/api-handlers.test.mjs` (16 tests across 5 `describe` blocks), `firebase.json` (emulator config), the `test:api` / `test:rules` npm scripts, and CI wiring that installs Java 21 and runs both suites alongside the existing lint → test → build pipeline.
+This phase's code was **already shipped** by a prior automated run (commit `dd6364a`) and is being **reconciled and verified** under GSD — not built greenfield. The artifacts exist and are wired: `tests/rules/firestore.rules.test.js` (7 `it` blocks), `tests/api/api-handlers.test.mjs` (16 tests across 5 `describe` blocks), `firebase.json` (emulator config), the `test:api` / `test:rules` npm scripts, and CI wiring that installs Java 21 and runs both suites alongside the existing lint → test → build pipeline.
 
 The characterization work is **substantially complete and passing**. The API suite runs green (16/16) and the CRA Jest suite is unchanged (29/29, 3 suites — only `src/` is swept). All three success criteria are structurally satisfied by the shipped code. The dominant gap is **environmental, not code**: the shipped `test:rules` cannot run on this developer machine because the Firestore emulator in firebase-tools 15.x **requires Java 21+** and the local JDK is Java 8; and a cross-architecture `node_modules` artifact (Apple-Silicon binding present on an x64 host) blocks Vitest until a clean reinstall. CI is unaffected — it installs Java 21 and runs `npm ci` fresh.
 
@@ -73,7 +73,7 @@ This phase installs **no new packages** — the test toolchain shipped with `dd6
 
 ## Characterization — What the Shipped Tests Actually Cover
 
-### Rules suite (`tests/rules/firestore.rules.test.js`, 5 `it` blocks / 10 assertions)
+### Rules suite (`tests/rules/firestore.rules.test.js`, 7 `it` blocks)
 
 The suite reads `firestore.rules` from disk into the emulator, seeds a fixed dataset (`admin-uid` role=admin, `agent-a` with `assignedProperties:['prop-assigned']` + `assignedDeals:['deal-assigned']`, `other-user`, and `admin-email-agent` who holds the admin *email* but role=agent), then asserts:
 
@@ -297,9 +297,11 @@ This phase is itself a security-assurance activity: it characterizes the two enf
 
 **If the CI run is confirmed green in a fresh check, A1 resolves to VERIFIED.**
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **How is the local Java 21 prerequisite enforced/satisfied for verification?**
+> All three resolved by the Phase 2 plans (discuss-phase was intentionally skipped): Q1 → Plan 02-03 documents the Java 21 prerequisite in docs/TESTING.md and accepts a green CI run as authoritative proof of criterion 1 (no local Java install task). Q2 → Plan 02-02 delivers G-R2 (users-block role-immutability tests) and G-R1 (all six deal-portal collections). Q3 → Plan 02-01 delivers G-A1 (200-success characterizations).
+
+1. **How is the local Java 21 prerequisite enforced/satisfied for verification?** *(RESOLVED → Plan 02-03: documented + green CI accepted as authoritative.)*
    - What we know: CI has Java 21; the current dev host has Java 8, so `test:rules` fails locally.
    - What's unclear: whether the verifier will install Java 21 locally or accept a green CI run as proof of criterion 1.
    - Recommendation: Document the Java 21 requirement in a testing note; accept a passing CI run as the authoritative proof for the emulator-backed suite. Flag for discuss-phase.
