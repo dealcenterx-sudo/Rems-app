@@ -1,5 +1,7 @@
-import React, { useEffect, useId, useRef } from 'react';
+import React, { useId, useRef } from 'react';
 import useEscapeKey from '../utils/useEscapeKey';
+import useFocusTrap from '../utils/useFocusTrap';
+import { LoadingButton } from './Loading';
 
 const ConfirmModal = ({
   open,
@@ -8,27 +10,27 @@ const ConfirmModal = ({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   danger = true,
+  confirming = false,
+  pendingLabel,
   onConfirm,
   onCancel
 }) => {
-  const cancelRef = useRef(null);
+  const modalRef = useRef(null);
   const titleId = useId();
   const messageId = useId();
 
   // Escape and outside-click both mean "cancel" — the safe default.
   useEscapeKey(onCancel, open);
-
-  useEffect(() => {
-    if (open) {
-      cancelRef.current?.focus();
-    }
-  }, [open]);
+  // Trap Tab focus within the dialog; focuses the first control on open and
+  // restores focus to the invoking element on close (pairs with useEscapeKey).
+  useFocusTrap(modalRef, open);
 
   if (!open) return null;
 
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div
+        ref={modalRef}
         className="modal-content"
         role="dialog"
         aria-modal="true"
@@ -38,25 +40,30 @@ const ConfirmModal = ({
         style={{
           maxWidth: '460px',
           padding: '26px',
-          border: danger ? '2px solid #ff3333' : '2px solid #1a1a1a'
+          border: danger ? '2px solid var(--danger)' : '2px solid var(--skeleton-highlight)'
         }}
       >
         <div style={{ marginBottom: '14px' }}>
-          <div id={titleId} style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>
+          <div id={titleId} style={{ fontSize: '18px', fontWeight: '700', color: 'var(--white)' }}>
             {title}
           </div>
-          <div id={messageId} style={{ fontSize: '13px', color: '#888888', marginTop: '6px' }}>
+          <div id={messageId} style={{ fontSize: '13px', color: 'var(--text-muted-2)', marginTop: '6px' }}>
             {message}
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-          <button ref={cancelRef} className="btn-secondary" onClick={onCancel}>
+          <button className="btn-secondary" onClick={onCancel} disabled={confirming}>
             {cancelLabel}
           </button>
-          <button className={danger ? 'btn-danger' : 'btn-primary'} onClick={onConfirm}>
+          <LoadingButton
+            className={danger ? 'btn-danger' : 'btn-primary'}
+            onClick={onConfirm}
+            loading={confirming}
+            pendingLabel={pendingLabel || confirmLabel}
+          >
             {confirmLabel}
-          </button>
+          </LoadingButton>
         </div>
       </div>
     </div>
