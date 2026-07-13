@@ -234,7 +234,10 @@ Phase 5 is not a rename/refactor, but it has a **deploy-channel state** dimensio
 | A3 | Committing `INLINE_RUNTIME_CHUNK=false` in a tracked `.env`/`.env.production` is acceptable to the operator (vs. dashboard env) | INFRA-03 | If operator prefers dashboard-only, use Vercel env var instead; functional either way |
 | A4 | No non-admin where+orderBy query exists outside `src/components/**` (e.g., in utils) | DATA-01 | grep scoped to components (all Firestore queries live there per architecture notes); low risk |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Q1 (INLINE_RUNTIME_CHUNK location) → RESOLVED: `.env.production` is gitignored by `.gitignore:37` (`.env*`), so use PATH A — the `package.json` build script (`INLINE_RUNTIME_CHUNK=false react-scripts build`); see 05-PATTERNS.md + plan 05-02. Q2 (Sentry region) → RESOLVED: the live bundle uses `ingest.us.sentry.io`, so `*.ingest.us.sentry.io` is added to CSP connect-src (wildcards match one label); plan 05-03 T3 re-checks the live region. Q3 (index create method) → RESOLVED: plan 05-03 T1 allows either Console or `firebase deploy --only firestore:indexes`.
+
 
 1. **Where should `INLINE_RUNTIME_CHUNK=false` live?**
    - Known: not set anywhere git-tracked; `.env.local` is gitignored and won't reach Vercel.
