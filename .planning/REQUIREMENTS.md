@@ -43,8 +43,8 @@
 
 ### Data & API Reliability
 
-- [ ] **DATA-01**: All non-admin `where('userId') + orderBy` queries have composite indexes created, READY, and documented in `firestore.indexes.json`
-- [ ] **DATA-02**: The AnalyticsDashboard missing-index fallback reports to Sentry (loud, not silent) so degradation is visible
+- [x] **DATA-01**: All non-admin `where('userId') + orderBy` queries have composite indexes created, READY, and documented in `firestore.indexes.json`
+- [x] **DATA-02**: The AnalyticsDashboard missing-index fallback reports to Sentry (loud, not silent) so degradation is visible
 - [ ] **DATA-03**: Non-admin accounts complete every major flow (Home, Deals, CRM, Properties, Tasks, Analytics) without index errors or silent fallbacks
 
 ### Infrastructure & Deployment
@@ -135,8 +135,8 @@ Deferred to future milestone:
 | SEC-03 | Phase 4 | Complete |
 | SEC-04 | Phase 6 | Complete |
 | SEC-05 | Phase 6 | Complete |
-| DATA-01 | Phase 5 | Pending |
-| DATA-02 | Phase 5 | Pending |
+| DATA-01 | Phase 5 | Complete |
+| DATA-02 | Phase 5 | Complete |
 | DATA-03 | Phase 5 | Pending |
 | INFRA-01 | Phase 8 | Pending |
 | INFRA-02 | Phase 5 | Pending |
