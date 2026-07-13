@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 04
 current_phase_name: Serverless Hardening
-status: executing
-stopped_at: Executing 04-03-PLAN.md — Task 3 (changelog) committed; STOPPED at 2 human-verify checkpoints
-last_updated: "2026-07-13T06:22:54.585Z"
+status: human_needed
+stopped_at: Finalized 04-03-PLAN.md — changelog complete; both external-half checkpoints DEFERRED post-deploy (human_needed). Close via /gsd-verify-work 4 after deploy with Cloudinary creds + SENTRY_DSN
+last_updated: "2026-07-13T06:29:07.395Z"
 last_activity: 2026-07-13
 last_activity_desc: Phase 04 execution started
 progress:
   total_phases: 8
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
-  completed_plans: 11
-  percent: 38
+  completed_plans: 12
+  percent: 50
 ---
 
 # Project State
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-07-06)
 
 ## Current Position
 
-Phase: 04 (Serverless Hardening) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-07-13 — Phase 04 execution started
+Phase: 04 (Serverless Hardening) — HUMAN_NEEDED
+Plan: 3 of 3 executed (autonomous scope complete)
+Status: Code-wiring of SEC-01/02/03 verified (test:api 41, test:ci 42). Two external halves DEFERRED post-deploy — real Cloudinary delete (CLOUDINARY_API_KEY/SECRET) + log-then-enforce Sentry-watched soak (SENTRY_DSN). Close via /gsd-verify-work 4 after a deploy with creds + DSN.
+Last activity: 2026-07-13 — Phase 04 finalized in deferred state
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 P03 | 10min | 4 tasks | 2 files |
 | Phase 04 P01 | 5m | 2 tasks | 2 files |
 | Phase 04 P02 | 1min | 2 tasks | 2 files |
+| Phase 04 P03 | ~10min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-13T06:22:54.521Z
-Stopped at: Executing 04-03-PLAN.md — Task 3 (changelog) committed; STOPPED at 2 human-verify checkpoints
+Last session: 2026-07-13T06:27:16.564Z
+Stopped at: Finalized 04-03-PLAN.md — changelog complete; both external-half checkpoints DEFERRED post-deploy (human_needed). Close via /gsd-verify-work 4 after deploy with Cloudinary creds + SENTRY_DSN
 Resume file: None
