@@ -70,9 +70,9 @@
 
 ### Accessibility & Performance
 
-- [ ] **A11Y-01**: Text contrast meets WCAG 2.2 AA (4.5:1) and focus indicators (#00ff88 ring, 3:1) are fixed at the token level so they propagate
+- [x] **A11Y-01**: Text contrast meets WCAG 2.2 AA (4.5:1) and focus indicators (#00ff88 ring, 3:1) are fixed at the token level so they propagate
 - [x] **A11Y-02**: All modals trap focus and close on Escape; interactive elements are keyboard-reachable; semantic HTML on major pages; meaning never conveyed by color alone
-- [ ] **A11Y-03**: `eslint-plugin-jsx-a11y` recommended ruleset is enabled and passing in lint
+- [x] **A11Y-03**: `eslint-plugin-jsx-a11y` recommended ruleset is enabled and passing in lint
 
 ### Landing Page & Trust
 
@@ -150,9 +150,9 @@ Deferred to future milestone:
 | COPY-01 | Phase 7 | Complete |
 | COPY-02 | Phase 7 | Complete |
 | COPY-03 | Phase 7 | Complete |
-| A11Y-01 | Phase 7 | Pending |
+| A11Y-01 | Phase 7 | Complete |
 | A11Y-02 | Phase 7 | Complete |
-| A11Y-03 | Phase 7 | Pending |
+| A11Y-03 | Phase 7 | Complete |
 | LAND-01 | Phase 8 | Pending |
 | LAND-02 | Phase 8 | Pending |
 | LAND-03 | Phase 8 | Pending |
