@@ -3,6 +3,9 @@ import lazyWithReload from '../utils/lazyWithReload';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import useUserDoc from '../utils/useUserDoc';
+import PageState from './PageState';
+import { FileText, AlertCircle } from './Icons';
+import { mapError } from '../utils/errorMessages';
 
 const DealPortalPage = lazyWithReload(() => import('./DealPortalPage'));
 
@@ -19,6 +22,8 @@ const MyDealsPage = ({ notificationDeal }) => {
   const { userDoc } = useUserDoc();
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const [portalDealId, setPortalDealId] = useState(null);
 
   // Notification click-through opens the referenced deal's portal.
@@ -33,12 +38,15 @@ const MyDealsPage = ({ notificationDeal }) => {
     if (!userDoc) return;
     if (assignedIds.length === 0) {
       setDeals([]);
+      setLoadError(null);
       setLoading(false);
       return;
     }
 
     const loadDeals = async () => {
       try {
+        setLoading(true);
+        setLoadError(null);
         const snapshots = await Promise.all(
           assignedIds.map((id) => getDoc(doc(db, 'deals', id)).catch(() => null))
         );
@@ -49,12 +57,13 @@ const MyDealsPage = ({ notificationDeal }) => {
         );
       } catch (error) {
         console.error('Error loading assigned deals:', error);
+        setLoadError(mapError(error));
       } finally {
         setLoading(false);
       }
     };
     loadDeals();
-  }, [userDoc]);
+  }, [userDoc, reloadKey]);
 
   if (portalDealId) {
     return (
@@ -72,6 +81,25 @@ const MyDealsPage = ({ notificationDeal }) => {
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="page-content">
+        <PageState
+          tone="error"
+          icon={AlertCircle}
+          eyebrow="Your deals"
+          title="Couldn't load deals"
+          message={`${loadError.message} ${loadError.recovery}`}
+          actions={(
+            <button onClick={() => setReloadKey((k) => k + 1)} className="btn-primary">
+              Try again
+            </button>
+          )}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="page-content">
       <div style={{ marginBottom: '24px' }}>
@@ -84,13 +112,12 @@ const MyDealsPage = ({ notificationDeal }) => {
       </div>
 
       {deals.length === 0 ? (
-        <div className="empty-state-card">
-          <div className="empty-state-icon">🤝</div>
-          <div className="empty-state-title">No deals shared yet</div>
-          <div className="empty-state-subtitle">
-            When your agent adds you to a transaction, it appears here with documents, progress, and chat.
-          </div>
-        </div>
+        <PageState
+          icon={FileText}
+          eyebrow="Your deals"
+          title="No deals shared yet"
+          message="When your agent adds you to a transaction, it appears here with documents, progress, and chat."
+        />
       ) : (
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
           {deals.map((deal) => {

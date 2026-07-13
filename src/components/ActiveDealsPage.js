@@ -16,9 +16,10 @@ import { useToast } from './Toast';
 import { logActivity } from '../utils/auditLog';
 import { notifyUsers, dealRecipients } from '../utils/notifications';
 import ConfirmModal from './ConfirmModal';
-import { FileText } from './Icons';
+import { FileText, Search, AlertCircle } from './Icons';
 import PageState from './PageState';
 import { isAdminUser } from '../utils/helpers';
+import { mapError } from '../utils/errorMessages';
 
 const DEALS_PAGE_SIZE = 36;
 
@@ -26,6 +27,7 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
   const toast = useToast();
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageCursors, setPageCursors] = useState([null]);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -45,6 +47,7 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
     try {
       const isAdmin = isAdminUser();
       setLoading(true);
+      setLoadError(null);
 
       const baseQueryParts = [collection(db, 'deals')];
 
@@ -89,6 +92,7 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
       setLoading(false);
     } catch (error) {
       console.error('Error loading deals:', error);
+      setLoadError(mapError(error));
       setLoading(false);
     }
   }, [filterStatus]);
@@ -245,13 +249,40 @@ const ActiveDealsPage = ({ onOpenPortal }) => {
       </div>
 
       {/* Deals Grid */}
-      {deals.length === 0 ? (
+      {loadError ? (
         <PageState
-          icon={FileText}
+          tone="error"
+          icon={AlertCircle}
           eyebrow="Deals"
-          title={filterStatus === 'all' ? 'No deals found' : `No ${getStatusLabel(filterStatus).toLowerCase()} deals found`}
-          message="Create a new deal from the Deals > New Deal page."
+          title="Couldn't load deals"
+          message={`${loadError.message} ${loadError.recovery}`}
+          actions={(
+            <button onClick={() => loadDeals(0, true)} className="btn-primary">
+              Try again
+            </button>
+          )}
         />
+      ) : deals.length === 0 ? (
+        filterStatus === 'all' ? (
+          <PageState
+            icon={FileText}
+            eyebrow="Deals"
+            title="No deals yet"
+            message="Create a deal from the Deals > New deal page to get started."
+          />
+        ) : (
+          <PageState
+            icon={Search}
+            eyebrow="Deals"
+            title="No matches"
+            message="No deals match the current filter."
+            actions={(
+              <button onClick={() => setFilterStatus('all')} className="btn-secondary">
+                Clear filters
+              </button>
+            )}
+          />
+        )
       ) : (
         <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
           {deals.map((deal) => (

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { db, auth } from '../firebase';
 import { collection, getDocs, query, where, orderBy, getCountFromServer, limit } from 'firebase/firestore';
-import { UserPlus, FileText, ShoppingCart, Key } from './Icons';
+import { UserPlus, FileText, ShoppingCart, Key, AlertCircle } from './Icons';
+import PageState from './PageState';
+import { mapError } from '../utils/errorMessages';
 import { normalizeAddressValue, normalizePropertyTypeBucket, isAdminUser } from '../utils/helpers';
 import { isExternalRole } from './Icons';
 import useUserDoc from '../utils/useUserDoc';
@@ -57,11 +59,13 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
   });
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
   const loadDashboardData = useCallback(async (refreshOnly = false) => {
     try {
       if (!refreshOnly) {
         setLoading(true);
+        setLoadError(null);
       }
 
       const isAdmin = isAdminUser();
@@ -214,6 +218,11 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
       setLoading(false);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+      // Background SWR refresh failures stay silent — cached KPIs remain on screen.
+      // Only a cold load with no cached data surfaces the error state.
+      if (!refreshOnly) {
+        setLoadError(mapError(error));
+      }
       setLoading(false);
     }
   }, []);
@@ -259,6 +268,25 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="page-content">
+        <PageState
+          tone="error"
+          icon={AlertCircle}
+          eyebrow="Dashboard"
+          title="Couldn't load your dashboard"
+          message={`${loadError.message} ${loadError.recovery}`}
+          actions={(
+            <button onClick={() => loadDashboardData()} className="btn-primary">
+              Try again
+            </button>
+          )}
+        />
+      </div>
+    );
+  }
+
   if (externalUser) {
     const isBuyer = userDoc?.role === 'buyer';
     const assignedCount = Array.isArray(userDoc?.assignedProperties)
@@ -269,7 +297,6 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
     return (
       <div className="page-content">
         <div className="card-surface" style={{ maxWidth: '640px', margin: '40px auto', padding: '40px', textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>{isBuyer ? '🔑' : '🏡'}</div>
           <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#ffffff', marginBottom: '10px' }}>
             Welcome{firstName ? `, ${firstName}` : ''}
           </h2>
@@ -280,15 +307,15 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
           </p>
           {assignedCount > 0 ? (
             <button className="btn-primary" onClick={onNavigateToProperties}>
-              View Your {assignedCount} {assignedCount === 1 ? 'Property' : 'Properties'}
+              View your {assignedCount} {assignedCount === 1 ? 'property' : 'properties'}
             </button>
           ) : (
-            <div className="empty-state-card" style={{ padding: '24px' }}>
-              <div className="empty-state-title">No properties shared yet</div>
-              <div className="empty-state-subtitle">
-                Your agent will assign properties to your account — check back soon.
-              </div>
-            </div>
+            <PageState
+              icon={Key}
+              eyebrow="Properties"
+              title="No properties shared yet"
+              message="Your agent will assign properties to your account. They appear here once shared."
+            />
           )}
         </div>
       </div>
@@ -300,10 +327,10 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
       {isFirstRun && (
         <div className="card-surface" style={{ marginBottom: '24px', padding: '28px', border: '1px solid var(--accent-border)' }}>
           <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff', margin: '0 0 6px 0' }}>
-            Welcome to REMS 👋
+            Welcome to REMS
           </h3>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 18px 0', lineHeight: 1.6 }}>
-            Your workspace is empty — here's the fastest way to get moving. Each step takes under a minute.
+            Your workspace is empty. Start with one of the steps below.
           </p>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <button className="btn-primary btn-sm" onClick={() => onNavigateToContacts('seller')}>
@@ -426,7 +453,7 @@ const HomePage = ({ onNavigateToContacts, onNavigateToDealsNew, onNavigateToProp
         <div className="section-title">Recent Tasks</div>
         {tasks.length === 0 ? (
           <div className="card-surface" style={{ textAlign: 'center', color: 'var(--text-faint)' }}>
-            No tasks yet. Add one from the Tasks page!
+            No tasks yet. Add one from the Tasks page.
           </div>
         ) : (
           <div className="tasks-table">
