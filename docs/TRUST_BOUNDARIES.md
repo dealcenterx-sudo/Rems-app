@@ -44,6 +44,21 @@ Firestore rules remain the enforcement layer for business data. UI role checks a
 - `activity_log` is append-only.
 - Rules changes are not deployed from git automatically; they must be published in Firebase Console.
 
+The per-collection access matrix below is the access model expressed as prose; it is derived from — and kept in lockstep with — the tested `firestore.rules`. Admin authority comes from `role == 'admin'` on the caller's `users/{uid}` doc (not from an email literal), record ownership from the `userId` field, and limited non-owner access from the `assignedProperties` / `assignedDeals` arrays on the caller's user doc. Deal portal collections resolve access through `canAccessDeal()`, which follows the parent deal. There is no admin catch-all rule: each collection grants admin access through its own `isAdmin()` clauses, so `activity_log` stays append-only even for admin.
+
+| Collection | Read | Create | Update | Delete | Why |
+|---|---|---|---|---|---|
+| `users` | self or admin | self (never `role == 'admin'`) or admin | self, but not `role`/assignment fields; or admin | admin | Identity docs keyed by auth UID; only admin manages role and assignment arrays. |
+| `contacts` / `leads` / `documents` / `campaigns` | owner or admin | self-owned or admin | owner (must keep owner) or admin | owner or admin | `userId`-scoped business records with admin override. |
+| `deals` | owner, admin, or assigned (read-only) | self-owned or admin | owner (must keep owner) or admin | owner or admin | Assignees listed in `assignedDeals` get read-only portal access; the deal is never writable by an assignee. |
+| `deal-parties` / `deal-channels` / `deal-documents` / `deal-progress` | `canAccessDeal(dealId)` | `canAccessDeal(dealId)` | `canAccessDeal(dealId)` | `canAccessDeal(dealId)` | Portal records inherit access from their parent deal (owner, admin, or assigned participant). |
+| `deal-messages` / `deal-lender-pushes` | `canAccessDeal(dealId)` | `canAccessDeal(dealId)` | admin only | admin only | Message/push records are append-only for participants; only admin can edit or remove history. |
+| `properties` | owner, admin, or assigned | self-owned or admin | owner or assigned (must keep owner); or admin | owner or admin | `assignedProperties` grants an agent read and update, but never delete. |
+| `tasks` | owner, assignee, or admin | self-owned or admin | owner or assignee (must keep owner); or admin | owner or admin | The `assignedTo` user may act on a task assigned to them. |
+| `notifications` | recipient or admin | any signed-in user, stamped as the actor | recipient or admin | recipient or admin | Anyone may notify a recipient; only the recipient (or admin) reads, marks read, or clears. |
+| `activity_log` | admin | signed-in as self | nobody (incl. admin) | nobody (incl. admin) | Append-only audit trail; tamper-evident after SEC-04 removed the admin catch-all — history is immutable for everyone. |
+| `companies` | member or admin | any signed-in user | owner or admin | owner or admin | Membership-scoped: readers must appear in `userIds`; writes require ownership or admin. |
+
 ## Cloudinary Media
 
 Uploads remain unsigned browser uploads through the existing Cloudinary preset. Deletes are server-side only because they require Admin API credentials.
