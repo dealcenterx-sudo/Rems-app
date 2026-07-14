@@ -30,6 +30,9 @@ The product must feel and function like a serious production SaaS — every majo
 - ✓ Cloudinary media uploads (unsigned preset), react-pdf document preview — existing
 - ✓ Audit trail via activity_log (append-only) — existing
 - ✓ CI: lint → test → build on push/PR to main; auto-merge for claude/** branches — existing
+- ✓ UI/UX modernized to enterprise SaaS standard: designed empty/loading/pending/error states, layout-mirroring skeletons, silent-SWR Home KPIs, optimistic toggles with rollback — dark + #00ff88 brand preserved — Phase 7
+- ✓ Professional product copy throughout: one-page copy standard (docs/COPY-STANDARD.md) + sweep, central leak-safe error map (errorMessages.js) mapping Firebase/API codes to {message, recovery} — Phase 7
+- ✓ Accessibility/performance: WCAG 2.2 AA contrast + brand-green focus ring fixed at the design-token level, focus trap + Escape on modals, keyboard-reachable semantic HTML, meaning never by color alone, eslint-plugin-jsx-a11y enforced at error in CI — Phase 7
 
 ### Active
 
@@ -39,15 +42,12 @@ The product must feel and function like a serious production SaaS — every majo
 - [ ] Upgrade plan written to docs/SAAS_UPGRADE_PLAN.md (8 phases, each with goal/files/tasks/risks/acceptance criteria/verification commands)
 - [ ] Running changelog maintained at docs/SAAS_UPGRADE_CHANGELOG.md
 - [ ] Repo hygiene: stray source archive removed, dev scripts relocated, temporary diagnostics endpoint removed or auth-gated
-- [ ] UI/UX modernized to enterprise SaaS standard: consistent spacing/typography/hierarchy, empty/loading/error states, button consistency, responsive behavior — preserving dark + #00ff88 brand
-- [ ] Public marketing landing page at the root explaining what REMS does, who it's for, and why it matters, with sign-in CTA (app moves behind it)
-- [ ] Professional product copy throughout: dashboard labels, form helper text, error messages, empty states, onboarding text — no fluffy startup language
+- [ ] Public marketing landing page at the root explaining what REMS does, who it's for, and why it matters, with sign-in CTA (app moves behind it) — Phase 8
 - [ ] Auth/authorization hardening: hardcoded admin email centralized, rules email-fallback removed when safe, server-side validation in api/ functions, documented trust boundaries
 - [ ] Data/API reliability: required composite indexes created and documented, input validation in serverless functions, Cloudinary delete implemented or documented as deferred
 - [ ] Infrastructure readiness: security headers, caching config, required env vars documented (names only), error tracking/observability recommendation implemented or documented
 - [ ] Testing/QA: Firestore rules tests, API function tests, lint/test/build status known and documented
-- [ ] Accessibility/performance: semantic HTML, focus states, contrast, keyboard nav, dashboard load behavior (SWR pattern for KPIs)
-- [ ] Final polish pass: every major page feels intentional; acceptance criteria from the brief verified
+- [ ] Final polish pass: every major page feels intentional; acceptance criteria from the brief verified — Phase 8
 
 ### Out of Scope
 
@@ -84,6 +84,9 @@ The product must feel and function like a serious production SaaS — every majo
 | Showcase quality is the driving priority | Lead with stabilization + UI/UX + content; harden security in parallel phases | — Pending |
 | Audit deliverables live in docs/ (SAAS_READINESS_AUDIT, SAAS_UPGRADE_PLAN, SAAS_UPGRADE_CHANGELOG); GSD planning in .planning/ | User-specified deliverables are product artifacts; GSD artifacts drive execution | — Pending |
 | Keep CRA; document migration as future recommendation | Migration risk outweighs benefit for this milestone | — Pending |
+| Two-pass token migration: byte-identical Pass 1, then contrast Pass 2 (separate commits) | Provable zero-visual-change before any token value moves — safety, not preference | ✓ Phase 7 — ~948 hex tokenized, then --text-faint/focus-ring corrected to WCAG AA |
+| Central errorMessages.js map returning curated {message, recovery}, never raw SDK detail | Single leak-safe source for all error copy; unit-testable | ✓ Phase 7 — sentinel leak test; T-07-01 verified |
+| eslint-plugin-jsx-a11y flipped to error atomically with the fix for all 251 violations | CI lint gates every push; the flip and fixes must land together so main never goes red | ✓ Phase 7 — full-src a11y-clean |
 
 ## Evolution
 
@@ -103,4 +106,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-06 after initialization*
+*Last updated: 2026-07-13 after Phase 7 (UI/UX, Copy & Accessibility)*

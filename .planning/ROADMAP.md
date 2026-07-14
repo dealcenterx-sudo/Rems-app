@@ -245,7 +245,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 4. Serverless Hardening | 3/3 | Complete    | 2026-07-13 |
 | 5. Data Reliability & Infrastructure Headers | 2/4 | In Progress|  |
 | 6. Firestore Rules Hardening | 3/3 | Complete    | 2026-07-13 |
-| 7. UI/UX, Copy & Accessibility | 12/12 | Complete   | 2026-07-13 |
+| 7. UI/UX, Copy & Accessibility | 12/12 | Complete    | 2026-07-13 |
 | 8. Landing Page, Trust & Final Polish | 0/TBD | Not started | - |
 
 ## Coverage

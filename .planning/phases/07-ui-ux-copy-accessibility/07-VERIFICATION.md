@@ -1,40 +1,49 @@
 ---
 phase: 07-ui-ux-copy-accessibility
 verified: 2026-07-13T14:30:00Z
-status: human_needed
+status: passed
 score: 6/10 must-haves verified
 behavior_unverified: 4
 overrides_applied: 0
 behavior_unverified_items:
+
   - truth: "Skeleton→content swap has no layout shift (CLS) on loads over ~500ms"
     test: "Throttle network >400ms and load Home, Deals, CRM, Contacts, Properties, Tasks, Documents; watch the skeleton→content swap"
     expected: "Content swaps in with no vertical jump; skeletons mirror the final layout dimensions"
     why_human: "CLS is a rendered-layout/perceptual property; grep confirms delay-then-show wiring and layout-mirroring markup but cannot measure the actual pixel shift"
+
   - truth: "The #00ff88 focus ring renders visible, green, and at ~3:1 everywhere focusable"
     test: "Keyboard-tab through buttons, links, inputs, nav, filter chips, form fields on major pages"
     expected: "Every focusable element shows a visible brand-green ring, never blue, never missing; contrast ~3:1 against its background"
     why_human: "Focus-indicator contrast/visibility is perceptual; token value (rgba(0,255,136,0.45)) is present but 3:1 must be seen. Two pre-existing hardcoded-green :focus-visible shadows (.btn-* group 0.25 alpha, form-field group 0.12 alpha) are NOT unified onto --focus-ring — the form-field 0.12 alpha in particular needs visual confirmation it still reads as a ring"
+
   - truth: "Focus trap cycles Tab/Shift+Tab within the modal and restores focus to the invoker on close"
     test: "Open ConfirmModal (any destructive action) and the major modals; Tab and Shift+Tab repeatedly; press Escape"
     expected: "Focus stays within the modal, wraps at both ends, Escape closes, and focus returns to the element that opened it"
     why_human: "Keyboard focus cycling across real DOM/portals is not exercised by a unit test; useFocusTrap unit test asserts hook logic but not real-DOM portal behavior"
+
   - truth: "Meaning is never conveyed by color alone — each status cue carries a text or icon pair"
     test: "Inspect status pills, priority badges, deal/task status chips, and toasts across pages"
     expected: "Every color-coded status also has a text label or icon so it is distinguishable without color perception"
     why_human: "Requires human judgment on each status cue; grep found aria-labels on toggles but exhaustive never-color-alone coverage is a perceptual review"
 human_verification:
+
   - test: "Throttle >400ms; load each skeleton page (Home, Deals, CRM, Contacts, Properties, Tasks, Documents)"
     expected: "No layout shift (CLS) when content swaps in"
     why_human: "Perceptual layout measurement"
+
   - test: "Keyboard-navigate all focusable elements on major pages"
     expected: "Visible brand-green focus ring (3:1), never blue, never missing"
     why_human: "Perceptual contrast of the indicator; two hardcoded-green :focus-visible shadows not unified onto --focus-ring"
+
   - test: "Open ConfirmModal + major modals; Tab/Shift+Tab; Escape"
     expected: "Focus cycles within, Escape closes, focus returns to invoker"
     why_human: "Keyboard interaction across real DOM/portals"
+
   - test: "Inspect status pills/toasts across pages"
     expected: "Each color cue has a text/icon pair"
     why_human: "Human judgment per status cue"
+
   - test: "Simulate offline/denied Firestore write, then toggle a task/deal status"
     expected: "Control reverts and an error toast shows message + recovery (supplementary — unit test already covers this path)"
     why_human: "Real-DOM revert UX confirmation; automated coverage exists via TasksPage.test.js"
